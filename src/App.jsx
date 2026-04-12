@@ -378,39 +378,47 @@ export default function App() {
     const ticketPanelRef = useRef(null);
 
     useEffect(() => {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
+        async function loadInitialData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
 
-            if (saved) {
-                const parsed = JSON.parse(saved);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    setTickets(Array.isArray(parsed.tickets) ? parsed.tickets : []);
+                    setMovements(Array.isArray(parsed.movements) ? parsed.movements : []);
+                } else {
+                    setTickets([]);
+                    setMovements([]);
+                }
 
-                setHouses(Array.isArray(parsed.houses) ? parsed.houses : []);
-                setTickets(Array.isArray(parsed.tickets) ? parsed.tickets : []);
-                setMovements(Array.isArray(parsed.movements) ? parsed.movements : []);
-            } else {
-                const defaultHouses = [
-                    { id: 1, nome: "EstrelaBet", bancaInicial: 1000 },
-                    { id: 2, nome: "Bet365", bancaInicial: 120 },
-                    { id: 3, nome: "Betano", bancaInicial: 0 },
-                ];
+                const { data, error } = await supabase
+                    .from("houses")
+                    .select("*")
+                    .order("id", { ascending: true });
 
-                setHouses(defaultHouses);
+                if (error) {
+                    console.error("Erro ao carregar casas do Supabase:", error);
+                    setHouses([]);
+                } else {
+                    const formattedHouses = (data || []).map((house) => ({
+                        id: house.id,
+                        nome: house.nome,
+                        bancaInicial: Number(house.banca_inicial || 0),
+                    }));
+
+                    setHouses(formattedHouses);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados iniciais:", error);
+                setHouses([]);
+                setTickets([]);
+                setMovements([]);
+            } finally {
+                setStorageLoaded(true);
             }
-        } catch (error) {
-            console.error("Erro ao carregar dados do localStorage:", error);
-
-            const defaultHouses = [
-                { id: 1, nome: "EstrelaBet", bancaInicial: 1000 },
-                { id: 2, nome: "Bet365", bancaInicial: 120 },
-                { id: 3, nome: "Betano", bancaInicial: 0 },
-            ];
-
-            setHouses(defaultHouses);
-            setTickets([]);
-            setMovements([]);
-        } finally {
-            setStorageLoaded(true);
         }
+
+        loadInitialData();
     }, []);
 
     useEffect(() => {
@@ -889,7 +897,7 @@ export default function App() {
         setEditingMovementId(null);
     }
 
-    function handleSaveTicket(event) {
+    async function handleSaveTicket(event) {
         event.preventDefault();
 
         if (!ticketForm.casaId || !ticketForm.categoria || !ticketForm.odd || !ticketForm.stake) {
@@ -983,6 +991,39 @@ export default function App() {
             numeroBilhete: ticketNumber,
             nomeBilhete: ticketName,
         };
+
+        const { error } = await supabase.from("tickets").insert([
+            {
+                id: newTicket.id,
+                data: newTicket.data,
+                casa_id: newTicket.casaId,
+                categoria: newTicket.categoria,
+                odd: newTicket.odd,
+                stake: newTicket.stake,
+                retorno: newTicket.retorno,
+                origem_stake: newTicket.origemStake,
+                stake_saldo: newTicket.stakeSaldo,
+                stake_deposito: newTicket.stakeDeposito,
+                stake_bonus: newTicket.stakeBonus,
+                resultado: newTicket.resultado,
+                observacoes: newTicket.observacoes,
+                lucro: newTicket.lucro,
+                stake_real: newTicket.stakeReal,
+                recovered_real: newTicket.recoveredReal,
+                recovered_bonus: newTicket.recoveredBonus,
+                perda_real: newTicket.perdaReal,
+                perda_bonus: newTicket.perdaBonus,
+                lucro_real: newTicket.lucroReal,
+                numero_bilhete: newTicket.numeroBilhete,
+                nome_bilhete: newTicket.nomeBilhete,
+            },
+        ]);
+
+        if (error) {
+            console.error("Erro Supabase bilhete:", error);
+            alert(`Erro ao salvar bilhete no Supabase: ${error.message}`);
+            return;
+        }
 
         setTickets((prev) => [newTicket, ...prev]);
         setViewDate(ticketForm.data);
