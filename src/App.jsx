@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import logo from "./assets/logo.png";
+import { supabase } from "./supabase";
 
 const STORAGE_KEY = "gerenciador_banca_v10";
 const HOUSES_PER_PAGE = 4;
@@ -759,7 +760,7 @@ export default function App() {
         return base;
     }, [movements, movementViewDate, selectedHouseScope]);
 
-    function handleAddOrEditHouse(event) {
+    async function handleAddOrEditHouse(event) {
         event.preventDefault();
 
         const name = houseForm.nome.trim();
@@ -807,6 +808,19 @@ export default function App() {
         };
 
         setHouses((prev) => [...prev, newHouse]);
+
+        const { error } = await supabase.from("houses").insert([
+            {
+                id: newHouse.id,
+                nome: newHouse.nome,
+                banca_inicial: newHouse.bancaInicial,
+            },
+        ]);
+
+        if (error) {
+            console.error("Erro ao salvar casa no Supabase:", error);
+        }
+
         setHouseForm(initialHouseForm);
     }
 
