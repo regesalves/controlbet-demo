@@ -435,6 +435,27 @@ export default function App() {
                     .select("*")
                     .order("id", { ascending: true });
 
+                const { data: movementsData, error: movementsError } = await supabase
+                    .from("movements")
+                    .select("*")
+                    .order("id", { ascending: false });
+
+                if (movementsError) {
+                    console.error("Erro ao carregar movimentações:", movementsError);
+                    setMovements([]);
+                } else {
+                    const formattedMovements = (movementsData || []).map((movement) => ({
+                        id: movement.id,
+                        data: movement.data,
+                        casaId: Number(movement.casa_id),
+                        tipo: movement.tipo,
+                        valor: Number(movement.valor || 0),
+                        observacoes: movement.observacoes || "",
+                    }));
+
+                    setMovements(formattedMovements);
+                }
+
                 if (error) {
                     console.error("Erro ao carregar casas do Supabase:", error);
                     setHouses([]);
