@@ -1741,7 +1741,7 @@ export default function App() {
 
                                         <div className="form-row">
                                             <div className="field-group">
-                                                <label>Stake</label>
+                                                <label>Valor Apostado</label>
                                                 <input
                                                     type="text"
                                                     inputMode="numeric"
@@ -1834,8 +1834,8 @@ export default function App() {
                                                     }
                                                 >
                                                     <option>Pendente</option>
-                                                    <option>Green</option>
-                                                    <option>Red</option>
+                                                    <option>Ganho</option>
+                                                    <option>Perda</option>
                                                 </select>
                                             </div>
 
