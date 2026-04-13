@@ -385,10 +385,49 @@ export default function App() {
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     setTickets(Array.isArray(parsed.tickets) ? parsed.tickets : []);
-                    setMovements(Array.isArray(parsed.movements) ? parsed.movements : []);
                 } else {
                     setTickets([]);
-                    setMovements([]);
+                }
+
+                const { data: ticketsData, error: ticketsError } = await supabase
+                    .from("tickets")
+                    .select("*")
+                    .order("id", { ascending: false });
+
+                console.log("ticketsData:", ticketsData);
+                console.log("ticketsError:", ticketsError);
+
+                if (ticketsError) {
+                    console.error("Erro ao carregar bilhetes do Supabase:", ticketsError);
+                    setTickets([]);
+                } else {
+                    const formattedTickets = (ticketsData || []).map((ticket) => ({
+                        id: ticket.id,
+                        data: ticket.data,
+                        casaId: Number(ticket.casa_id),
+                        categoria: ticket.categoria,
+                        odd: Number(ticket.odd || 0),
+                        stake: Number(ticket.stake || 0),
+                        retorno: Number(ticket.retorno || 0),
+                        origemStake: ticket.origem_stake || "Saldo",
+                        stakeSaldo: Number(ticket.stake_saldo || 0),
+                        stakeDeposito: Number(ticket.stake_deposito || 0),
+                        stakeBonus: Number(ticket.stake_bonus || 0),
+                        resultado: ticket.resultado || "Pendente",
+                        observacoes: ticket.observacoes || "",
+                        lucro: Number(ticket.lucro || 0),
+                        stakeReal: Number(ticket.stake_real || 0),
+                        recoveredReal: Number(ticket.recovered_real || 0),
+                        recoveredBonus: Number(ticket.recovered_bonus || 0),
+                        perdaReal: Number(ticket.perda_real || 0),
+                        perdaBonus: Number(ticket.perda_bonus || 0),
+                        lucroReal: Number(ticket.lucro_real || 0),
+                        numeroBilhete: Number(ticket.numero_bilhete || 0),
+                        nomeBilhete: ticket.nome_bilhete || "",
+                    }));
+
+                    console.log("formattedTickets:", formattedTickets);
+                    setTickets(formattedTickets);
                 }
 
                 const { data, error } = await supabase
@@ -1030,7 +1069,7 @@ export default function App() {
         resetTicketForm();
     }
 
-    function handleSaveMovement(event) {
+    async function handleSaveMovement(event) {
         event.preventDefault();
 
         const parsedValue = parseCurrencyTyping(movementForm.valor);
@@ -1059,13 +1098,33 @@ export default function App() {
             return;
         }
 
-        setMovements((prev) => [
+        const newMovement = {
+            id: Date.now(),
+            ...payload,
+        };
+
+        console.log("movimento que vou salvar:", newMovement);
+
+        const { error } = await supabase.from("movements").insert([
             {
-                id: Date.now(),
-                ...payload,
+                id: newMovement.id,
+                data: newMovement.data,
+                casa_id: newMovement.casaId,
+                tipo: newMovement.tipo,
+                valor: newMovement.valor,
+                observacoes: newMovement.observacoes,
             },
-            ...prev,
         ]);
+
+        console.log("erro movement:", error);
+
+        if (error) {
+            console.error("Erro Supabase movimentação completo:", error);
+            alert(`Erro ao salvar movimentação no Supabase: ${error.message}`);
+            return;
+        }
+
+        setMovements((prev) => [newMovement, ...prev]);
         setMovementViewDate(movementForm.data);
         resetMovementForm();
     }
