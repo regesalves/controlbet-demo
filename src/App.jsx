@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 import "./App.css";
 import logo from "./assets/logo.png";
 import { supabase } from "./supabase";
 
 const STORAGE_KEY = "gerenciador_banca_v10";
-const HOUSES_PER_PAGE = 4;
+const DESKTOP_HOUSES_PER_PAGE = 4;
+const MOBILE_HOUSES_PER_PAGE = 2;
+
+const isMobile = window.innerWidth <= 768;
+const housesPerPage = isMobile
+    ? MOBILE_HOUSES_PER_PAGE
+    : DESKTOP_HOUSES_PER_PAGE;
 const ANIMATION_MS = 220;
 
 function hojeISO() {
@@ -46,6 +54,17 @@ function getYearRef(dateISO) {
     return dateISO.slice(0, 4);
 }
 
+function getWeekRef(dateISO) {
+    const date = new Date(`${dateISO}T12:00:00`);
+    const day = date.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+
+    const monday = new Date(date);
+    monday.setDate(date.getDate() + diffToMonday);
+
+    return monday.toISOString().slice(0, 10);
+}
+
 function getQuarterRef(dateISO) {
     const year = dateISO.slice(0, 4);
     const month = Number(dateISO.slice(5, 7));
@@ -63,6 +82,22 @@ function getSemesterRef(dateISO) {
 function formatMonthRef(ref) {
     const [year, month] = ref.split("-");
     return `${month}/${year}`;
+}
+
+function formatWeekRef(ref) {
+    const start = new Date(`${ref}T12:00:00`);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+
+    const formatDayMonth = (date) => {
+        const d = String(date.getDate()).padStart(2, "0");
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        return `${d}/${m}`;
+    };
+
+    const year = String(end.getFullYear()).slice(-2);
+
+    return `${formatDayMonth(start)} a ${formatDayMonth(end)}/${year}`;
 }
 
 function formatQuarterRef(ref) {
@@ -88,6 +123,17 @@ function getPeriodInterval(periodType, reference) {
         return {
             start: reference,
             end: reference,
+        };
+    }
+
+    if (periodType === "Semanal") {
+        const start = reference;
+        const endDate = new Date(`${reference}T12:00:00`);
+        endDate.setDate(endDate.getDate() + 6);
+
+        return {
+            start,
+            end: endDate.toISOString().slice(0, 10),
         };
     }
 
@@ -157,7 +203,7 @@ function getTicketNumberForDate(tickets, dateISO, currentId = null) {
 }
 
 function buildTicketName(dateISO, number) {
-    return `${formatDateBR(dateISO)} - Bilhete ${number}`;
+    return `Bilhete ${number}`;
 }
 
 function reorderTickets(tickets) {
@@ -327,6 +373,7 @@ const initialMovementForm = {
 export default function App() {
     const [houses, setHouses] = useState([]);
     const [tickets, setTickets] = useState([]);
+    const ticketDates = tickets.map(t => t.date);
     const [movements, setMovements] = useState([]);
 
     const [ticketForm, setTicketForm] = useState(initialTicketForm);
@@ -352,12 +399,88 @@ export default function App() {
     const [slideDirection, setSlideDirection] = useState("next");
 
     const [topMetricIndex, setTopMetricIndex] = useState(0);
+    const [isStatsSliding, setIsStatsSliding] = useState(false);
+    const [statsSlideDirection, setStatsSlideDirection] = useState("next");
 
     const [isTicketPanelOpen, setIsTicketPanelOpen] = useState(false);
     const [isMovementPanelOpen, setIsMovementPanelOpen] = useState(false);
     const [isMovementDayPanelOpen, setIsMovementDayPanelOpen] = useState(false);
-    const [isTicketsDayPanelOpen, setIsTicketsDayPanelOpen] = useState(true);
+    const [isTicketsDayPanelOpen, setIsTicketsDayPanelOpen] = useState(!isMobile);
     const [openedCollapsedTicketId, setOpenedCollapsedTicketId] = useState(null);
+    const [isTicketsCalendarOpen, setIsTicketsCalendarOpen] = useState(false);
+    const ticketsCalendarRef = useRef(null);
+    const [isMovementsCalendarOpen, setIsMovementsCalendarOpen] = useState(false);
+    const movementsCalendarRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (
+                ticketsCalendarRef.current &&
+                !ticketsCalendarRef.current.contains(event.target)
+            ) {
+                setIsTicketsCalendarOpen(false);
+            }
+        }
+
+        if (isTicketsCalendarOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isTicketsCalendarOpen]);
+
+    useEffect(() => {
+        function handleEsc(event) {
+            if (event.key === "Escape") {
+                setIsTicketsCalendarOpen(false);
+            }
+        }
+
+        if (isTicketsCalendarOpen) {
+            document.addEventListener("keydown", handleEsc);
+        }
+
+        return () => {
+            document.removeEventListener("keydown", handleEsc);
+        };
+    }, [isTicketsCalendarOpen]);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (
+                movementsCalendarRef.current &&
+                !movementsCalendarRef.current.contains(event.target)
+            ) {
+                setIsMovementsCalendarOpen(false);
+            }
+        }
+
+        if (isMovementsCalendarOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMovementsCalendarOpen]);
+
+    useEffect(() => {
+        function handleEsc(event) {
+            if (event.key === "Escape") {
+                setIsMovementsCalendarOpen(false);
+            }
+        }
+
+        if (isMovementsCalendarOpen) {
+            document.addEventListener("keydown", handleEsc);
+        }
+
+        return () => {
+            document.removeEventListener("keydown", handleEsc);
+        };
+    }, [isMovementsCalendarOpen]);
 
     useEffect(() => {
         if (editingMovementId) {
@@ -376,6 +499,8 @@ export default function App() {
     const animationTimeoutRef = useRef(null);
     const movementPanelRef = useRef(null);
     const ticketPanelRef = useRef(null);
+    const ticketsDayPanelRef = useRef(null);
+    const movementDayPanelRef = useRef(null);
 
     useEffect(() => {
         async function loadInitialData() {
@@ -519,16 +644,27 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        const maxStart = Math.max(0, houses.length - HOUSES_PER_PAGE);
+        const totalHouseCards = houses.length + 1;
+        const maxStart = Math.max(0, totalHouseCards - housesPerPage);
+
         if (housePageStart > maxStart) {
             setHousePageStart(maxStart);
         }
-    }, [houses.length, housePageStart]);
+    }, [houses.length, housePageStart, housesPerPage]);
 
     const dailyReferences = useMemo(() => {
         const ticketDates = tickets.map((t) => t.data);
         const movementDates = movements.map((m) => m.data);
         return [...new Set([hojeISO(), ...ticketDates, ...movementDates])]
+            .filter(Boolean)
+            .sort((a, b) => b.localeCompare(a));
+    }, [tickets, movements]);
+
+    const weekReferences = useMemo(() => {
+        const ticketWeeks = tickets.map((t) => getWeekRef(t.data));
+        const movementWeeks = movements.map((m) => getWeekRef(m.data));
+
+        return [...new Set([getWeekRef(hojeISO()), ...ticketWeeks, ...movementWeeks])]
             .filter(Boolean)
             .sort((a, b) => b.localeCompare(a));
     }, [tickets, movements]);
@@ -567,12 +703,21 @@ export default function App() {
 
     const availableReferences = useMemo(() => {
         if (periodType === "Diário") return dailyReferences;
+        if (periodType === "Semanal") return weekReferences;
         if (periodType === "Mensal") return monthReferences;
         if (periodType === "Trimestral") return quarterReferences;
         if (periodType === "Semestral") return semesterReferences;
         if (periodType === "Anual") return yearReferences;
         return [];
-    }, [periodType, dailyReferences, monthReferences, quarterReferences, semesterReferences, yearReferences]);
+    }, [
+        periodType,
+        dailyReferences,
+        weekReferences,
+        monthReferences,
+        quarterReferences,
+        semesterReferences,
+        yearReferences,
+    ]);
 
     useEffect(() => {
         if (periodType === "Geral") {
@@ -636,56 +781,58 @@ export default function App() {
     }, [baseMovementsForPeriod, selectedHouseScope]);
 
     const housesWithCurrentBank = useMemo(() => {
-        return houses.map((house) => {
-            const allHouseTickets = tickets.filter(
-                (ticket) =>
-                    Number(ticket.casaId) === house.id && ticket.resultado !== "Pendente"
-            );
+    return houses.map((house) => {
+        const periodHouseTickets = baseTicketsForPeriod.filter(
+            (ticket) => Number(ticket.casaId) === house.id
+        );
 
-            const totalProfit = allHouseTickets.reduce(
-                (acc, ticket) => acc + getRealTicketImpact(ticket),
-                0
-            );
+        const resolvedPeriodTickets = periodHouseTickets.filter(
+            (ticket) => ticket.resultado !== "Pendente"
+        );
 
-            const allHouseMovements = movements.filter(
-                (movement) => Number(movement.casaId) === house.id
-            );
+        const totalProfit = resolvedPeriodTickets.reduce(
+            (acc, ticket) => acc + getRealTicketImpact(ticket),
+            0
+        );
 
-            const movementBalance = allHouseMovements.reduce((acc, movement) => {
-                return acc + Number(movement.valor || 0) * movementSignal(movement.tipo);
-            }, 0);
+        const periodHouseMovements = baseMovementsForPeriod.filter(
+            (movement) => Number(movement.casaId) === house.id
+        );
 
-            const periodHouseTickets = baseTicketsForPeriod.filter(
-                (ticket) => Number(ticket.casaId) === house.id
-            );
+        const movementBalance = periodHouseMovements.reduce((acc, movement) => {
+            return acc + Number(movement.valor || 0) * movementSignal(movement.tipo);
+        }, 0);
 
-            const resolvedPeriodTickets = periodHouseTickets.filter(
-                (ticket) => ticket.resultado !== "Pendente"
-            );
+        const greenCount = resolvedPeriodTickets.filter((ticket) => {
+            if (ticket.resultado === "Green") return true;
+            if (
+                ticket.resultado === "Cash Out" &&
+                Number(ticket.retorno || 0) > Number(ticket.stake || 0)
+            ) {
+                return true;
+            }
+            return false;
+        }).length;
 
-            const greenCount = resolvedPeriodTickets.filter(
-                (ticket) => ticket.resultado === "Green"
-            ).length;
+        const hitRate =
+            resolvedPeriodTickets.length > 0
+                ? (greenCount / resolvedPeriodTickets.length) * 100
+                : 0;
 
-            const hitRate =
-                resolvedPeriodTickets.length > 0
-                    ? (greenCount / resolvedPeriodTickets.length) * 100
-                    : 0;
-
-            return {
-                ...house,
-                bancaAtual:
-                    Number(house.bancaInicial || 0) + totalProfit + movementBalance,
-                quantidadeApostas: periodHouseTickets.length,
-                taxaAcerto: hitRate,
-            };
-        });
-    }, [houses, tickets, movements, baseTicketsForPeriod]);
+        return {
+            ...house,
+            bancaAtual:
+                Number(house.bancaInicial || 0) + totalProfit + movementBalance,
+            quantidadeApostas: periodHouseTickets.length,
+            taxaAcerto: hitRate,
+        };
+    });
+}, [houses, baseTicketsForPeriod, baseMovementsForPeriod]);
 
     const visibleHouses = useMemo(() => {
         return housesWithCurrentBank.slice(
             housePageStart,
-            housePageStart + HOUSES_PER_PAGE
+            housePageStart + housesPerPage
         );
     }, [housesWithCurrentBank, housePageStart]);
 
@@ -760,9 +907,11 @@ export default function App() {
     }, [baseTicketsForPeriod]);
 
     const allGreenPeriodCount = useMemo(() => {
-        return allResolvedPeriodTickets.filter(
-            (ticket) => ticket.resultado === "Green"
-        ).length;
+        return allResolvedPeriodTickets.filter((ticket) => {
+            if (ticket.resultado === "Green") return true;
+            if (ticket.resultado === "Cash Out" && Number(ticket.retorno || 0) > Number(ticket.stake || 0)) return true;
+            return false;
+        }).length;
     }, [allResolvedPeriodTickets]);
 
     const allHitRate = useMemo(() => {
@@ -802,6 +951,15 @@ export default function App() {
             ? null
             : (summaryStats.investedReal / topInitialBank) * 100;
 
+    const ticketMarkedDays = useMemo(() => {
+        return [...new Set(tickets.map((ticket) => ticket.data))]
+            .filter(Boolean)
+            .map((dateISO) => {
+                const [year, month, day] = dateISO.split("-").map(Number);
+                return new Date(year, month - 1, day);
+            });
+    }, [tickets]);
+
     const ticketsOfDay = useMemo(() => {
         let base = tickets.filter((ticket) => ticket.data === viewDate);
 
@@ -813,6 +971,15 @@ export default function App() {
 
         return base;
     }, [tickets, viewDate, selectedHouseScope]);
+
+    const movementMarkedDays = useMemo(() => {
+        return [...new Set(movements.map((movement) => movement.data))]
+            .filter(Boolean)
+            .map((dateISO) => {
+                const [year, month, day] = dateISO.split("-").map(Number);
+                return new Date(year, month - 1, day);
+            });
+    }, [movements]);
 
     const movementsOfDay = useMemo(() => {
         let base = movements
@@ -987,9 +1154,17 @@ export default function App() {
             returned = stake * odd;
         }
 
-        if (ticketForm.resultado !== "Red" && (Number.isNaN(returned) || returned < 0)) {
+        if (
+            ticketForm.resultado !== "Red" &&
+            ticketForm.resultado !== "Pendente" &&
+            (Number.isNaN(returned) || returned < 0)
+        ) {
             alert("Informe um retorno válido.");
             return;
+        }
+
+        if (ticketForm.resultado === "Pendente") {
+            returned = 0;
         }
 
         const breakdown = normalizeStakeBreakdown(ticketForm, stake);
@@ -1028,6 +1203,7 @@ export default function App() {
 
             setTickets(reorderTickets(updated));
             setViewDate(ticketForm.data);
+            setOpenedCollapsedTicketId(null);
             resetTicketForm();
             setIsTicketPanelOpen(false);
             return;
@@ -1087,7 +1263,9 @@ export default function App() {
 
         setTickets((prev) => [newTicket, ...prev]);
         setViewDate(ticketForm.data);
+        setOpenedCollapsedTicketId(null);
         resetTicketForm();
+        setIsTicketPanelOpen(false);
     }
 
     async function handleSaveMovement(event) {
@@ -1116,6 +1294,8 @@ export default function App() {
             );
             setMovementViewDate(movementForm.data);
             resetMovementForm();
+            setIsMovementPanelOpen(false);
+            setIsMovementDayPanelOpen(false);
             return;
         }
 
@@ -1148,6 +1328,8 @@ export default function App() {
         setMovements((prev) => [newMovement, ...prev]);
         setMovementViewDate(movementForm.data);
         resetMovementForm();
+        setIsMovementPanelOpen(false);
+        setIsMovementDayPanelOpen(false);
     }
 
     function handleStartEditTicket(ticketId) {
@@ -1171,6 +1353,7 @@ export default function App() {
 
         setEditingTicketId(ticketId);
         setIsTicketPanelOpen(true);
+        setOpenedCollapsedTicketId(null);
 
         requestAnimationFrame(() => {
             ticketPanelRef.current?.scrollIntoView({
@@ -1205,6 +1388,7 @@ export default function App() {
 
         setEditingMovementId(movementId);
         setIsMovementPanelOpen(true);
+        setIsMovementDayPanelOpen(false);
 
         requestAnimationFrame(() => {
             movementPanelRef.current?.scrollIntoView({
@@ -1259,11 +1443,13 @@ export default function App() {
     function handleHousePage(direction) {
         if (isSliding) return;
 
-        const maxStart = Math.max(0, housesWithCurrentBank.length - HOUSES_PER_PAGE);
+        const totalHouseCards = houses.length + 1;
+        const maxStart = Math.max(0, totalHouseCards - housesPerPage);
+
         const nextStart =
             direction === "next"
-                ? Math.min(maxStart, housePageStart + HOUSES_PER_PAGE)
-                : Math.max(0, housePageStart - HOUSES_PER_PAGE);
+                ? Math.min(maxStart, housePageStart + housesPerPage)
+                : Math.max(0, housePageStart - housesPerPage);
 
         if (nextStart === housePageStart) return;
 
@@ -1332,7 +1518,7 @@ export default function App() {
                                     : "neutral",
                 },
                 {
-                    title: "Stake real",
+                    title: "Valor real apostado",
                     value: selectedHouseScope === null ? null : summaryStats.investedReal,
                     formatter: formatMoney,
                     tone: "neutral",
@@ -1371,15 +1557,31 @@ export default function App() {
     const canNextMetric = topMetricIndex < topMetricPages.length - 1;
 
     function prevMetric() {
-        setTopMetricIndex((prev) => Math.max(0, prev - 1));
+        if (isStatsSliding || !canPrevMetric) return;
+
+        setStatsSlideDirection("prev");
+        setIsStatsSliding(true);
+
+        setTimeout(() => {
+            setTopMetricIndex((prev) => Math.max(0, prev - 1));
+            setIsStatsSliding(false);
+        }, 180);
     }
 
     function nextMetric() {
-        setTopMetricIndex((prev) => Math.min(topMetricPages.length - 1, prev + 1));
+        if (isStatsSliding || !canNextMetric) return;
+
+        setStatsSlideDirection("next");
+        setIsStatsSliding(true);
+
+        setTimeout(() => {
+            setTopMetricIndex((prev) => Math.min(topMetricPages.length - 1, prev + 1));
+            setIsStatsSliding(false);
+        }, 180);
     }
 
     const canGoPrev = housePageStart > 0;
-    const canGoNext = housePageStart + HOUSES_PER_PAGE < housesWithCurrentBank.length;
+    const canGoNext = housePageStart + housesPerPage < housesWithCurrentBank.length;
     const selectedStakeFields = getStakeSourceFields(ticketForm.origemStake);
 
     function renderTopValue(value, formatter = (v) => v) {
@@ -1394,21 +1596,16 @@ export default function App() {
                     <div className="header-left">
                         <div className="brand-block">
                             <img src={logo} alt="Alves Tech" className="logo" />
-                            <p className="brand-subtitle">Controle de banca e desempenho</p>
                         </div>
 
-                        <div className="title-group">
-                            <h1 className="product-name">
-                                <span className="bet">Bet</span>Control </h1>
-                        </div>
                     </div>
                 </header>
 
                 <section className="panel top-panel">
-                    <div className="top-info-row">
-                        <div className="top-house-form">
-                            <form className="inline-form" onSubmit={handleAddOrEditHouse}>
-                                <div className="field-group compact-field">
+                    <div className="top-desktop-layout">
+                        <div className="top-house-form-row">
+                            <form className="top-house-form-inline" onSubmit={handleAddOrEditHouse}>
+                                <div className="field-group top-house-field">
                                     <label>Casa de aposta</label>
                                     <input
                                         type="text"
@@ -1420,7 +1617,7 @@ export default function App() {
                                     />
                                 </div>
 
-                                <div className="field-group compact-field">
+                                <div className="field-group top-house-field top-house-bank-field">
                                     <label>Banca inicial</label>
                                     <input
                                         type="text"
@@ -1435,14 +1632,19 @@ export default function App() {
                                     />
                                 </div>
 
-                                <button type="submit" className="primary-button compact-button">
-                                    {editingHouseId ? "Salvar casa" : "Adicionar casa"}
+                                <button type="submit" className="primary-button top-house-add-button">
+                                    <span className="btn-text">
+                                        {editingHouseId ? "Salvar casa" : "Adicionar casa"}
+                                    </span>
+                                    <span className="btn-icon">
+                                        {editingHouseId ? "✓" : "+"}
+                                    </span>
                                 </button>
 
                                 {editingHouseId && (
                                     <button
                                         type="button"
-                                        className="secondary-button compact-button"
+                                        className="secondary-button top-house-cancel-button"
                                         onClick={() => {
                                             setEditingHouseId(null);
                                             setHouseForm(initialHouseForm);
@@ -1452,208 +1654,286 @@ export default function App() {
                                     </button>
                                 )}
                             </form>
-                        </div>
 
-                        <div className="period-filter-row">
-                            <div className="field-group period-field">
-                                <label>Período das estatísticas</label>
-                                <select
-                                    value={periodType}
-                                    onChange={(e) => setPeriodType(e.target.value)}
-                                >
-                                    <option>Diário</option>
-                                    <option>Geral</option>
-                                    <option>Mensal</option>
-                                    <option>Trimestral</option>
-                                    <option>Semestral</option>
-                                    <option>Anual</option>
-                                </select>
-                            </div>
-
-                            {periodType !== "Geral" && (
-                                <div className="field-group period-field">
-                                    <label>Referência</label>
-                                    <select
-                                        value={periodReference}
-                                        onChange={(e) => setPeriodReference(e.target.value)}
+                            {!isMobile && (
+                                <div className="top-houses-arrows">
+                                    <button
+                                        type="button"
+                                        className="arrow-btn"
+                                        onClick={() => handleHousePage("prev")}
+                                        disabled={!canGoPrev}
                                     >
-                                        {availableReferences.map((reference) => (
-                                            <option key={reference} value={reference}>
-                                                {periodType === "Diário" && formatDateBR(reference)}
-                                                {periodType === "Mensal" && formatMonthRef(reference)}
-                                                {periodType === "Trimestral" && formatQuarterRef(reference)}
-                                                {periodType === "Semestral" && formatSemesterRef(reference)}
-                                                {periodType === "Anual" && reference}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        ‹
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="arrow-btn"
+                                        onClick={() => handleHousePage("next")}
+                                        disabled={!canGoNext}
+                                    >
+                                        ›
+                                    </button>
                                 </div>
                             )}
-
-                            <div className="period-badge">
-                                <span>Visualizando</span>
-                                <strong>{formatPeriodLabel(periodType, periodReference)}</strong>
-                            </div>
                         </div>
-                    </div>
 
-                    <div className="summary-carousel-section">
-                        <div className="summary-carousel-shell">
-                            <div className="summary-carousel-viewport">
-                                <div
-                                    className="summary-carousel-track"
-                                    style={{ transform: `translateX(-${topMetricIndex * 100}%)` }}
-                                >
-                                    {topMetricPages.map((page, pageIndex) => (
-                                        <div className="summary-page" key={pageIndex}>
-                                            <div className="summary-four-row">
-                                                {page.map((metric) => (
-                                                    <div
-                                                        key={metric.title}
-                                                        className={`summary-card ${metric.highlight ? "highlight" : ""}`}
-                                                    >
-                                                        <span>{metric.title}</span>
-                                                        <strong className={`metric-value ${metric.tone || "neutral"}`}>
-                                                            {renderTopValue(metric.value, metric.formatter)}
-                                                        </strong>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="summary-nav-buttons">
-                                <button
-                                    type="button"
-                                    className="secondary-button nav-mini-button summary-outside-nav"
-                                    onClick={prevMetric}
-                                    disabled={!canPrevMetric}
-                                >
-                                    ←
-                                </button>
-
-                                <button
-                                    type="button"
-                                    className="secondary-button nav-mini-button summary-outside-nav"
-                                    onClick={nextMetric}
-                                    disabled={!canNextMetric}
-                                >
-                                    →
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="house-strip">
-                        <button
-                            type="button"
-                            className={`house-card house-general-card ${selectedHouseScope === "all" ? "selected-house-card" : ""}`}
-                            onClick={selectAllHousesScope}
-                        >
-                            <div className="house-card-title">Geral</div>
-                            <div className="house-small-info">
-                                <span>Apostas</span>
-                                <strong>{baseTicketsForPeriod.length}</strong>
-                            </div>
-                            <div className="house-small-info">
-                                <span>Taxa de acerto</span>
-                                <strong>{formatPercent(allHitRate)}</strong>
-                            </div>
-                        </button>
-
-                        <div style={{ position: "relative" }}>
+                        <div className="top-houses-row">
                             <div
-                                className={`houses-scroll-area ${isSliding ? `is-sliding ${slideDirection === "next" ? "slide-next" : "slide-prev"}` : ""}`}
+                                className={`top-houses-grid ${isSliding
+                                    ? `is-sliding ${slideDirection === "next" ? "slide-next" : "slide-prev"}`
+                                    : ""
+                                    }`}
                             >
-                                {visibleHouses.map((house) => (
-                                    <div className="house-card-wrapper" key={house.id}>
-                                        <button
-                                            type="button"
-                                            className={`house-card house-compact-card ${selectedHouseScope === house.id ? "selected-house-card" : ""}`}
-                                            onClick={() => selectHouseScope(house.id)}
-                                        >
-                                            <div className="house-card-title">{house.nome}</div>
-                                            <div className="house-small-info">
-                                                <span>Apostas</span>
-                                                <strong>{house.quantidadeApostas}</strong>
-                                            </div>
-                                            <div className="house-small-info">
-                                                <span>Taxa de acerto</span>
-                                                <strong>{formatPercent(house.taxaAcerto)}</strong>
-                                            </div>
-                                        </button>
-
-                                        <div className="house-menu-area" ref={menuHouseId === house.id ? menuRef : null}>
-                                            <button
-                                                type="button"
-                                                className="menu-dots-button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setMenuHouseId((prev) => (prev === house.id ? null : house.id));
-                                                }}
-                                            >
-                                                ⋮
-                                            </button>
-
-                                            {menuHouseId === house.id && (
-                                                <div className="house-menu">
+                                {[
+                                    {
+                                        id: "all",
+                                        nome: "Todas as casas",
+                                        quantidadeApostas: baseTicketsForPeriod.length,
+                                        taxaAcerto: allHitRate,
+                                        isAll: true,
+                                    },
+                                    ...housesWithCurrentBank,
+                                ]
+                                    .slice(housePageStart, housePageStart + housesPerPage)
+                                    .map((house) => {
+                                        if (house.isAll) {
+                                            return (
+                                                <div className="top-house-card-wrap" key="all-houses-card">
                                                     <button
                                                         type="button"
-                                                        className="house-menu-item"
-                                                        onClick={() => handleStartEditHouse(house.id)}
+                                                        className={`top-house-card top-house-general-card ${selectedHouseScope === "all" ? "selected-house-card" : ""
+                                                            }`}
+                                                        onClick={selectAllHousesScope}
                                                     >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="house-menu-item danger-item"
-                                                        onClick={() => handleDeleteHouse(house.id)}
-                                                    >
-                                                        Excluir
+                                                        <div className="top-house-card-title">Todas as casas</div>
+
+                                                        <div className="top-house-card-info">
+                                                            <span>Apostas</span>
+                                                            <strong>{house.quantidadeApostas}</strong>
+                                                        </div>
+
+                                                        <div className="top-house-card-info">
+                                                            <span>Taxa de acerto</span>
+                                                            <strong>{formatPercent(house.taxaAcerto)}</strong>
+                                                        </div>
                                                     </button>
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
+                                            );
+                                        }
 
-                                {visibleHouses.length === 0 && (
-                                    <div className="empty-state">
-                                        Cadastre uma casa para começar.
-                                    </div>
-                                )}
+                                        return (
+                                            <div className="top-house-card-wrap" key={house.id}>
+                                                <div
+                                                    className={`top-house-card ${selectedHouseScope === house.id ? "selected-house-card" : ""
+                                                        }`}
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        className="top-house-card-button"
+                                                        onClick={() => selectHouseScope(house.id)}
+                                                    >
+                                                        <div className="top-house-card-header">
+                                                            <div className="top-house-card-title">{house.nome}</div>
+
+                                                            <button
+                                                                type="button"
+                                                                className="menu-dots-button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setMenuHouseId((prev) =>
+                                                                        prev === house.id ? null : house.id
+                                                                    );
+                                                                }}
+                                                            >
+                                                                ⋮
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="top-house-card-info">
+                                                            <span>Apostas</span>
+                                                            <strong>{house.quantidadeApostas}</strong>
+                                                        </div>
+
+                                                        <div className="top-house-card-info">
+                                                            <span>Taxa de acerto</span>
+                                                            <strong>{formatPercent(house.taxaAcerto)}</strong>
+                                                        </div>
+                                                    </button>
+
+                                                    {menuHouseId === house.id && (
+                                                        <div className="top-house-menu-box" ref={menuRef}>
+                                                            <button
+                                                                type="button"
+                                                                className="house-menu-item"
+                                                                onClick={() => handleStartEditHouse(house.id)}
+                                                            >
+                                                                Editar
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                className="house-menu-item danger-item"
+                                                                onClick={() => handleDeleteHouse(house.id)}
+                                                            >
+                                                                Excluir
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                             </div>
+                        </div>
 
-                            <div className="houses-nav-buttons">
+                        {isMobile && (
+                            <div className="top-houses-arrows bottom-arrows">
                                 <button
                                     type="button"
-                                    className="secondary-button nav-mini-button"
+                                    className="arrow-btn"
                                     onClick={() => handleHousePage("prev")}
                                     disabled={!canGoPrev}
                                 >
-                                    ←
+                                    ‹
                                 </button>
+
                                 <button
                                     type="button"
-                                    className="secondary-button nav-mini-button"
+                                    className="arrow-btn"
                                     onClick={() => handleHousePage("next")}
                                     disabled={!canGoNext}
                                 >
-                                    →
+                                    ›
                                 </button>
                             </div>
+                        )}
+
+                        <div className="top-filter-summary-row">
+                            <div className="top-filter-group">
+                                <div className="field-group period-field">
+                                    <label>Período</label>
+                                    <select
+                                        value={periodType}
+                                        onChange={(e) => setPeriodType(e.target.value)}
+                                    >
+                                        <option value="Diário">Diário</option>
+                                        <option value="Semanal">Semanal</option>
+                                        <option value="Mensal">Mensal</option>
+                                        <option value="Trimestral">Trimestral</option>
+                                        <option value="Semestral">Semestral</option>
+                                        <option value="Anual">Anual</option>
+                                        <option value="Geral">Geral</option>
+                                    </select>
+                                </div>
+
+                                {periodType !== "Geral" && (
+                                    <div className="field-group period-field">
+                                        <label>Data</label>
+                                        <select
+                                            value={periodReference}
+                                            onChange={(e) => setPeriodReference(e.target.value)}
+                                        >
+                                            {availableReferences.map((reference) => (
+                                                <option key={reference} value={reference}>
+                                                    {periodType === "Diário" && formatDateBR(reference)}
+                                                    {periodType === "Semanal" && formatWeekRef(reference)}
+                                                    {periodType === "Mensal" && formatMonthRef(reference)}
+                                                    {periodType === "Trimestral" && formatQuarterRef(reference)}
+                                                    {periodType === "Semestral" && formatSemesterRef(reference)}
+                                                    {periodType === "Anual" && reference}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                            </div>
+
+                            {!isMobile && <div className="stats-top-arrows-inline">
+                                <button
+                                    type="button"
+                                    className="arrow-btn"
+                                    onClick={prevMetric}
+                                    disabled={!canPrevMetric}
+                                >
+                                    ‹
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="arrow-btn"
+                                    onClick={nextMetric}
+                                    disabled={!canNextMetric}
+                                >
+                                    ›
+                                </button>
+                            </div>}
                         </div>
+
+                        <div className="stats-top-section">
+                            <div
+                                className={`stats-top-grid ${isStatsSliding ? `is-sliding ${statsSlideDirection === "next" ? "slide-next" : "slide-prev"}` : ""}`}
+                            >
+                                {topMetricPages[topMetricIndex].map((item) => (
+                                    <div
+                                        key={item.title}
+                                        className={`stats-top-card ${item.tone === "positive" ? "positive" : item.tone === "negative" ? "negative" : ""}`}
+                                    >
+                                        <span>{item.title}</span>
+                                        <strong className={`metric-value ${item.tone || "neutral"}`}>
+                                            {renderTopValue(item.value, item.formatter)}
+                                        </strong>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {isMobile && (
+                                <div className="stats-bottom-arrows">
+                                    <button
+                                        type="button"
+                                        className="arrow-btn"
+                                        onClick={() => setTopMetricIndex((prev) => Math.max(0, prev - 1))}
+                                        disabled={topMetricIndex === 0}
+                                    >
+                                        ‹
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="arrow-btn"
+                                        onClick={() =>
+                                            setTopMetricIndex((prev) =>
+                                                Math.min(topMetricPages.length - 1, prev + 1)
+                                            )
+                                        }
+                                        disabled={topMetricIndex >= topMetricPages.length - 1}
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
                     </div>
                 </section>
 
                 <section className="main-grid">
                     <div className="left-column">
-                        <section className="panel" ref={ticketPanelRef}>
+                        <section className="panel ticket-panel" ref={ticketPanelRef}>
                             <div
                                 className="section-header"
-                                onClick={() => setIsTicketPanelOpen(!isTicketPanelOpen)}
+                                onClick={() => {
+                                    const nextOpen = !isTicketPanelOpen;
+                                    setIsTicketPanelOpen(nextOpen);
+
+                                    requestAnimationFrame(() => {
+                                        ticketPanelRef.current?.scrollIntoView({
+                                            behavior: "smooth",
+                                            block: "start",
+                                        });
+                                    });
+                                }}
                                 style={{ cursor: "pointer" }}
                             >
                                 <h2 style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1830,12 +2110,16 @@ export default function App() {
                                                 <select
                                                     value={ticketForm.resultado}
                                                     onChange={(e) =>
-                                                        setTicketForm((prev) => ({ ...prev, resultado: e.target.value }))
+                                                        setTicketForm((prev) => ({
+                                                            ...prev,
+                                                            resultado: e.target.value,
+                                                        }))
                                                     }
                                                 >
-                                                    <option>Pendente</option>
-                                                    <option>Ganho</option>
-                                                    <option>Perda</option>
+                                                    <option value="Pendente">Pendente</option>
+                                                    <option value="Green">Ganho</option>
+                                                    <option value="Red">Perda</option>
+                                                    <option value="Cash Out">Cash Out</option>
                                                 </select>
                                             </div>
 
@@ -1875,10 +2159,20 @@ export default function App() {
                             )}
                         </section>
 
-                        <section className="panel" ref={movementPanelRef}>
+                        <section className="panel movement-panel" ref={movementPanelRef}>
                             <div
                                 className="section-header"
-                                onClick={() => setIsMovementPanelOpen(!isMovementPanelOpen)}
+                                onClick={() => {
+                                    const nextOpen = !isMovementPanelOpen;
+                                    setIsMovementPanelOpen(nextOpen);
+
+                                    requestAnimationFrame(() => {
+                                        movementPanelRef.current?.scrollIntoView({
+                                            behavior: "smooth",
+                                            block: "start",
+                                        });
+                                    });
+                                }}
                                 style={{ cursor: "pointer" }}
                             >
                                 <h2 style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1992,10 +2286,20 @@ export default function App() {
                             )}
                         </section>
 
-                        <section className="panel">
+                        <section className="panel movement-day-panel" ref={movementDayPanelRef}>
                             <div
                                 className="section-header"
-                                onClick={() => setIsMovementDayPanelOpen(!isMovementDayPanelOpen)}
+                                onClick={() => {
+                                    const nextOpen = !isMovementDayPanelOpen;
+                                    setIsMovementDayPanelOpen(nextOpen);
+
+                                    requestAnimationFrame(() => {
+                                        movementDayPanelRef.current?.scrollIntoView({
+                                            behavior: "smooth",
+                                            block: "start",
+                                        });
+                                    });
+                                }}
                                 style={{ cursor: "pointer" }}
                             >
                                 <h2 style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -2012,26 +2316,53 @@ export default function App() {
                                     <div className="day-nav-center">
                                         <button
                                             type="button"
-                                            className="nav-mini-button"
+                                            className="arrow-btn"
                                             onClick={goToPreviousMovementDay}
                                         >
-                                            ←
+                                            ‹
                                         </button>
 
-                                        <input
-                                            type="date"
-                                            value={movementViewDate}
-                                            onChange={(e) => setMovementViewDate(e.target.value)}
-                                        />
+                                        <div className="tickets-calendar-field" ref={movementsCalendarRef}>
+                                            <button
+                                                type="button"
+                                                className="tickets-calendar-button"
+                                                onClick={() => setIsMovementsCalendarOpen((prev) => !prev)}
+                                            >
+                                                {formatDateBR(movementViewDate)}
+                                            </button>
+
+                                            {isMovementsCalendarOpen && (
+                                                <div className="tickets-calendar-popover">
+                                                    <DayPicker
+                                                        mode="single"
+                                                        selected={(() => {
+                                                            const [year, month, day] = movementViewDate.split("-").map(Number);
+                                                            return new Date(year, month - 1, day);
+                                                        })()}
+                                                        onSelect={(date) => {
+                                                            if (!date) return;
+
+                                                            const year = date.getFullYear();
+                                                            const month = String(date.getMonth() + 1).padStart(2, "0");
+                                                            const day = String(date.getDate()).padStart(2, "0");
+
+                                                            setMovementViewDate(`${year}-${month}-${day}`);
+                                                            setIsMovementsCalendarOpen(false);
+                                                        }}
+                                                        modifiers={{ hasMovements: movementMarkedDays }}
+                                                        modifiersClassNames={{ hasMovements: "day-has-movements" }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
 
                                         <button
                                             type="button"
-                                            className="nav-mini-button"
+                                            className="arrow-btn"
                                             onClick={goToNextMovementDay}
                                         >
-                                            →
+                                            ›
                                         </button>
-
                                     </div>
 
                                     <div className="movement-list scrollable-list">
@@ -2094,163 +2425,402 @@ export default function App() {
                                 </>
                             )}
                         </section>
+
                     </div>
 
                     <div className="right-column">
-                        <section className="panel tickets-day-panel">
+                        <section className="panel tickets-day-panel" ref={ticketsDayPanelRef}>
+                            {isMobile ? (
+                                <>
+                                    <div
+                                        className="section-header"
+                                        onClick={() => {
+                                            const nextOpen = !isTicketsDayPanelOpen;
+                                            setIsTicketsDayPanelOpen(nextOpen);
 
-                            <div className="tickets-topbar">
-                                <div className="section-header">
-                                    <h2>Bilhetes do dia</h2>
-                                </div>
-
-                                <div className="tickets-date-nav">
-                                    <button
-                                        type="button"
-                                        className="nav-mini-button"
-                                        onClick={goToPreviousDay}
+                                            requestAnimationFrame(() => {
+                                                ticketsDayPanelRef.current?.scrollIntoView({
+                                                    behavior: "smooth",
+                                                    block: "start",
+                                                });
+                                            });
+                                        }}
+                                        style={{ cursor: "pointer", marginBottom: 0 }}
                                     >
-                                        ←
-                                    </button>
-
-                                    <div className="tickets-date-field">
-                                        <input
-                                            type="date"
-                                            value={viewDate}
-                                            onChange={(e) => setViewDate(e.target.value)}
-                                        />
+                                        <h2
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                margin: 0,
+                                            }}
+                                        >
+                                            <span>Bilhetes do dia</span>
+                                            <span className="toggle-icon">
+                                                {isTicketsDayPanelOpen ? "−" : "+"}
+                                            </span>
+                                        </h2>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        className="nav-mini-button"
-                                        onClick={goToNextDay}
-                                    >
-                                        →
-                                    </button>
-                                </div>
-                            </div>
+                                    {isTicketsDayPanelOpen && (
+                                        <>
+                                            <div className="tickets-topbar">
+                                                <div className="tickets-title-wrap"></div>
 
-                            <div className="collapsed-ticket-list">
-                                {ticketsOfDay.length === 0 ? (
-                                    <div className="empty-state">
-                                        Nenhum bilhete para a data selecionada.
-                                    </div>
-                                ) : (
-                                    [...ticketsOfDay]
-                                        .sort((a, b) => (a.numeroBilhete || 0) - (b.numeroBilhete || 0))
-                                        .map((ticket) => {
-                                            const houseName =
-                                                houses.find((house) => house.id === Number(ticket.casaId))?.nome ||
-                                                "Casa não encontrada";
-
-                                            const isOpen = openedCollapsedTicketId === ticket.id;
-
-                                            return (
-                                                <div
-                                                    key={ticket.id}
-                                                    className={`collapsed-ticket-card ${isOpen ? "open" : ""}`}
-                                                >
+                                                <div className="tickets-date-nav">
                                                     <button
                                                         type="button"
-                                                        className="collapsed-ticket-item"
-                                                        onClick={() =>
-                                                            setOpenedCollapsedTicketId((prev) =>
-                                                                prev === ticket.id ? null : ticket.id
-                                                            )
-                                                        }
+                                                        className="nav-mini-button arrow-btn"
+                                                        onClick={() => setViewDate(addDays(viewDate, -1))}
+                                                        aria-label="Dia anterior"
                                                     >
-                                                        <div className="collapsed-ticket-main">
-                                                            <div className="collapsed-ticket-name">
-                                                                {houseName} • {ticket.nomeBilhete}
-                                                            </div>
-
-                                                            <div className="collapsed-ticket-meta">
-                                                                <span>Odd: {ticket.odd}</span>
-                                                                <span>Stake: {formatMoney(ticket.stake)}</span>
-                                                                <span>Retorno: {formatMoney(ticket.retorno)}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        <span
-                                                            className={`collapsed-ticket-status ${ticket.resultado === "Green"
-                                                                ? "green"
-                                                                : ticket.resultado === "Red"
-                                                                    ? "red"
-                                                                    : "pending"
-                                                                }`}
-                                                        >
-                                                            {ticket.resultado}
-                                                        </span>
+                                                        &#8249;
                                                     </button>
 
-                                                    {isOpen && (
-                                                        <div className="collapsed-ticket-detail">
+                                                    <div ref={ticketsCalendarRef} className="tickets-calendar-field">
 
-                                                            <div className="ticket-info-grid">
-                                                                <div className="info-box">
-                                                                    <span>Odd</span>
-                                                                    <strong>{ticket.odd}</strong>
-                                                                </div>
-                                                                <div className="info-box">
-                                                                    <span>Stake</span>
-                                                                    <strong>{formatMoney(ticket.stake)}</strong>
-                                                                </div>
-                                                                <div className="info-box">
-                                                                    <span>Retorno</span>
-                                                                    <strong>{formatMoney(ticket.retorno)}</strong>
-                                                                </div>
-                                                                <div className="info-box">
-                                                                    <span>Lucro</span>
-                                                                    <strong>{formatMoney(ticket.lucro)}</strong>
-                                                                </div>
-                                                                <div className="info-box">
-                                                                    <span>Stake real</span>
-                                                                    <strong>
-                                                                        {formatMoney(
-                                                                            ticket.stakeReal ??
-                                                                            ((ticket.stakeSaldo || 0) + (ticket.stakeDeposito || 0))
-                                                                        )}
-                                                                    </strong>
-                                                                </div>
-                                                                <div className="info-box">
-                                                                    <span>Stake bônus</span>
-                                                                    <strong>{formatMoney(ticket.stakeBonus ?? 0)}</strong>
-                                                                </div>
-                                                                <div className="info-box">
-                                                                    <span>Resultado real</span>
-                                                                    <strong>{formatMoney(getRealTicketImpact(ticket))}</strong>
-                                                                </div>
+                                                        <button
+                                                            type="button"
+                                                            className="tickets-calendar-button"
+                                                            onClick={() => setIsTicketsCalendarOpen((prev) => !prev)}
+                                                        >
+                                                            {formatDateBR(viewDate)}
+                                                        </button>
+
+                                                        {isTicketsCalendarOpen && (
+                                                            <div className="tickets-calendar-popover">
+                                                                <DayPicker
+                                                                    mode="single"
+                                                                    selected={(() => {
+                                                                        const [year, month, day] = viewDate.split("-").map(Number);
+                                                                        return new Date(year, month - 1, day);
+                                                                    })()}
+                                                                    onSelect={(date) => {
+                                                                        if (!date) return;
+
+                                                                        const year = date.getFullYear();
+                                                                        const month = String(date.getMonth() + 1).padStart(2, "0");
+                                                                        const day = String(date.getDate()).padStart(2, "0");
+
+                                                                        setViewDate(`${year}-${month}-${day}`);
+                                                                        setIsTicketsCalendarOpen(false);
+                                                                    }}
+                                                                    modifiers={{ hasTickets: ticketMarkedDays }}
+                                                                    modifiersClassNames={{ hasTickets: "day-has-tickets" }}
+                                                                />
                                                             </div>
+                                                        )}
+                                                    </div>
 
-                                                            {ticket.observacoes && (
-                                                                <div className="ticket-note">{ticket.observacoes}</div>
-                                                            )}
-
-                                                            <div className="ticket-actions">
-                                                                <button
-                                                                    type="button"
-                                                                    className="secondary-button"
-                                                                    onClick={() => handleStartEditTicket(ticket.id)}
-                                                                >
-                                                                    Editar
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    className="danger-button"
-                                                                    onClick={() => handleDeleteTicket(ticket.id)}
-                                                                >
-                                                                    Excluir
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        className="nav-mini-button arrow-btn"
+                                                        onClick={() => setViewDate(addDays(viewDate, 1))}
+                                                        aria-label="Próximo dia"
+                                                    >
+                                                        &#8250;
+                                                    </button>
                                                 </div>
-                                            );
-                                        })
-                                )}
-                            </div>
+                                            </div>
 
+                                            <div className="collapsed-ticket-list">
+                                                {ticketsOfDay.length === 0 ? (
+                                                    <div className="empty-state">
+                                                        Nenhum bilhete encontrado para este dia.
+                                                    </div>
+                                                ) : (
+                                                    ticketsOfDay.map((ticket) => {
+                                                        const house = houses.find((item) => item.id === Number(ticket.casaId));
+
+                                                        return (
+                                                            <div
+                                                                id={`collapsed-ticket-${ticket.id}`}
+                                                                key={ticket.id}
+                                                                className={`collapsed-ticket-card ${openedCollapsedTicketId === ticket.id ? "open" : ""}`}
+                                                            >
+                                                                <button
+                                                                    type="button"
+                                                                    className="collapsed-ticket-item"
+                                                                    onClick={() => {
+                                                                        const nextOpenId = openedCollapsedTicketId === ticket.id ? null : ticket.id;
+                                                                        setOpenedCollapsedTicketId(nextOpenId);
+
+                                                                        if (nextOpenId === ticket.id) {
+                                                                            requestAnimationFrame(() => {
+                                                                                setTimeout(() => {
+                                                                                    document.getElementById(`collapsed-ticket-${ticket.id}`)?.scrollIntoView({
+                                                                                        behavior: "smooth",
+                                                                                        block: "start",
+                                                                                    });
+                                                                                }, 50);
+                                                                            });
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <div className="collapsed-ticket-main">
+                                                                        <div className="collapsed-ticket-name">
+                                                                            {ticket.nomeBilhete || "Bilhete"}
+                                                                        </div>
+                                                                        <div className="collapsed-ticket-meta">
+                                                                            <span>{house?.nome || "Casa não encontrada"}</span>
+                                                                            <span>{ticket.categoria}</span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <span
+                                                                        className={`collapsed-ticket-status ${ticket.resultado === "Cash Out"
+                                                                            ? (Number(ticket.retorno || 0) >= Number(ticket.stake || 0)
+                                                                                ? "green"
+                                                                                : "red")
+                                                                            : String(ticket.resultado || "").toLowerCase()
+                                                                            }`}
+                                                                    >
+                                                                        {ticket.resultado === "Green"
+                                                                            ? "Ganho"
+                                                                            : ticket.resultado === "Red"
+                                                                                ? "Perda"
+                                                                                : ticket.resultado === "Cash Out"
+                                                                                    ? "Cash Out"
+                                                                                    : "Pendente"}
+                                                                    </span>
+                                                                </button>
+
+                                                                {openedCollapsedTicketId === ticket.id && (
+                                                                    <div className="collapsed-ticket-detail">
+                                                                        <div className="ticket-info-grid">
+                                                                            <div className="info-box">
+                                                                                <span>Casa</span>
+                                                                                <strong>{house?.nome || "Casa não encontrada"}</strong>
+                                                                            </div>
+                                                                            <div className="info-box">
+                                                                                <span>Categoria</span>
+                                                                                <strong>{ticket.categoria}</strong>
+                                                                            </div>
+                                                                            <div className="info-box">
+                                                                                <span>Odd</span>
+                                                                                <strong>{Number(ticket.odd || 0).toFixed(2)}</strong>
+                                                                            </div>
+                                                                            <div className="info-box">
+                                                                                <span>Valor apostado</span>
+                                                                                <strong>{formatMoney(ticket.stake)}</strong>
+                                                                            </div>
+                                                                            <div className="info-box">
+                                                                                <span>Retorno</span>
+                                                                                <strong>{formatMoney(ticket.retorno)}</strong>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {ticket.observacoes && (
+                                                                            <div className="ticket-note">{ticket.observacoes}</div>
+                                                                        )}
+
+                                                                        <div className="card-actions">
+                                                                            <button
+                                                                                type="button"
+                                                                                className="secondary-button"
+                                                                                onClick={() => handleStartEditTicket(ticket.id)}
+                                                                            >
+                                                                                Editar
+                                                                            </button>
+
+                                                                            <button
+                                                                                type="button"
+                                                                                className="danger-button"
+                                                                                onClick={() => handleDeleteTicket(ticket.id)}
+                                                                            >
+                                                                                Excluir
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <div className="tickets-topbar">
+                                        <div className="section-header tickets-title-wrap">
+                                            <h2>Bilhetes do dia</h2>
+                                        </div>
+
+                                        <div className="tickets-date-nav">
+                                            <button
+                                                type="button"
+                                                className="nav-mini-button arrow-btn"
+                                                onClick={() => setViewDate(addDays(viewDate, -1))}
+                                                aria-label="Dia anterior"
+                                            >
+                                                &#8249;
+                                            </button>
+
+                                            <div ref={ticketsCalendarRef} className="tickets-calendar-field">
+
+                                                <button
+                                                    type="button"
+                                                    className="tickets-calendar-button"
+                                                    onClick={() => setIsTicketsCalendarOpen((prev) => !prev)}
+                                                >
+                                                    {formatDateBR(viewDate)}
+                                                </button>
+
+                                                {isTicketsCalendarOpen && (
+                                                    <div className="tickets-calendar-popover">
+                                                        <DayPicker
+                                                            mode="single"
+                                                            selected={(() => {
+                                                                const [year, month, day] = viewDate.split("-").map(Number);
+                                                                return new Date(year, month - 1, day);
+                                                            })()}
+                                                            onSelect={(date) => {
+                                                                if (!date) return;
+
+                                                                const year = date.getFullYear();
+                                                                const month = String(date.getMonth() + 1).padStart(2, "0");
+                                                                const day = String(date.getDate()).padStart(2, "0");
+
+                                                                setViewDate(`${year}-${month}-${day}`);
+                                                                setIsTicketsCalendarOpen(false);
+                                                            }}
+                                                            modifiers={{ hasTickets: ticketMarkedDays }}
+                                                            modifiersClassNames={{ hasTickets: "day-has-tickets" }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                className="nav-mini-button arrow-btn"
+                                                onClick={() => setViewDate(addDays(viewDate, 1))}
+                                                aria-label="Próximo dia"
+                                            >
+                                                &#8250;
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="collapsed-ticket-list">
+                                        {ticketsOfDay.length === 0 ? (
+                                            <div className="empty-state">
+                                                Nenhum bilhete encontrado para este dia.
+                                            </div>
+                                        ) : (
+                                            ticketsOfDay.map((ticket) => {
+                                                const house = houses.find((item) => item.id === Number(ticket.casaId));
+
+                                                return (
+                                                    <div
+                                                        id={`collapsed-ticket-${ticket.id}`}
+                                                        key={ticket.id}
+                                                        className={`collapsed-ticket-card ${openedCollapsedTicketId === ticket.id ? "open" : ""}`}
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            className="collapsed-ticket-item"
+                                                            onClick={() => {
+                                                                const nextOpenId = openedCollapsedTicketId === ticket.id ? null : ticket.id;
+                                                                setOpenedCollapsedTicketId(nextOpenId);
+
+                                                                if (nextOpenId === ticket.id) {
+                                                                    requestAnimationFrame(() => {
+                                                                        setTimeout(() => {
+                                                                            document.getElementById(`collapsed-ticket-${ticket.id}`)?.scrollIntoView({
+                                                                                behavior: "smooth",
+                                                                                block: "start",
+                                                                            });
+                                                                        }, 50);
+                                                                    });
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div className="collapsed-ticket-main">
+                                                                <div className="collapsed-ticket-name">
+                                                                    {ticket.nomeBilhete || "Bilhete"}
+                                                                </div>
+                                                                <div className="collapsed-ticket-meta">
+                                                                    <span>{house?.nome || "Casa não encontrada"}</span>
+                                                                    <span>{ticket.categoria}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <span
+                                                                className={`collapsed-ticket-status ${ticket.resultado === "Cash Out"
+                                                                    ? (Number(ticket.retorno || 0) >= Number(ticket.stake || 0)
+                                                                        ? "green"
+                                                                        : "red")
+                                                                    : String(ticket.resultado || "").toLowerCase()
+                                                                    }`}
+                                                            >
+                                                                {ticket.resultado === "Green"
+                                                                    ? "Ganho"
+                                                                    : ticket.resultado === "Red"
+                                                                        ? "Perda"
+                                                                        : ticket.resultado === "Cash Out"
+                                                                            ? "Cash Out"
+                                                                            : "Pendente"}
+                                                            </span>
+                                                        </button>
+
+                                                        {openedCollapsedTicketId === ticket.id && (
+                                                            <div className="collapsed-ticket-detail">
+                                                                <div className="ticket-info-grid">
+                                                                    <div className="info-box">
+                                                                        <span>Casa</span>
+                                                                        <strong>{house?.nome || "Casa não encontrada"}</strong>
+                                                                    </div>
+                                                                    <div className="info-box">
+                                                                        <span>Categoria</span>
+                                                                        <strong>{ticket.categoria}</strong>
+                                                                    </div>
+                                                                    <div className="info-box">
+                                                                        <span>Odd</span>
+                                                                        <strong>{Number(ticket.odd || 0).toFixed(2)}</strong>
+                                                                    </div>
+                                                                    <div className="info-box">
+                                                                        <span>Valor apostado</span>
+                                                                        <strong>{formatMoney(ticket.stake)}</strong>
+                                                                    </div>
+                                                                    <div className="info-box">
+                                                                        <span>Retorno</span>
+                                                                        <strong>{formatMoney(ticket.retorno)}</strong>
+                                                                    </div>
+                                                                </div>
+
+                                                                {ticket.observacoes && (
+                                                                    <div className="ticket-note">{ticket.observacoes}</div>
+                                                                )}
+
+                                                                <div className="card-actions">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="secondary-button"
+                                                                        onClick={() => handleStartEditTicket(ticket.id)}
+                                                                    >
+                                                                        Editar
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        className="danger-button"
+                                                                        onClick={() => handleDeleteTicket(ticket.id)}
+                                                                    >
+                                                                        Excluir
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </section>
                     </div>
                 </section>

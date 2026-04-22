@@ -9,13 +9,22 @@ body,
 #root {
     width: 100%;
     min-height: 100%;
+    height: auto;
+}
+
+html,
+body {
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 body {
+    display: block;
     font-family: Arial, Helvetica, sans-serif;
     background: #0f172a;
 }
 
 #root {
     width: 100%;
+    height: auto;
 }
