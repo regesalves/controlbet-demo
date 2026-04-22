@@ -1663,7 +1663,7 @@ hr.section-divider {
     font-size: 0.85rem;
     cursor: pointer;
     font-weight: 600;
-letter-spacing: 0.2px;
+    letter-spacing: 0.2px;
 }
 
 .tickets-calendar-popover {
@@ -1870,26 +1870,26 @@ letter-spacing: 0.2px;
         display: contents !important;
     }
 
-    .left-column > section:nth-of-type(1) {
+    .left-column>section:nth-of-type(1) {
         order: 1;
     }
 
-    .right-column > section:nth-of-type(1) {
+    .right-column>section:nth-of-type(1) {
         order: 2;
     }
 
-    .left-column > section:nth-of-type(2) {
+    .left-column>section:nth-of-type(2) {
         order: 3;
     }
 
-    .right-column > section:nth-of-type(2) {
+    .right-column>section:nth-of-type(2) {
         order: 4;
     }
 
     .panel,
     .top-panel,
     .tickets-day-panel,
-    .right-column > .panel {
+    .right-column>.panel {
         width: 100% !important;
         max-width: 100% !important;
         height: auto !important;
@@ -1950,7 +1950,7 @@ letter-spacing: 0.2px;
         width: 100% !important;
     }
 
-    .top-house-form-inline > * {
+    .top-house-form-inline>* {
         min-width: 0;
     }
 
@@ -2141,60 +2141,372 @@ letter-spacing: 0.2px;
     }
 }
 
-@media (max-width: 390px) {
+@media (max-width: 375px) {
+
+    html,
+    body,
+    #root {
+        width: 100% !important;
+        min-height: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow-x: hidden !important;
+    }
+
+    body {
+        overflow-y: auto !important;
+        position: static !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
 
     .app {
-        padding: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 14px !important;
+        padding-top: 12px !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
-    .logo {
-        height: 110px;
-        margin: -20px auto 8px auto;
-        transform: translateX(10px);
+    .container {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
-    .top-houses-row {
-        grid-template-columns: 1fr !important;
+    .main-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
-    .top-houses-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
+    .left-column,
+    .right-column {
+        display: contents !important;
+    }
+
+    .left-column>section:nth-of-type(1) {
+        order: 1;
+    }
+
+    .right-column>section:nth-of-type(1) {
+        order: 2;
+    }
+
+    .left-column>section:nth-of-type(2) {
+        order: 3;
+    }
+
+    .right-column>section:nth-of-type(2) {
+        order: 4;
+    }
+
+    .panel,
+    .top-panel,
+    .tickets-day-panel,
+    .right-column>.panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 14px !important;
+        border-radius: 16px !important;
+    }
+
+    .stats-bottom-arrows {
+        display: flex !important;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .stats-bottom-arrows .arrow-btn,
+    .stats-bottom-arrows button {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        display: inline-flex !important;
+        flex: 0 0 auto !important;
+    }
+
+    .summary-nav-buttons,
+    .stats-top-arrows,
+    .stats-top-arrows-inline,
+    .top-houses-arrows {
+        position: static !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        gap: 10px;
+        width: 100%;
+        margin: 0;
+        transform: translateY(-4px);
+    }
+
+    .houses-nav-buttons {
+        position: static !important;
+        transform: none !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        gap: 8px;
+        width: 100%;
+        margin-top: 6px;
+    }
+
+    .top-house-form-inline {
+        display: grid !important;
+        grid-template-columns: 1fr 109px !important;
+        gap: 9px !important;
+        align-items: end !important;
+        width: 100% !important;
+    }
+
+    .top-house-form-inline>* {
+        min-width: 0;
+    }
+
+    .top-house-field {
+        grid-column: 1;
+        min-width: 154px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .top-house-bank-field {
+        grid-column: 2;
+        min-width: 0 !important;
+        max-width: 110px !important;
+        width: 125px !important;
+    }
+
+    .top-house-add-button {
+        grid-column: 3;
+        margin-left: 0 !important;
+        font-size: 0 !important;
+        padding: 0 !important;
+        width: 36px !important;
+        min-width: 36px !important;
+        height: 34px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .top-house-add-button::before {
+        content: "+";
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .top-house-field input,
+    .top-house-bank-field input {
+        height: 34px;
+        font-size: 0.88rem;
+        padding: 4px 8px;
     }
 
     .top-house-card,
     .top-house-general-card {
-        min-height: 92px !important;
-        padding: 7px 9px !important;
+        width: 100% !important;
+    }
+
+    .top-house-card {
+        min-height: 90px !important;
+        padding: 6px 7px !important;
+    }
+
+    .top-house-general-card {
+        min-height: 90px !important;
+        padding: 6px 7px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: linear-gradient(180deg, #f7faff 0%, #edf3fb 100%) !important;
+        border: 1px solid #b9c8dd !important;
     }
 
     .top-house-card-title {
-        font-size: 0.85rem !important;
+        font-size: 0.88rem !important;
+        line-height: 1.15 !important;
+        margin-bottom: -2px !important;
+    }
+
+    .top-house-general-card .top-house-card-title {
+        font-size: 0.86rem !important;
+        margin-bottom: -3px !important;
     }
 
     .top-house-card-info span {
-        font-size: 0.72rem !important;
+        font-size: 0.7rem !important;
     }
 
     .top-house-card-info strong {
-        font-size: 0.78rem !important;
+        font-size: 0.70rem !important;
+        font-weight: 700;
+        line-height: 1.7;
+    }
+
+    .top-houses-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .top-houses-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
     }
 
     .top-filter-summary-row {
-        grid-template-columns: 1fr !important;
-        gap: 6px !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        align-items: end !important;
+    }
+
+    .top-filter-group {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: end !important;
+        gap: 8px !important;
+        width: auto !important;
+        margin-top: -15px;
+    }
+
+    .period-field {
+        flex: 0 0 102px !important;
+        width: 102px !important;
+        min-width: 154.5px !important;
+        max-width: 102px !important;
     }
 
     .date-search-field {
-        width: 100% !important;
-        min-width: 0 !important;
+        width: 100px !important;
+    }
+
+    .top-filter-group select,
+    .top-filter-group input {
+        height: 34px !important;
+        padding: 3px 6px !important;
+        font-size: 0.80rem !important;
+        border-radius: 8px !important;
     }
 
     .stats-top-grid {
-        gap: 6px !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        margin-top: -4px;
     }
 
-    .panel {
-        padding: 12px !important;
+    .summary-four-row {
+        grid-template-columns: repeat(2, 1fr) !important;
     }
+
+    .logo {
+        height: 120px;
+        margin: -30px auto 10px auto;
+        transform: translateX(15px);
+    }
+
+    .header {
+        display: flex;
+        justify-content: center;
+    }
+
+    .header img {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .tickets-day-panel .section-header {
+        margin-bottom: 0 !important;
+        height: 42px !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 1px !important;
+    }
+
+    .tickets-day-panel .tickets-topbar {
+        margin-top: 8px;
+    }
+
+    .panel .section-header span:last-child {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .tickets-day-panel .section-header h2 {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        transform: translateY(-4px);
+    }
+
+    .tickets-day-panel .section-header span:last-child {
+        margin-left: auto !important;
+    }
+
+    .ticket-panel {
+        order: 1;
+    }
+
+    .tickets-day-panel {
+        order: 2;
+        min-height: 60px;
+    }
+
+    .movement-panel {
+        order: 3;
+    }
+
+    .movement-day-panel {
+        order: 4;
+    }
+
+    .stats-top-card {
+        min-height: 90px !important;
+        padding: 8px 10px !important;
+    }
+
+    .stats-top-card span {
+        font-size: 12px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .stats-top-card strong {
+        font-size: 1.1rem !important;
+        line-height: 1.1 !important;
+    }
+
+
+
 }
