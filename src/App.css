@@ -1324,7 +1324,7 @@ hr.section-divider {
 }
 
 .top-house-general-card .top-house-card-title {
-    font-size: .88rem;
+    font-size: 1rem;
 
 }
 
@@ -1728,6 +1728,14 @@ hr.section-divider {
 
 .form-row input[type="date"] {
     width: 147px !important;
+}
+
+.footer {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #8a94a6;
+    margin-top: 20px;
+    padding: 10px 0;
 }
 
 
@@ -2373,7 +2381,7 @@ hr.section-divider {
     }
 
     .top-house-general-card .top-house-card-title {
-        font-size: 0.86rem !important;
+        font-size: .89rem !important;
         margin-bottom: -3px !important;
     }
 
@@ -2560,6 +2568,11 @@ hr.section-divider {
 
 .top-houses-scroll::-webkit-scrollbar {
     display: none;
+}
+
+.footer {
+    font-size: 0.65rem;
+    margin-top: 16px;
 }
 
 }

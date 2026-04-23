@@ -947,9 +947,7 @@ export default function App() {
             : calculateEvolution(topInitialBank, topCurrentBank);
 
     const finalResult =
-        topInitialBank === null || topCurrentBank === null
-            ? null
-            : topCurrentBank - topInitialBank;
+        selectedHouseScope === null ? null : summaryStats.realProfit;
 
     const bankUsagePercent =
         selectedHouseScope === null ||
@@ -2864,9 +2862,13 @@ export default function App() {
                                     </div>
                                 </>
                             )}
-                        </section>
+                                                </section>
                     </div>
                 </section>
+
+                <footer className="footer">
+    Desenvolvido por <strong>Alves Tech</strong> © 2026
+</footer>
             </div>
         </div>
     );
