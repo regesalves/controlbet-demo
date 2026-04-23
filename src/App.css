@@ -1254,6 +1254,8 @@ hr.section-divider {
     gap: 12px;
     width: 100%;
     touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .top-houses-grid.is-sliding.slide-next {
@@ -1723,6 +1725,7 @@ hr.section-divider {
     font-size: 0.9rem !important;
     border-radius: 8px !important;
 }
+
 .form-row input[type="date"] {
     width: 147px !important;
 }
@@ -1743,6 +1746,8 @@ hr.section-divider {
         width: 100% !important;
         overflow: hidden !important;
         touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .top-house-card,
@@ -1818,6 +1823,8 @@ hr.section-divider {
     .top-houses-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .stats-top-grid,
@@ -2048,6 +2055,8 @@ hr.section-divider {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 10px !important;
         touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .top-filter-summary-row {
@@ -2391,6 +2400,8 @@ hr.section-divider {
         gap: 8px !important;
         width: 100% !important;
         touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .top-filter-summary-row {
@@ -2524,15 +2535,16 @@ hr.section-divider {
     }
 
     .field-group input,
-.field-group select {
-    height: 42px !important;
-    padding: 4px 8px !important;
-    font-size: 0.9rem !important;
-    border-radius: 8px !important;
-}
-.form-row input[type="date"] {
-    width: 152.5px !important;
-}
+    .field-group select {
+        height: 42px !important;
+        padding: 4px 8px !important;
+        font-size: 0.9rem !important;
+        border-radius: 8px !important;
+    }
+
+    .form-row input[type="date"] {
+        width: 152.5px !important;
+    }
 
 
 

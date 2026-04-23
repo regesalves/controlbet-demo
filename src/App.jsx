@@ -400,6 +400,11 @@ export default function App() {
     const [isSliding, setIsSliding] = useState(false);
     const [slideDirection, setSlideDirection] = useState("next");
 
+    const houseTouchStartX = useRef(0);
+    const houseTouchStartY = useRef(0);
+    const houseTouchCurrentX = useRef(0);
+    const houseIsSwiping = useRef(false);
+
     const [topMetricIndex, setTopMetricIndex] = useState(0);
     const [isStatsSliding, setIsStatsSliding] = useState(false);
     const [statsSlideDirection, setStatsSlideDirection] = useState("next");
@@ -1467,18 +1472,35 @@ export default function App() {
             setIsSliding(false);
         }, ANIMATION_MS);
     }
+
     function handleHouseTouchStart(e) {
-        houseTouchStartX.current = e.changedTouches[0].clientX;
+        const touch = e.touches[0];
+        houseTouchStartX.current = touch.clientX;
+        houseTouchStartY.current = touch.clientY;
+        houseTouchCurrentX.current = touch.clientX;
+        houseIsSwiping.current = false;
     }
 
-    function handleHouseTouchEnd(e) {
-        houseTouchEndX.current = e.changedTouches[0].clientX;
+    function handleHouseTouchMove(e) {
+        const touch = e.touches[0];
+        houseTouchCurrentX.current = touch.clientX;
 
-        const deltaX = houseTouchStartX.current - houseTouchEndX.current;
+        const deltaX = touch.clientX - houseTouchStartX.current;
+        const deltaY = touch.clientY - houseTouchStartY.current;
 
-        if (Math.abs(deltaX) < 40) return;
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+            houseIsSwiping.current = true;
+        }
+    }
 
-        if (deltaX > 0) {
+    function handleHouseTouchEnd() {
+        if (!houseIsSwiping.current) return;
+
+        const deltaX = houseTouchCurrentX.current - houseTouchStartX.current;
+
+        if (Math.abs(deltaX) < 50) return;
+
+        if (deltaX < 0) {
             handleHousePage("next");
         } else {
             handleHousePage("prev");
@@ -1704,6 +1726,7 @@ export default function App() {
                                     : ""
                                     }`}
                                 onTouchStart={handleHouseTouchStart}
+                                onTouchMove={handleHouseTouchMove}
                                 onTouchEnd={handleHouseTouchEnd}
                             >
                                 {[
