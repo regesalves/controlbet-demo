@@ -9,26 +9,6 @@ const STORAGE_KEY = "gerenciador_banca_v10";
 const DESKTOP_HOUSES_PER_PAGE = 4;
 const MOBILE_HOUSES_PER_PAGE = 2;
 
-const houseTouchStartX = useRef(0);
-const houseTouchEndX = useRef(0);
-const handleHouseTouchStart = (e) => {
-    houseTouchStartX.current = e.changedTouches[0].clientX;
-};
-
-const handleHouseTouchEnd = (e) => {
-    houseTouchEndX.current = e.changedTouches[0].clientX;
-
-    const deltaX = houseTouchStartX.current - houseTouchEndX.current;
-
-    if (Math.abs(deltaX) < 40) return;
-
-    if (deltaX > 0) {
-        handleHousePage("next");
-    } else {
-        handleHousePage("prev");
-    }
-};
-
 const isMobile = window.innerWidth <= 768;
 const housesPerPage = isMobile
     ? MOBILE_HOUSES_PER_PAGE
@@ -1486,6 +1466,23 @@ export default function App() {
             setHousePageStart(nextStart);
             setIsSliding(false);
         }, ANIMATION_MS);
+    }
+    function handleHouseTouchStart(e) {
+        houseTouchStartX.current = e.changedTouches[0].clientX;
+    }
+
+    function handleHouseTouchEnd(e) {
+        houseTouchEndX.current = e.changedTouches[0].clientX;
+
+        const deltaX = houseTouchStartX.current - houseTouchEndX.current;
+
+        if (Math.abs(deltaX) < 40) return;
+
+        if (deltaX > 0) {
+            handleHousePage("next");
+        } else {
+            handleHousePage("prev");
+        }
     }
 
     const topMetricPages = useMemo(() => {
