@@ -1720,114 +1720,113 @@ export default function App() {
                         </div>
 
                         <div className="top-houses-row">
-                            <div
-                                className={`top-houses-grid ${isSliding
-                                    ? `is-sliding ${slideDirection === "next" ? "slide-next" : "slide-prev"}`
-                                    : ""
-                                    }`}
-                                onTouchStart={handleHouseTouchStart}
-                                onTouchMove={handleHouseTouchMove}
-                                onTouchEnd={handleHouseTouchEnd}
-                            >
-                                {[
-                                    {
-                                        id: "all",
-                                        nome: "Todas as casas",
-                                        quantidadeApostas: baseTicketsForPeriod.length,
-                                        taxaAcerto: allHitRate,
-                                        isAll: true,
-                                    },
-                                    ...housesWithCurrentBank,
-                                ]
-                                    .slice(housePageStart, housePageStart + housesPerPage)
-                                    .map((house) => {
-                                        if (house.isAll) {
+                            <div className="top-houses-scroll">
+                                <div
+                                    className={`top-houses-grid ${isSliding
+                                        ? `is-sliding ${slideDirection === "next" ? "slide-next" : "slide-prev"}`
+                                        : ""
+                                        }`}
+                                >
+                                    {[
+                                        {
+                                            id: "all",
+                                            nome: "Todas as casas",
+                                            quantidadeApostas: baseTicketsForPeriod.length,
+                                            taxaAcerto: allHitRate,
+                                            isAll: true,
+                                        },
+                                        ...housesWithCurrentBank,
+                                    ]
+                                        .slice(housePageStart, housePageStart + housesPerPage)
+                                        .map((house) => {
+                                            if (house.isAll) {
+                                                return (
+                                                    <div className="top-house-card-wrap" key="all-houses-card">
+                                                        <button
+                                                            type="button"
+                                                            className={`top-house-card top-house-general-card ${selectedHouseScope === "all" ? "selected-house-card" : ""
+                                                                }`}
+                                                            onClick={selectAllHousesScope}
+                                                        >
+                                                            <div className="top-house-card-title">Todas as casas</div>
+
+                                                            <div className="top-house-card-info">
+                                                                <span>Apostas</span>
+                                                                <strong>{house.quantidadeApostas}</strong>
+                                                            </div>
+
+                                                            <div className="top-house-card-info">
+                                                                <span>Taxa de acerto</span>
+                                                                <strong>{formatPercent(house.taxaAcerto)}</strong>
+                                                            </div>
+                                                        </button>
+                                                    </div>
+                                                );
+                                            }
+
                                             return (
-                                                <div className="top-house-card-wrap" key="all-houses-card">
-                                                    <button
-                                                        type="button"
-                                                        className={`top-house-card top-house-general-card ${selectedHouseScope === "all" ? "selected-house-card" : ""
+                                                <div className="top-house-card-wrap" key={house.id}>
+                                                    <div
+                                                        className={`top-house-card ${selectedHouseScope === house.id ? "selected-house-card" : ""
                                                             }`}
-                                                        onClick={selectAllHousesScope}
                                                     >
-                                                        <div className="top-house-card-title">Todas as casas</div>
+                                                        <button
+                                                            type="button"
+                                                            className="top-house-card-button"
+                                                            onClick={() => selectHouseScope(house.id)}
+                                                        >
+                                                            <div className="top-house-card-header">
+                                                                <div className="top-house-card-title">{house.nome}</div>
 
-                                                        <div className="top-house-card-info">
-                                                            <span>Apostas</span>
-                                                            <strong>{house.quantidadeApostas}</strong>
-                                                        </div>
+                                                                <button
+                                                                    type="button"
+                                                                    className="menu-dots-button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setMenuHouseId((prev) =>
+                                                                            prev === house.id ? null : house.id
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    ⋮
+                                                                </button>
+                                                            </div>
 
-                                                        <div className="top-house-card-info">
-                                                            <span>Taxa de acerto</span>
-                                                            <strong>{formatPercent(house.taxaAcerto)}</strong>
-                                                        </div>
-                                                    </button>
+                                                            <div className="top-house-card-info">
+                                                                <span>Apostas</span>
+                                                                <strong>{house.quantidadeApostas}</strong>
+                                                            </div>
+
+                                                            <div className="top-house-card-info">
+                                                                <span>Taxa de acerto</span>
+                                                                <strong>{formatPercent(house.taxaAcerto)}</strong>
+                                                            </div>
+                                                        </button>
+
+                                                        {menuHouseId === house.id && (
+                                                            <div className="top-house-menu-box" ref={menuRef}>
+                                                                <button
+                                                                    type="button"
+                                                                    className="house-menu-item"
+                                                                    onClick={() => handleStartEditHouse(house.id)}
+                                                                >
+                                                                    Editar
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="house-menu-item danger-item"
+                                                                    onClick={() => handleDeleteHouse(house.id)}
+                                                                >
+                                                                    Excluir
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             );
-                                        }
-
-                                        return (
-                                            <div className="top-house-card-wrap" key={house.id}>
-                                                <div
-                                                    className={`top-house-card ${selectedHouseScope === house.id ? "selected-house-card" : ""
-                                                        }`}
-                                                >
-                                                    <button
-                                                        type="button"
-                                                        className="top-house-card-button"
-                                                        onClick={() => selectHouseScope(house.id)}
-                                                    >
-                                                        <div className="top-house-card-header">
-                                                            <div className="top-house-card-title">{house.nome}</div>
-
-                                                            <button
-                                                                type="button"
-                                                                className="menu-dots-button"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setMenuHouseId((prev) =>
-                                                                        prev === house.id ? null : house.id
-                                                                    );
-                                                                }}
-                                                            >
-                                                                ⋮
-                                                            </button>
-                                                        </div>
-
-                                                        <div className="top-house-card-info">
-                                                            <span>Apostas</span>
-                                                            <strong>{house.quantidadeApostas}</strong>
-                                                        </div>
-
-                                                        <div className="top-house-card-info">
-                                                            <span>Taxa de acerto</span>
-                                                            <strong>{formatPercent(house.taxaAcerto)}</strong>
-                                                        </div>
-                                                    </button>
-
-                                                    {menuHouseId === house.id && (
-                                                        <div className="top-house-menu-box" ref={menuRef}>
-                                                            <button
-                                                                type="button"
-                                                                className="house-menu-item"
-                                                                onClick={() => handleStartEditHouse(house.id)}
-                                                            >
-                                                                Editar
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                className="house-menu-item danger-item"
-                                                                onClick={() => handleDeleteHouse(house.id)}
-                                                            >
-                                                                Excluir
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                        })}
+                                </div>
                             </div>
                         </div>
 
