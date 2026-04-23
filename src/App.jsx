@@ -9,6 +9,26 @@ const STORAGE_KEY = "gerenciador_banca_v10";
 const DESKTOP_HOUSES_PER_PAGE = 4;
 const MOBILE_HOUSES_PER_PAGE = 2;
 
+const houseTouchStartX = useRef(0);
+const houseTouchEndX = useRef(0);
+const handleHouseTouchStart = (e) => {
+    houseTouchStartX.current = e.changedTouches[0].clientX;
+};
+
+const handleHouseTouchEnd = (e) => {
+    houseTouchEndX.current = e.changedTouches[0].clientX;
+
+    const deltaX = houseTouchStartX.current - houseTouchEndX.current;
+
+    if (Math.abs(deltaX) < 40) return;
+
+    if (deltaX > 0) {
+        handleHousePage("next");
+    } else {
+        handleHousePage("prev");
+    }
+};
+
 const isMobile = window.innerWidth <= 768;
 const housesPerPage = isMobile
     ? MOBILE_HOUSES_PER_PAGE
@@ -394,6 +414,8 @@ export default function App() {
     const [selectedHouseScope, setSelectedHouseScope] = useState(null);
     const [menuHouseId, setMenuHouseId] = useState(null);
     const [housePageStart, setHousePageStart] = useState(0);
+    const houseTouchStartXRef = useRef(0);
+    const houseTouchEndXRef = useRef(0);
 
     const [isSliding, setIsSliding] = useState(false);
     const [slideDirection, setSlideDirection] = useState("next");
@@ -781,53 +803,53 @@ export default function App() {
     }, [baseMovementsForPeriod, selectedHouseScope]);
 
     const housesWithCurrentBank = useMemo(() => {
-    return houses.map((house) => {
-        const periodHouseTickets = baseTicketsForPeriod.filter(
-            (ticket) => Number(ticket.casaId) === house.id
-        );
+        return houses.map((house) => {
+            const periodHouseTickets = baseTicketsForPeriod.filter(
+                (ticket) => Number(ticket.casaId) === house.id
+            );
 
-        const resolvedPeriodTickets = periodHouseTickets.filter(
-            (ticket) => ticket.resultado !== "Pendente"
-        );
+            const resolvedPeriodTickets = periodHouseTickets.filter(
+                (ticket) => ticket.resultado !== "Pendente"
+            );
 
-        const totalProfit = resolvedPeriodTickets.reduce(
-            (acc, ticket) => acc + getRealTicketImpact(ticket),
-            0
-        );
+            const totalProfit = resolvedPeriodTickets.reduce(
+                (acc, ticket) => acc + getRealTicketImpact(ticket),
+                0
+            );
 
-        const periodHouseMovements = baseMovementsForPeriod.filter(
-            (movement) => Number(movement.casaId) === house.id
-        );
+            const periodHouseMovements = baseMovementsForPeriod.filter(
+                (movement) => Number(movement.casaId) === house.id
+            );
 
-        const movementBalance = periodHouseMovements.reduce((acc, movement) => {
-            return acc + Number(movement.valor || 0) * movementSignal(movement.tipo);
-        }, 0);
+            const movementBalance = periodHouseMovements.reduce((acc, movement) => {
+                return acc + Number(movement.valor || 0) * movementSignal(movement.tipo);
+            }, 0);
 
-        const greenCount = resolvedPeriodTickets.filter((ticket) => {
-            if (ticket.resultado === "Green") return true;
-            if (
-                ticket.resultado === "Cash Out" &&
-                Number(ticket.retorno || 0) > Number(ticket.stake || 0)
-            ) {
-                return true;
-            }
-            return false;
-        }).length;
+            const greenCount = resolvedPeriodTickets.filter((ticket) => {
+                if (ticket.resultado === "Green") return true;
+                if (
+                    ticket.resultado === "Cash Out" &&
+                    Number(ticket.retorno || 0) > Number(ticket.stake || 0)
+                ) {
+                    return true;
+                }
+                return false;
+            }).length;
 
-        const hitRate =
-            resolvedPeriodTickets.length > 0
-                ? (greenCount / resolvedPeriodTickets.length) * 100
-                : 0;
+            const hitRate =
+                resolvedPeriodTickets.length > 0
+                    ? (greenCount / resolvedPeriodTickets.length) * 100
+                    : 0;
 
-        return {
-            ...house,
-            bancaAtual:
-                Number(house.bancaInicial || 0) + totalProfit + movementBalance,
-            quantidadeApostas: periodHouseTickets.length,
-            taxaAcerto: hitRate,
-        };
-    });
-}, [houses, baseTicketsForPeriod, baseMovementsForPeriod]);
+            return {
+                ...house,
+                bancaAtual:
+                    Number(house.bancaInicial || 0) + totalProfit + movementBalance,
+                quantidadeApostas: periodHouseTickets.length,
+                taxaAcerto: hitRate,
+            };
+        });
+    }, [houses, baseTicketsForPeriod, baseMovementsForPeriod]);
 
     const visibleHouses = useMemo(() => {
         return housesWithCurrentBank.slice(
@@ -1684,6 +1706,8 @@ export default function App() {
                                     ? `is-sliding ${slideDirection === "next" ? "slide-next" : "slide-prev"}`
                                     : ""
                                     }`}
+                                onTouchStart={handleHouseTouchStart}
+                                onTouchEnd={handleHouseTouchEnd}
                             >
                                 {[
                                     {
