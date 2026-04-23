@@ -1715,6 +1715,17 @@ hr.section-divider {
     background: #16a34a;
 }
 
+.field-group input,
+.field-group select {
+    height: 42px !important;
+    padding: 4px 8px !important;
+    font-size: 0.9rem !important;
+    border-radius: 8px !important;
+}
+.form-row input[type="date"] {
+    width: 147px !important;
+}
+
 
 @media (max-width: 1200px) and (min-width: 769px) {
 
@@ -2506,6 +2517,17 @@ hr.section-divider {
         font-size: 1.1rem !important;
         line-height: 1.1 !important;
     }
+
+    .field-group input,
+.field-group select {
+    height: 42px !important;
+    padding: 4px 8px !important;
+    font-size: 0.9rem !important;
+    border-radius: 8px !important;
+}
+.form-row input[type="date"] {
+    width: 152.5px !important;
+}
 
 
 
