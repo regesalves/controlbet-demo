@@ -1,9 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
+import { ptBR } from "date-fns/locale";
 import "react-day-picker/dist/style.css";
 import "./App.css";
 import logo from "./assets/logo.png";
 import { supabase } from "./supabase";
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+    CartesianGrid,
+    ReferenceLine,
+    ReferenceDot,
+} from "recharts";
 
 const STORAGE_KEY = "gerenciador_banca_v10";
 const DESKTOP_HOUSES_PER_PAGE = 4;
@@ -44,6 +56,13 @@ function addDays(dateISO, amount) {
     const date = new Date(`${dateISO}T12:00:00`);
     date.setDate(date.getDate() + amount);
     return date.toISOString().slice(0, 10);
+}
+
+function dateToISO(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
 }
 
 function getMonthRef(dateISO) {
@@ -372,8 +391,9 @@ const initialMovementForm = {
 
 export default function App() {
     const [houses, setHouses] = useState([]);
+    const [isAddingHouse, setIsAddingHouse] = useState(false);
     const [tickets, setTickets] = useState([]);
-    const ticketDates = tickets.map(t => t.date);
+
     const [movements, setMovements] = useState([]);
 
     const [ticketForm, setTicketForm] = useState(initialTicketForm);
@@ -390,6 +410,11 @@ export default function App() {
 
     const [periodType, setPeriodType] = useState("Diário");
     const [periodReference, setPeriodReference] = useState(hojeISO());
+    const [isStatsCalendarOpen, setIsStatsCalendarOpen] = useState(false);
+    const statsCalendarRef = useRef(null);
+    const statsFieldRef = useRef(null);
+    const [openStatsCalendarUp, setOpenStatsCalendarUp] = useState(false);
+    const statsButtonRef = useRef(null);
 
     const [selectedHouseScope, setSelectedHouseScope] = useState(null);
     const [menuHouseId, setMenuHouseId] = useState(null);
@@ -409,17 +434,56 @@ export default function App() {
     const [isStatsSliding, setIsStatsSliding] = useState(false);
     const [statsSlideDirection, setStatsSlideDirection] = useState("next");
 
+    const [isSavingHouse, setIsSavingHouse] = useState(false);
+    const [houseFeedback, setHouseFeedback] = useState({
+        type: "",
+        message: "",
+    });
+
     const [isTicketPanelOpen, setIsTicketPanelOpen] = useState(false);
     const [isMovementPanelOpen, setIsMovementPanelOpen] = useState(false);
     const [isMovementDayPanelOpen, setIsMovementDayPanelOpen] = useState(false);
-    const [isTicketsDayPanelOpen, setIsTicketsDayPanelOpen] = useState(!isMobile);
+    const [activeMovementExtractTab, setActiveMovementExtractTab] = useState(null);
+    const [movementExtractHouseScope, setMovementExtractHouseScope] = useState("");
+    const [movementExtractPeriodType, setMovementExtractPeriodType] = useState("");
+    const [movementExtractPeriodReference, setMovementExtractPeriodReference] = useState("");
+
+    const [isMovementExtractCalendarOpen, setIsMovementExtractCalendarOpen] = useState(false);
+    const movementExtractCalendarRef = useRef(null);
+
+    const [isTicketsDayPanelOpen, setIsTicketsDayPanelOpen] = useState(false);
     const [openedCollapsedTicketId, setOpenedCollapsedTicketId] = useState(null);
+    const [ticketsDayHouseScope, setTicketsDayHouseScope] = useState("all");
+    const [ticketsDayPeriodType, setTicketsDayPeriodType] = useState("Diário");
+    const [ticketsDayPeriodReference, setTicketsDayPeriodReference] = useState(hojeISO());
     const [isTicketsCalendarOpen, setIsTicketsCalendarOpen] = useState(false);
     const ticketsCalendarRef = useRef(null);
     const [isMovementsCalendarOpen, setIsMovementsCalendarOpen] = useState(false);
     const movementsCalendarRef = useRef(null);
+    const [chartPeriodType, setChartPeriodType] = useState("Mensal");
+    const [chartMode, setChartMode] = useState("Banca");
+    const [chartPeriodReference, setChartPeriodReference] = useState(getMonthRef(hojeISO()));
+    const [statsCalendarPosition, setStatsCalendarPosition] = useState({
+        top: 0,
+        left: 0,
+    });
+
+    const [isBankChartOpen, setIsBankChartOpen] = useState(false);
+    const bankChartRef = useRef(null);
+
+
+    const [activeBottomPanel, setActiveBottomPanel] = useState(null);
+    const [isTicketFormCalendarOpen, setIsTicketFormCalendarOpen] = useState(false);
+    const ticketFormCalendarRef = useRef(null);
+    const [isMovementFormCalendarOpen, setIsMovementFormCalendarOpen] = useState(false);
+    const movementFormCalendarRef = useRef(null);
+    const leftPanelRef = useRef(null);
+    const rightPanelRef = useRef(null);
+
 
     useEffect(() => {
+        const initialScrollY = window.scrollY;
+
         function handleClickOutside(event) {
             if (
                 ticketsCalendarRef.current &&
@@ -429,30 +493,73 @@ export default function App() {
             }
         }
 
-        if (isTicketsCalendarOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [isTicketsCalendarOpen]);
-
-    useEffect(() => {
-        function handleEsc(event) {
+        function handleKeyDown(event) {
             if (event.key === "Escape") {
                 setIsTicketsCalendarOpen(false);
             }
         }
 
+        function handleScroll() {
+            const scrollDistance = Math.abs(window.scrollY - initialScrollY);
+
+            if (scrollDistance > 80) {
+                setIsTicketsCalendarOpen(false);
+            }
+        }
+
         if (isTicketsCalendarOpen) {
-            document.addEventListener("keydown", handleEsc);
+            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("keydown", handleKeyDown);
+            window.addEventListener("scroll", handleScroll, { passive: true });
         }
 
         return () => {
-            document.removeEventListener("keydown", handleEsc);
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("scroll", handleScroll);
         };
     }, [isTicketsCalendarOpen]);
+
+
+
+    useEffect(() => {
+        const initialScrollY = window.scrollY;
+
+        function handleClickOutside(event) {
+            if (
+                statsCalendarRef.current &&
+                !statsCalendarRef.current.contains(event.target)
+            ) {
+                setIsStatsCalendarOpen(false);
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === "Escape") {
+                setIsStatsCalendarOpen(false);
+            }
+        }
+
+        function handleScroll() {
+            const scrollDistance = Math.abs(window.scrollY - initialScrollY);
+
+            if (scrollDistance > 80) {
+                setIsStatsCalendarOpen(false);
+            }
+        }
+
+        if (isStatsCalendarOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("keydown", handleKeyDown);
+            window.addEventListener("scroll", handleScroll, { passive: true });
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("scroll", handleScroll);
+        };
+    }, [isStatsCalendarOpen]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -474,20 +581,44 @@ export default function App() {
     }, [isMovementsCalendarOpen]);
 
     useEffect(() => {
-        function handleEsc(event) {
-            if (event.key === "Escape") {
-                setIsMovementsCalendarOpen(false);
+        const initialScrollY = window.scrollY;
+
+        function handleClickOutside(event) {
+            if (
+                movementExtractCalendarRef.current &&
+                !movementExtractCalendarRef.current.contains(event.target)
+            ) {
+                setIsMovementExtractCalendarOpen(false);
             }
         }
 
-        if (isMovementsCalendarOpen) {
-            document.addEventListener("keydown", handleEsc);
+        function handleKeyDown(event) {
+            if (event.key === "Escape") {
+                setIsMovementExtractCalendarOpen(false);
+            }
+        }
+
+        function handleScroll() {
+            const scrollDistance = Math.abs(window.scrollY - initialScrollY);
+
+            if (scrollDistance > 80) {
+                setIsMovementExtractCalendarOpen(false);
+            }
+        }
+
+        if (isMovementExtractCalendarOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("keydown", handleKeyDown);
+            window.addEventListener("scroll", handleScroll, { passive: true });
         }
 
         return () => {
-            document.removeEventListener("keydown", handleEsc);
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("scroll", handleScroll);
         };
-    }, [isMovementsCalendarOpen]);
+    }, [isMovementExtractCalendarOpen]);
+
 
     useEffect(() => {
         if (editingMovementId) {
@@ -895,6 +1026,116 @@ export default function App() {
         };
     }, [ticketsForPeriod, movementsForPeriod]);
 
+    const bankHistoryData = useMemo(() => {
+        if (selectedHouseScope === null) return [];
+
+        const chartTickets = baseTicketsForPeriod.filter((ticket) => {
+            if (selectedHouseScope === "all") return true;
+            return Number(ticket.casaId) === Number(selectedHouseScope);
+        });
+
+        const chartMovements = baseMovementsForPeriod.filter((movement) => {
+            if (selectedHouseScope === "all") return true;
+            return Number(movement.casaId) === Number(selectedHouseScope);
+        });
+
+        const initialBank = houses
+            .filter((house) => {
+                if (selectedHouseScope === "all") return true;
+                return Number(house.id) === Number(selectedHouseScope);
+            })
+            .reduce((acc, house) => acc + Number(house.bancaInicial || 0), 0);
+
+        const dailyTotals = {};
+        const dailyMovements = {};
+
+        chartTickets
+            .filter((ticket) => ticket.resultado !== "Pendente")
+            .forEach((ticket) => {
+                if (!dailyTotals[ticket.data]) dailyTotals[ticket.data] = 0;
+                dailyTotals[ticket.data] += getRealTicketImpact(ticket);
+            });
+
+        if (chartMode === "Banca") {
+            chartMovements.forEach((movement) => {
+                if (!dailyTotals[movement.data]) dailyTotals[movement.data] = 0;
+
+                if (!dailyMovements[movement.data]) {
+                    dailyMovements[movement.data] = {
+                        deposito: 0,
+                        saque: 0,
+                    };
+                }
+
+                const value = Number(movement.valor || 0);
+
+                dailyTotals[movement.data] += value * movementSignal(movement.tipo);
+
+                if (movement.tipo === "Depósito") {
+                    dailyMovements[movement.data].deposito += value;
+                }
+
+                if (movement.tipo === "Saque") {
+                    dailyMovements[movement.data].saque += value;
+                }
+            });
+        }
+
+        const orderedDates = Object.keys(dailyTotals).sort((a, b) =>
+            a.localeCompare(b)
+        );
+
+        const startDate =
+            periodType === "Geral"
+                ? orderedDates[0] || hojeISO()
+                : periodInterval.start;
+
+        const endDate =
+            periodType === "Geral"
+                ? orderedDates[orderedDates.length - 1] || hojeISO()
+                : periodInterval.end;
+
+        if (!startDate || !endDate) return [];
+
+        let banca = initialBank;
+
+        const result = [
+            {
+                data: startDate,
+                banca: Number(banca.toFixed(2)),
+            },
+        ];
+
+        orderedDates.forEach((date) => {
+            if (date < startDate || date > endDate) return;
+
+            banca += dailyTotals[date];
+
+            result.push({
+                data: date,
+                banca: Number(banca.toFixed(2)),
+                deposito: dailyMovements[date]?.deposito || 0,
+                saque: dailyMovements[date]?.saque || 0,
+            });
+        });
+
+        if (result[result.length - 1]?.data !== endDate) {
+            result.push({
+                data: endDate,
+                banca: Number(banca.toFixed(2)),
+            });
+        }
+
+        return result;
+    }, [
+        baseTicketsForPeriod,
+        baseMovementsForPeriod,
+        houses,
+        selectedHouseScope,
+        periodType,
+        periodInterval,
+        chartMode,
+    ]);
     const totalCurrentBank = useMemo(() => {
         return housesWithCurrentBank.reduce(
             (acc, house) => acc + Number(house.bancaAtual || 0),
@@ -966,16 +1207,36 @@ export default function App() {
     }, [tickets]);
 
     const ticketsOfDay = useMemo(() => {
-        let base = tickets.filter((ticket) => ticket.data === viewDate);
+        let base = tickets;
 
-        if (typeof selectedHouseScope === "number") {
+        if (ticketsDayHouseScope !== "all") {
             base = base.filter(
-                (ticket) => Number(ticket.casaId) === Number(selectedHouseScope)
+                (ticket) => Number(ticket.casaId) === Number(ticketsDayHouseScope)
             );
         }
 
-        return base;
-    }, [tickets, viewDate, selectedHouseScope]);
+        if (ticketsDayPeriodType !== "Geral") {
+            const interval = getPeriodInterval(
+                ticketsDayPeriodType,
+                ticketsDayPeriodReference
+            );
+
+            if (!interval.start || !interval.end) return [];
+
+            base = base.filter(
+                (ticket) =>
+                    ticket.data >= interval.start &&
+                    ticket.data <= interval.end
+            );
+        }
+
+        return base.sort((a, b) => b.data.localeCompare(a.data) || b.id - a.id);
+    }, [
+        tickets,
+        ticketsDayHouseScope,
+        ticketsDayPeriodType,
+        ticketsDayPeriodReference,
+    ]);
 
     const movementMarkedDays = useMemo(() => {
         return [...new Set(movements.map((movement) => movement.data))]
@@ -1000,68 +1261,214 @@ export default function App() {
         return base;
     }, [movements, movementViewDate, selectedHouseScope]);
 
-    async function handleAddOrEditHouse(event) {
-        event.preventDefault();
+    const movementExtractBase = useMemo(() => {
+        let base = movements;
 
-        const name = houseForm.nome.trim();
-        const initialBank = parseCurrencyTyping(houseForm.bancaInicial);
-
-        if (!name) {
-            alert("Informe o nome da casa.");
-            return;
+        if (movementExtractHouseScope !== "all") {
+            base = base.filter(
+                (movement) => Number(movement.casaId) === Number(movementExtractHouseScope)
+            );
         }
 
-        if (Number.isNaN(initialBank)) {
-            alert("Informe a banca inicial. Pode ser R$ 0,00.");
-            return;
-        }
-
-        const exists = houses.some(
-            (house) =>
-                house.nome.toLowerCase() === name.toLowerCase() &&
-                house.id !== editingHouseId
-        );
-
-        if (exists) {
-            alert("Essa casa já foi cadastrada.");
-            return;
-        }
-
-        if (editingHouseId) {
-            setHouses((prev) =>
-                prev.map((house) =>
-                    house.id === editingHouseId
-                        ? { ...house, nome: name, bancaInicial: initialBank }
-                        : house
-                )
+        if (movementExtractPeriodType !== "Geral") {
+            const interval = getPeriodInterval(
+                movementExtractPeriodType,
+                movementExtractPeriodReference
             );
 
-            setEditingHouseId(null);
+            if (!interval.start || !interval.end) return [];
+
+            base = base.filter(
+                (movement) =>
+                    movement.data >= interval.start &&
+                    movement.data <= interval.end
+            );
+        }
+
+        return base;
+    }, [
+        movements,
+        movementExtractHouseScope,
+        movementExtractPeriodType,
+        movementExtractPeriodReference,
+    ]);
+
+    const totalDeposits = useMemo(() => {
+        return movementExtractBase
+            .filter((movement) => movement.tipo === "Depósito")
+            .reduce((acc, movement) => acc + Number(movement.valor || 0), 0);
+    }, [movementExtractBase]);
+
+    const totalWithdrawals = useMemo(() => {
+        return movementExtractBase
+            .filter((movement) => movement.tipo === "Saque")
+            .reduce((acc, movement) => acc + Number(movement.valor || 0), 0);
+    }, [movementExtractBase]);
+
+    const depositMovements = useMemo(() => {
+        return movementExtractBase
+            .filter((movement) => movement.tipo === "Depósito")
+            .sort((a, b) => b.data.localeCompare(a.data) || b.id - a.id);
+    }, [movementExtractBase]);
+
+    const movementExtractReferences = useMemo(() => {
+        const dates = movementExtractBase.map((movement) => movement.data);
+
+        if (movementExtractPeriodType === "Diário") {
+            return [...new Set([hojeISO(), ...dates])]
+                .filter(Boolean)
+                .sort((a, b) => b.localeCompare(a));
+        }
+
+        if (movementExtractPeriodType === "Semanal") {
+            return [...new Set([getWeekRef(hojeISO()), ...dates.map(getWeekRef)])]
+                .filter(Boolean)
+                .sort((a, b) => b.localeCompare(a));
+        }
+
+        if (movementExtractPeriodType === "Mensal") {
+            return [...new Set([getMonthRef(hojeISO()), ...dates.map(getMonthRef)])]
+                .filter(Boolean)
+                .sort((a, b) => b.localeCompare(a));
+        }
+
+        if (movementExtractPeriodType === "Anual") {
+            return [...new Set([getYearRef(hojeISO()), ...dates.map(getYearRef)])]
+                .filter(Boolean)
+                .sort((a, b) => b.localeCompare(a));
+        }
+
+        return [];
+    }, [movementExtractBase, movementExtractPeriodType]);
+
+    const movementExtractPeriodInterval = useMemo(() => {
+        return getPeriodInterval(
+            movementExtractPeriodType,
+            movementExtractPeriodReference
+        );
+    }, [movementExtractPeriodType, movementExtractPeriodReference]);
+
+    const withdrawalMovements = useMemo(() => {
+        return movementExtractBase
+            .filter((movement) => movement.tipo === "Saque")
+            .sort((a, b) => b.data.localeCompare(a.data) || b.id - a.id);
+    }, [movementExtractBase]);
+    async function handleAddOrEditHouse(event) {
+        event.preventDefault();
+        setIsSavingHouse(true);
+
+        try {
+            const name = houseForm.nome.trim();
+            const initialBank = parseCurrencyTyping(houseForm.bancaInicial);
+
+            if (!name) {
+                setHouseFeedback({
+                    type: "error",
+                    message: "Informe o nome da casa.",
+                });
+                return;
+            }
+
+            if (Number.isNaN(initialBank)) {
+                setHouseFeedback({
+                    type: "error",
+                    message: "Informe a banca inicial. Pode ser R$ 0,00.",
+                });
+                return;
+            }
+
+            const exists = houses.some(
+                (house) =>
+                    house.nome.toLowerCase() === name.toLowerCase() &&
+                    house.id !== editingHouseId
+            );
+
+            if (exists) {
+                setHouseFeedback({
+                    type: "error",
+                    message: "Essa casa já foi cadastrada.",
+                });
+                return;
+            }
+
+            if (editingHouseId) {
+                const { error } = await supabase
+                    .from("houses")
+                    .update({
+                        nome: name,
+                        banca_inicial: initialBank,
+                    })
+                    .eq("id", editingHouseId);
+
+                if (error) {
+                    console.error("Erro ao atualizar casa no Supabase:", error);
+
+                    setHouseFeedback({
+                        type: "error",
+                        message: "Não foi possível atualizar a casa.",
+                    });
+
+                    return;
+                }
+
+                setHouses((prev) =>
+                    prev.map((house) =>
+                        house.id === editingHouseId
+                            ? { ...house, nome: name, bancaInicial: initialBank }
+                            : house
+                    )
+                );
+
+                setEditingHouseId(null);
+                setHouseForm(initialHouseForm);
+
+                setHouseFeedback({
+                    type: "success",
+                    message: "Casa atualizada com sucesso!",
+                });
+
+                setTimeout(() => {
+                    setHouseFeedback({ type: "", message: "" });
+                }, 3000);
+
+                return;
+            }
+
+            const newHouse = {
+                id: Date.now(),
+                nome: name,
+                bancaInicial: initialBank,
+            };
+
+            setHouses((prev) => [...prev, newHouse]);
+
+            const { error } = await supabase.from("houses").insert([
+                {
+                    id: newHouse.id,
+                    nome: newHouse.nome,
+                    banca_inicial: newHouse.bancaInicial,
+                },
+            ]);
+
+            if (error) {
+                console.error("Erro ao salvar casa no Supabase:", error);
+            }
+
             setHouseForm(initialHouseForm);
-            return;
+
+            setHouseFeedback({
+                type: "success",
+                message: "Casa adicionada com sucesso!",
+            });
+
+            setTimeout(() => {
+                setHouseFeedback({ type: "", message: "" });
+            }, 3000);
+        } finally {
+            setTimeout(() => {
+                setIsSavingHouse(false);
+            }, 600);
         }
-
-        const newHouse = {
-            id: Date.now(),
-            nome: name,
-            bancaInicial: initialBank,
-        };
-
-        setHouses((prev) => [...prev, newHouse]);
-
-        const { error } = await supabase.from("houses").insert([
-            {
-                id: newHouse.id,
-                nome: newHouse.nome,
-                banca_inicial: newHouse.bancaInicial,
-            },
-        ]);
-
-        if (error) {
-            console.error("Erro ao salvar casa no Supabase:", error);
-        }
-
-        setHouseForm(initialHouseForm);
     }
 
     function handleStartEditHouse(houseId) {
@@ -1077,7 +1484,7 @@ export default function App() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function handleDeleteHouse(houseId) {
+    async function handleDeleteHouse(houseId) {
         const houseTickets = tickets.filter((ticket) => Number(ticket.casaId) === houseId);
         const houseMovements = movements.filter(
             (movement) => Number(movement.casaId) === houseId
@@ -1090,6 +1497,28 @@ export default function App() {
 
             if (!confirmedWithData) return;
 
+            const { error: ticketsError } = await supabase
+                .from("tickets")
+                .delete()
+                .eq("casa_id", houseId);
+
+            if (ticketsError) {
+                console.error("Erro ao excluir bilhetes da casa:", ticketsError);
+                alert("Não foi possível excluir os bilhetes vinculados.");
+                return;
+            }
+
+            const { error: movementsError } = await supabase
+                .from("movements")
+                .delete()
+                .eq("casa_id", houseId);
+
+            if (movementsError) {
+                console.error("Erro ao excluir movimentações da casa:", movementsError);
+                alert("Não foi possível excluir as movimentações vinculadas.");
+                return;
+            }
+
             setTickets((prev) => prev.filter((ticket) => Number(ticket.casaId) !== houseId));
             setMovements((prev) =>
                 prev.filter((movement) => Number(movement.casaId) !== houseId)
@@ -1097,6 +1526,17 @@ export default function App() {
         } else {
             const confirmed = window.confirm("Deseja excluir esta casa?");
             if (!confirmed) return;
+        }
+
+        const { error: houseError } = await supabase
+            .from("houses")
+            .delete()
+            .eq("id", houseId);
+
+        if (houseError) {
+            console.error("Erro ao excluir casa:", houseError);
+            alert("Não foi possível excluir a casa.");
+            return;
         }
 
         setHouses((prev) => prev.filter((house) => house.id !== houseId));
@@ -1188,21 +1628,56 @@ export default function App() {
         });
 
         if (editingTicketId) {
+            const updatedTicket = {
+                ...ticketForm,
+                casaId: Number(ticketForm.casaId),
+                odd,
+                stake,
+                retorno: returned,
+                lucro: profit,
+                stakeSaldo: breakdown.stakeSaldo,
+                stakeDeposito: breakdown.stakeDeposito,
+                stakeBonus: breakdown.stakeBonus,
+                ...stakeDetails,
+            };
+
+            const { error } = await supabase
+                .from("tickets")
+                .update({
+                    data: updatedTicket.data,
+                    casa_id: updatedTicket.casaId,
+                    categoria: updatedTicket.categoria,
+                    odd: updatedTicket.odd,
+                    stake: updatedTicket.stake,
+                    retorno: updatedTicket.retorno,
+                    origem_stake: updatedTicket.origemStake,
+                    stake_saldo: updatedTicket.stakeSaldo,
+                    stake_deposito: updatedTicket.stakeDeposito,
+                    stake_bonus: updatedTicket.stakeBonus,
+                    resultado: updatedTicket.resultado,
+                    observacoes: updatedTicket.observacoes,
+                    lucro: updatedTicket.lucro,
+                    stake_real: updatedTicket.stakeReal,
+                    recovered_real: updatedTicket.recoveredReal,
+                    recovered_bonus: updatedTicket.recoveredBonus,
+                    perda_real: updatedTicket.perdaReal,
+                    perda_bonus: updatedTicket.perdaBonus,
+                    lucro_real: updatedTicket.lucroReal,
+                })
+                .eq("id", editingTicketId);
+
+            if (error) {
+                console.error("Erro ao atualizar bilhete no Supabase:", error);
+                alert("Não foi possível atualizar o bilhete.");
+                return;
+            }
+
             const updated = tickets.map((ticket) => {
                 if (ticket.id !== editingTicketId) return ticket;
 
                 return {
                     ...ticket,
-                    ...ticketForm,
-                    casaId: Number(ticketForm.casaId),
-                    odd,
-                    stake,
-                    retorno: returned,
-                    lucro: profit,
-                    stakeSaldo: breakdown.stakeSaldo,
-                    stakeDeposito: breakdown.stakeDeposito,
-                    stakeBonus: breakdown.stakeBonus,
-                    ...stakeDetails,
+                    ...updatedTicket,
                 };
             });
 
@@ -1290,6 +1765,23 @@ export default function App() {
         };
 
         if (editingMovementId) {
+            const { error } = await supabase
+                .from("movements")
+                .update({
+                    data: payload.data,
+                    casa_id: payload.casaId,
+                    tipo: payload.tipo,
+                    valor: payload.valor,
+                    observacoes: payload.observacoes,
+                })
+                .eq("id", editingMovementId);
+
+            if (error) {
+                console.error("Erro ao atualizar movimentação no Supabase:", error);
+                alert("Não foi possível atualizar a movimentação.");
+                return;
+            }
+
             setMovements((prev) =>
                 prev.map((movement) =>
                     movement.id === editingMovementId
@@ -1368,14 +1860,30 @@ export default function App() {
         });
     }
 
-    function handleDeleteTicket(ticketId) {
+    async function handleDeleteTicket(ticketId) {
         const confirmed = window.confirm("Deseja excluir este bilhete?");
         if (!confirmed) return;
 
-        setTickets((prev) => reorderTickets(prev.filter((ticket) => ticket.id !== ticketId)));
+        const { error } = await supabase
+            .from("tickets")
+            .delete()
+            .eq("id", ticketId);
+
+        if (error) {
+            console.error("Erro ao excluir bilhete:", error);
+            alert("Não foi possível excluir o bilhete.");
+            return;
+        }
+
+        setTickets((prev) => prev.filter((ticket) => ticket.id !== ticketId));
 
         if (editingTicketId === ticketId) {
-            resetTicketForm();
+            setEditingTicketId(null);
+            setTicketForm(initialTicketForm);
+        }
+
+        if (openedCollapsedTicketId === ticketId) {
+            setOpenedCollapsedTicketId(null);
         }
     }
 
@@ -1403,14 +1911,28 @@ export default function App() {
         });
     }
 
-    function handleDeleteMovement(movementId) {
+    async function handleDeleteMovement(movementId) {
         const confirmed = window.confirm("Deseja excluir esta movimentação?");
         if (!confirmed) return;
 
-        setMovements((prev) => prev.filter((movement) => movement.id !== movementId));
+        const { error } = await supabase
+            .from("movements")
+            .delete()
+            .eq("id", movementId);
+
+        if (error) {
+            console.error("Erro ao excluir movimentação:", error);
+            alert("Não foi possível excluir a movimentação.");
+            return;
+        }
+
+        setMovements((prev) =>
+            prev.filter((movement) => movement.id !== movementId)
+        );
 
         if (editingMovementId === movementId) {
-            resetMovementForm();
+            setEditingMovementId(null);
+            setMovementForm(initialMovementForm);
         }
     }
 
@@ -1459,6 +1981,7 @@ export default function App() {
         if (nextStart === housePageStart) return;
 
         setSlideDirection(direction);
+        setHousePageStart(nextStart);
         setIsSliding(true);
 
         if (animationTimeoutRef.current) {
@@ -1466,7 +1989,6 @@ export default function App() {
         }
 
         animationTimeoutRef.current = setTimeout(() => {
-            setHousePageStart(nextStart);
             setIsSliding(false);
         }, ANIMATION_MS);
     }
@@ -1506,90 +2028,140 @@ export default function App() {
     }
 
     const topMetricPages = useMemo(() => {
+        const evolutionCard = {
+            title: "Evolução da banca",
+            value: selectedHouseScope === null ? null : bankEvolution,
+            formatter: formatPercent,
+            tone:
+                bankEvolution === null
+                    ? "neutral"
+                    : bankEvolution > 0
+                        ? "positive"
+                        : bankEvolution < 0
+                            ? "negative"
+                            : "neutral",
+            onClick: () => {
+                setIsBankChartOpen((prev) => !prev);
+
+                setTimeout(() => {
+                    bankChartRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                    });
+                }, 100);
+            },
+        };
+
+        const initialBankCard = {
+            title: "Banca inicial",
+            value: topInitialBank,
+            formatter: formatMoney,
+            highlight: true,
+            tone: "neutral",
+        };
+
+        const currentBankCard = {
+            title: periodType === "Diário" || periodType === "Semanal" ? "Banca atual" : "Banca final",
+            value: topCurrentBank,
+            formatter: formatMoney,
+            highlight: true,
+            tone: "neutral",
+        };
+
+        const investedCard = {
+            title: "Valor apostado",
+            value: selectedHouseScope === null ? null : summaryStats.invested,
+            formatter: formatMoney,
+            tone: "neutral",
+        };
+
+        const realInvestedCard = {
+            title: "Valor real apostado",
+            value: selectedHouseScope === null ? null : summaryStats.investedReal,
+            formatter: formatMoney,
+            tone: "neutral",
+        };
+
+        const resultCard = {
+            title: "Resultado",
+            value: finalResult,
+            formatter: formatMoney,
+            tone:
+                finalResult === null
+                    ? "neutral"
+                    : finalResult > 0
+                        ? "positive"
+                        : finalResult < 0
+                            ? "negative"
+                            : "neutral",
+        };
+
+        const bankUsageCard = {
+            title: "Uso da banca",
+            value: bankUsagePercent,
+            formatter: formatPercent,
+            tone: "neutral",
+        };
+
+        const roiCard = {
+            title: "ROI",
+            value: selectedHouseScope === null ? null : summaryStats.roi,
+            formatter: formatPercent,
+            tone:
+                selectedHouseScope === null
+                    ? "neutral"
+                    : summaryStats.roi > 0
+                        ? "positive"
+                        : summaryStats.roi < 0
+                            ? "negative"
+                            : "neutral",
+        };
+
+        if (periodType === "Diário") {
+            return [
+                [
+                    initialBankCard,
+                    investedCard,
+                    currentBankCard,
+                    resultCard,
+                ],
+            ];
+        }
+
+        if (periodType === "Semanal") {
+            return [
+                [
+                    initialBankCard,
+                    currentBankCard,
+                    resultCard,
+                    evolutionCard,
+                ],
+            ];
+        }
+
         return [
             [
-                {
-                    title: "Banca inicial",
-                    value: topInitialBank,
-                    formatter: formatMoney,
-                    highlight: true,
-                    tone: "neutral",
-                },
-                {
-                    title: "Valor apostado",
-                    value: selectedHouseScope === null ? null : summaryStats.invested,
-                    formatter: formatMoney,
-                    tone: "neutral",
-                },
-                {
-                    title: "Banca atual",
-                    value: topCurrentBank,
-                    formatter: formatMoney,
-                    highlight: true,
-                    tone: "neutral",
-                },
-                {
-                    title: "Resultado",
-                    value: finalResult,
-                    formatter: formatMoney,
-                    tone:
-                        finalResult === null
-                            ? "neutral"
-                            : finalResult > 0
-                                ? "positive"
-                                : finalResult < 0
-                                    ? "negative"
-                                    : "neutral",
-                },
+                initialBankCard,
+                currentBankCard,
+                resultCard,
+                evolutionCard,
             ],
             [
-                {
-                    title: "Evolução da banca",
-                    value: selectedHouseScope === null ? null : bankEvolution,
-                    formatter: formatPercent,
-                    tone:
-                        bankEvolution === null
-                            ? "neutral"
-                            : bankEvolution > 0
-                                ? "positive"
-                                : bankEvolution < 0
-                                    ? "negative"
-                                    : "neutral",
-                },
-                {
-                    title: "Valor real apostado",
-                    value: selectedHouseScope === null ? null : summaryStats.investedReal,
-                    formatter: formatMoney,
-                    tone: "neutral",
-                },
-                {
-                    title: "% da banca utilizada",
-                    value: bankUsagePercent,
-                    formatter: formatPercent,
-                    tone: "neutral",
-                },
-                {
-                    title: "ROI",
-                    value: selectedHouseScope === null ? null : summaryStats.roi,
-                    formatter: formatPercent,
-                    tone:
-                        selectedHouseScope === null
-                            ? "neutral"
-                            : summaryStats.roi > 0
-                                ? "positive"
-                                : summaryStats.roi < 0
-                                    ? "negative"
-                                    : "neutral",
-                },
-            ]
+                investedCard,
+                realInvestedCard,
+                bankUsageCard,
+                roiCard,
+            ],
         ];
     }, [
+        topInitialBank,
         topCurrentBank,
         summaryStats,
-        bankEvolution,
-        topInitialBank,
         finalResult,
+        bankEvolution,
         selectedHouseScope,
+        bankUsagePercent,
+        periodType,
     ]);
 
     const canPrevMetric = topMetricIndex > 0;
@@ -1620,13 +2192,78 @@ export default function App() {
     }
 
     const canGoPrev = housePageStart > 0;
-    const canGoNext = housePageStart + housesPerPage < housesWithCurrentBank.length;
+    const canGoNext = housePageStart + housesPerPage < housesWithCurrentBank.length + 1;
     const selectedStakeFields = getStakeSourceFields(ticketForm.origemStake);
 
     function renderTopValue(value, formatter = (v) => v) {
         if (value === null) return "—";
         return formatter(value);
     }
+
+    const isBankChartPositive =
+        bankHistoryData.length > 1 &&
+        bankHistoryData[bankHistoryData.length - 1]?.banca >= bankHistoryData[0]?.banca;
+
+    useEffect(() => {
+        const initialScrollY = window.scrollY;
+
+        function handleClickOutside(event) {
+            if (
+                ticketFormCalendarRef.current &&
+                !ticketFormCalendarRef.current.contains(event.target)
+            ) {
+                setIsTicketFormCalendarOpen(false);
+            }
+
+            if (
+                movementFormCalendarRef.current &&
+                !movementFormCalendarRef.current.contains(event.target)
+            ) {
+                setIsMovementFormCalendarOpen(false);
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === "Escape") {
+                setIsTicketFormCalendarOpen(false);
+                setIsMovementFormCalendarOpen(false);
+            }
+        }
+
+        function handleWheel(event) {
+            const calendarIsTarget =
+                ticketFormCalendarRef.current?.contains(event.target) ||
+                movementFormCalendarRef.current?.contains(event.target);
+
+            if (!calendarIsTarget) {
+                setIsTicketFormCalendarOpen(false);
+                setIsMovementFormCalendarOpen(false);
+            }
+        }
+
+        function handleScroll() {
+            const scrollDistance = Math.abs(window.scrollY - initialScrollY);
+
+            if (scrollDistance > 40) {
+                setIsTicketFormCalendarOpen(false);
+                setIsMovementFormCalendarOpen(false);
+            }
+        }
+
+        if (isTicketFormCalendarOpen || isMovementFormCalendarOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("keydown", handleKeyDown);
+            window.addEventListener("wheel", handleWheel, { passive: true });
+            window.addEventListener("scroll", handleScroll, { passive: true });
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("wheel", handleWheel);
+            window.removeEventListener("scroll", handleScroll);
+        };
+    }, [isTicketFormCalendarOpen, isMovementFormCalendarOpen]);
 
     return (
         <div className="app">
@@ -1640,7 +2277,7 @@ export default function App() {
                     </div>
                 </header>
 
-                <section className="panel top-panel">
+                <section className={`panel top-panel ${isStatsCalendarOpen ? "calendar-open" : ""}`}>
                     <div className="top-desktop-layout">
                         <div className="top-house-form-row">
                             <form className="top-house-form-inline" onSubmit={handleAddOrEditHouse}>
@@ -1650,9 +2287,10 @@ export default function App() {
                                         type="text"
                                         placeholder="Ex.: Superbet"
                                         value={houseForm.nome}
-                                        onChange={(e) =>
-                                            setHouseForm((prev) => ({ ...prev, nome: e.target.value }))
-                                        }
+                                        onChange={(e) => {
+                                            setHouseForm((prev) => ({ ...prev, nome: e.target.value }));
+                                            setHouseFeedback({ type: "", message: "" });
+                                        }}
                                     />
                                 </div>
 
@@ -1662,18 +2300,25 @@ export default function App() {
                                         type="text"
                                         placeholder="R$ 0,00"
                                         value={houseForm.bancaInicial}
-                                        onChange={(e) =>
+                                        onChange={(e) => {
                                             setHouseForm((prev) => ({
                                                 ...prev,
                                                 bancaInicial: formatCurrencyTyping(e.target.value),
-                                            }))
-                                        }
+                                            }));
+                                            setHouseFeedback({ type: "", message: "" });
+                                        }}
                                     />
                                 </div>
 
                                 <button type="submit" className="primary-button top-house-add-button">
                                     <span className="btn-text">
-                                        {editingHouseId ? "Salvar casa" : "Adicionar casa"}
+                                        {isSavingHouse
+                                            ? editingHouseId
+                                                ? "Salvando..."
+                                                : "Adicionando..."
+                                            : editingHouseId
+                                                ? "Salvar casa"
+                                                : "Adicionar casa"}
                                     </span>
                                     <span className="btn-icon">
                                         {editingHouseId ? "✓" : "+"}
@@ -1692,9 +2337,15 @@ export default function App() {
                                         Cancelar
                                     </button>
                                 )}
+
+                                {houseFeedback.message && (
+                                    <div className={`house-feedback ${houseFeedback.type}`}>
+                                        {houseFeedback.message}
+                                    </div>
+                                )}
                             </form>
 
-                            {!isMobile && (
+                            {!isMobile && houses.length + 1 > DESKTOP_HOUSES_PER_PAGE && (
                                 <div className="top-houses-arrows">
                                     <button
                                         type="button"
@@ -1742,7 +2393,9 @@ export default function App() {
                                                     <div className="top-house-card-wrap" key="all-houses-card">
                                                         <button
                                                             type="button"
-                                                            className={`top-house-card top-house-general-card ${selectedHouseScope === "all" ? "selected-house-card" : ""
+                                                            className={`top-house-card top-house-general-card ${selectedHouseScope === "all"
+                                                                ? "selected-house-card"
+                                                                : ""
                                                                 }`}
                                                             onClick={selectAllHousesScope}
                                                         >
@@ -1765,7 +2418,7 @@ export default function App() {
                                             return (
                                                 <div className="top-house-card-wrap" key={house.id}>
                                                     <div
-                                                        className={`top-house-card ${selectedHouseScope === house.id ? "selected-house-card" : ""
+                                                        className={`top-house-card ${Number(selectedHouseScope) === Number(house.id) ? "selected-house-card" : ""
                                                             }`}
                                                     >
                                                         <button
@@ -1852,6 +2505,34 @@ export default function App() {
 
                         <div className="top-filter-summary-row">
                             <div className="top-filter-group">
+                                <div className="field-group stats-house-field">
+                                    <label>Casa</label>
+                                    <select
+                                        value={selectedHouseScope ?? ""}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+
+                                            if (value === "all") {
+                                                setSelectedHouseScope("all");
+                                            } else if (value === "") {
+                                                setSelectedHouseScope(null);
+                                            } else {
+                                                setSelectedHouseScope(Number(value));
+                                            }
+
+                                            setTopMetricIndex(0);
+                                        }}
+                                    >
+                                        <option value="">Selecione uma casa</option>
+                                        <option value="all">Todas as casas</option>
+                                        {houses.map((house) => (
+                                            <option key={house.id} value={house.id}>
+                                                {house.nome}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
                                 <div className="field-group period-field">
                                     <label>Período</label>
                                     <select
@@ -1861,55 +2542,135 @@ export default function App() {
                                         <option value="Diário">Diário</option>
                                         <option value="Semanal">Semanal</option>
                                         <option value="Mensal">Mensal</option>
-                                        <option value="Trimestral">Trimestral</option>
-                                        <option value="Semestral">Semestral</option>
                                         <option value="Anual">Anual</option>
                                         <option value="Geral">Geral</option>
                                     </select>
                                 </div>
 
                                 {periodType !== "Geral" && (
-                                    <div className="field-group period-field">
-                                        <label>Data</label>
-                                        <select
-                                            value={periodReference}
-                                            onChange={(e) => setPeriodReference(e.target.value)}
-                                        >
-                                            {availableReferences.map((reference) => (
-                                                <option key={reference} value={reference}>
-                                                    {periodType === "Diário" && formatDateBR(reference)}
-                                                    {periodType === "Semanal" && formatWeekRef(reference)}
-                                                    {periodType === "Mensal" && formatMonthRef(reference)}
-                                                    {periodType === "Trimestral" && formatQuarterRef(reference)}
-                                                    {periodType === "Semestral" && formatSemesterRef(reference)}
-                                                    {periodType === "Anual" && reference}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    <>
+                                        {(periodType === "Diário" || periodType === "Semanal") && (
+                                            <div className="field-group stats-calendar-field" ref={statsCalendarRef}>
+                                                <label>Data</label>
+
+                                                <button
+                                                    ref={statsButtonRef}
+                                                    type="button"
+                                                    className="stats-calendar-button"
+                                                    onClick={(e) => {
+                                                        const rect = e.currentTarget.getBoundingClientRect();
+
+                                                        const calendarHeight = 360;
+                                                        const overflow = rect.bottom + calendarHeight - window.innerHeight;
+
+                                                        if (overflow > 0) {
+                                                            window.scrollBy({
+                                                                top: overflow + 40,
+                                                                behavior: "smooth",
+                                                            });
+                                                        }
+
+                                                        setIsStatsCalendarOpen((prev) => !prev);
+                                                    }}
+                                                >
+                                                    {periodType === "Diário" && formatDateBR(periodReference)}
+                                                    {periodType === "Semanal" && formatWeekRef(periodReference)}
+                                                </button>
+
+                                                {isStatsCalendarOpen && (
+                                                    <div className="stats-calendar-popover">
+                                                        <DayPicker
+                                                            mode="single"
+                                                            locale={ptBR}
+                                                            captionLayout="dropdown"
+                                                            fromYear={2020}
+                                                            toYear={2035}
+                                                            selected={
+                                                                periodReference
+                                                                    ? new Date(`${periodReference}T12:00:00`)
+                                                                    : undefined
+                                                            }
+                                                            onSelect={(date) => {
+                                                                if (!date) return;
+
+                                                                const selectedISO = dateToISO(date);
+
+                                                                if (periodType === "Diário") {
+                                                                    setPeriodReference(selectedISO);
+                                                                }
+
+                                                                if (periodType === "Semanal") {
+                                                                    setPeriodReference(getWeekRef(selectedISO));
+                                                                }
+
+                                                                setTopMetricIndex(0);
+                                                                setIsStatsCalendarOpen(false);
+                                                            }}
+                                                            modifiers={{
+                                                                hasTicket: ticketMarkedDays,
+                                                                hasMovement: movementMarkedDays,
+                                                            }}
+                                                            modifiersClassNames={{
+                                                                hasTicket: "day-has-tickets",
+                                                                hasMovement: "day-has-movements",
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {(periodType === "Mensal" ||
+                                            periodType === "Trimestral" ||
+                                            periodType === "Semestral" ||
+                                            periodType === "Anual") && (
+                                                <div className="field-group period-field">
+                                                    <label>Data</label>
+
+                                                    <select
+                                                        value={periodReference}
+                                                        onChange={(e) => {
+                                                            setPeriodReference(e.target.value);
+                                                            setTopMetricIndex(0);
+                                                        }}
+                                                    >
+                                                        {availableReferences.map((reference) => (
+                                                            <option key={reference} value={reference}>
+                                                                {periodType === "Mensal" && formatMonthRef(reference)}
+                                                                {periodType === "Trimestral" && formatQuarterRef(reference)}
+                                                                {periodType === "Semestral" && formatSemesterRef(reference)}
+                                                                {periodType === "Anual" && reference}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )}
+                                    </>
                                 )}
 
                             </div>
 
-                            {!isMobile && <div className="stats-top-arrows-inline">
-                                <button
-                                    type="button"
-                                    className="arrow-btn"
-                                    onClick={prevMetric}
-                                    disabled={!canPrevMetric}
-                                >
-                                    ‹
-                                </button>
+                            {!isMobile && topMetricPages.length > 1 && (
+                                <div className="stats-top-arrows-inline">
+                                    <button
+                                        type="button"
+                                        className="arrow-btn"
+                                        onClick={prevMetric}
+                                        disabled={!canPrevMetric}
+                                    >
+                                        ‹
+                                    </button>
 
-                                <button
-                                    type="button"
-                                    className="arrow-btn"
-                                    onClick={nextMetric}
-                                    disabled={!canNextMetric}
-                                >
-                                    ›
-                                </button>
-                            </div>}
+                                    <button
+                                        type="button"
+                                        className="arrow-btn"
+                                        onClick={nextMetric}
+                                        disabled={!canNextMetric}
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="stats-top-section">
@@ -1919,9 +2680,17 @@ export default function App() {
                                 {topMetricPages[topMetricIndex].map((item) => (
                                     <div
                                         key={item.title}
-                                        className={`stats-top-card ${item.tone === "positive" ? "positive" : item.tone === "negative" ? "negative" : ""}`}
+                                        className={`stats-top-card ${item.onClick ? "clickable" : ""} ${item.tone === "positive" ? "positive" : item.tone === "negative" ? "negative" : ""}`}
+                                        onClick={item.onClick}
                                     >
-                                        <span>{item.title}</span>
+                                        <span>
+                                            {item.title}
+                                            {item.title === "Evolução da banca" && (
+                                                <strong className="metric-toggle-indicator">
+                                                    {isBankChartOpen ? "−" : "+"}
+                                                </strong>
+                                            )}
+                                        </span>
                                         <strong className={`metric-value ${item.tone || "neutral"}`}>
                                             {renderTopValue(item.value, item.formatter)}
                                         </strong>
@@ -1959,9 +2728,1184 @@ export default function App() {
                     </div>
                 </section>
 
-                <section className="main-grid">
+                {isBankChartOpen && bankHistoryData.length > 0 && (
+                    <section ref={bankChartRef} className="panel bank-chart-panel">
+                        <div className="bank-chart-header">
+                            <h2>Evolução da banca</h2>
+
+                            <select
+                                value={chartMode}
+                                onChange={(e) => setChartMode(e.target.value)}
+                                className="bank-chart-select"
+                            >
+                                <option value="Banca">Banca</option>
+                                <option value="Desempenho">Desempenho</option>
+                            </select>
+
+                        </div>
+
+                        <div className="bank-chart-box">
+                            <ResponsiveContainer width="100%" height={300}>
+                                <AreaChart
+                                    data={bankHistoryData}
+                                    margin={{ top: 12, right: 18, left: 0, bottom: 24 }}
+                                >
+                                    <defs>
+                                        <linearGradient id="bankGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop
+                                                offset="0%"
+                                                stopColor={isBankChartPositive ? "#16a34a" : "#dc2626"}
+                                                stopOpacity={0.2}
+                                            />
+                                            <stop
+                                                offset="100%"
+                                                stopColor={isBankChartPositive ? "#16a34a" : "#dc2626"}
+                                                stopOpacity={0.02}
+                                            />
+                                        </linearGradient>
+                                    </defs>
+
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke="#e2e8f0"
+                                        vertical={false}
+                                    />
+
+                                    <ReferenceLine
+                                        y={bankHistoryData[0]?.banca}
+                                        stroke="#94a3b8"
+                                        strokeDasharray="4 4"
+                                    />
+
+                                    <XAxis
+                                        dataKey="data"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        interval={0}
+                                        dy={20}
+                                        tick={{ fontSize: 11, fill: "#64748b" }}
+                                        tickFormatter={(value) => {
+                                            const date = new Date(`${value}T12:00:00`);
+                                            return `${date.getDate()}/${date.getMonth() + 1}`;
+                                        }}
+                                    />
+                                    <YAxis
+                                        domain={["dataMin - 50", "dataMax + 50"]}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 11, fill: "#64748b" }}
+                                        tickFormatter={(value) =>
+                                            `R$ ${Number(value).toLocaleString("pt-BR")}`
+                                        }
+                                    />
+                                    <Tooltip
+                                        cursor={{ stroke: "#cbd5e1", strokeWidth: 1 }}
+                                        content={({ active, payload }) => {
+                                            if (!active || !payload || !payload.length) return null;
+
+                                            const data = payload[0].payload;
+
+                                            return (
+                                                <div className="chart-tooltip">
+                                                    <div><strong>{formatDateBR(data.data)}</strong></div>
+
+                                                    <div>Banca: {formatMoney(data.banca)}</div>
+
+                                                    {data.deposito > 0 && (
+                                                        <div style={{ color: "#16a34a" }}>
+                                                            Depósito: +{formatMoney(data.deposito)}
+                                                        </div>
+                                                    )}
+
+                                                    {data.saque > 0 && (
+                                                        <div style={{ color: "#dc2626" }}>
+                                                            Saque: -{formatMoney(data.saque)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        }}
+                                    />
+
+                                    <Area
+                                        type="natural"
+                                        dataKey="banca"
+                                        stroke={isBankChartPositive ? "#16a34a" : "#dc2626"}
+                                        fill="url(#bankGradient)"
+                                        strokeWidth={3}
+                                        dot={false}
+                                        activeDot={{
+                                            r: 7,
+                                            stroke: "#ffffff",
+                                            strokeWidth: 3,
+                                            fill: isBankChartPositive ? "#16a34a" : "#dc2626",
+                                        }}
+                                    />
+
+                                    {bankHistoryData.map((item, index) => {
+                                        if (!item.deposito && !item.saque) return null;
+
+                                        return (
+                                            <ReferenceDot
+                                                key={index}
+                                                x={item.data}
+                                                y={item.banca}
+                                                r={5}
+                                                fill={item.deposito > 0 ? "#16a34a" : "#dc2626"}
+                                                stroke="#ffffff"
+                                                strokeWidth={2}
+                                            />
+                                        );
+                                    })}
+
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </section>
+                )}
+
+                <div className="bottom-action-grid">
+                    <button
+                        type="button"
+                        className={`bottom-action-card ${activeBottomPanel === "ticket" ? "active" : ""}`}
+                        onClick={() => {
+                            const nextPanel = activeBottomPanel === "ticket" ? null : "ticket";
+                            setActiveBottomPanel(nextPanel);
+
+                            if (nextPanel === "ticket") {
+                                setTimeout(() => {
+                                    leftPanelRef.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "start",
+                                    });
+                                }, 120);
+                            }
+                        }}
+                    >
+                        <span>Novo bilhete</span>
+                        <strong>{activeBottomPanel === "ticket" ? "−" : "+"}</strong>
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`bottom-action-card ${activeBottomPanel === "ticketsDay" ? "active" : ""}`}
+                        onClick={() => {
+                            const nextPanel = activeBottomPanel === "ticketsDay" ? null : "ticketsDay";
+                            setActiveBottomPanel(nextPanel);
+
+                            if (nextPanel === "ticketsDay") {
+                                setTimeout(() => {
+                                    leftPanelRef.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "start",
+                                    });
+                                }, 120);
+                            }
+                        }}
+                    >
+                        <span>Bilhetes do dia</span>
+                        <strong>{activeBottomPanel === "ticketsDay" ? "−" : "+"}</strong>
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`bottom-action-card ${activeBottomPanel === "movement" ? "active" : ""}`}
+                        onClick={() => {
+                            const nextPanel = activeBottomPanel === "movement" ? null : "movement";
+                            setActiveBottomPanel(nextPanel);
+
+                            if (nextPanel === "movement") {
+                                setTimeout(() => {
+                                    rightPanelRef.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "start",
+                                    });
+                                }, 120);
+                            }
+                        }}
+                    >
+                        <span>Nova movimentação</span>
+                        <strong>{activeBottomPanel === "movement" ? "−" : "+"}</strong>
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`bottom-action-card ${activeBottomPanel === "extract" ? "active" : ""}`}
+                        onClick={() => {
+                            const nextPanel = activeBottomPanel === "extract" ? null : "extract";
+                            setActiveBottomPanel(nextPanel);
+
+                            if (nextPanel === "extract") {
+                                setTimeout(() => {
+                                    rightPanelRef.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "start",
+                                    });
+                                }, 120);
+                            }
+                        }}
+                    >
+                        <span>Extrato</span>
+                        <strong>{activeBottomPanel === "extract" ? "−" : "+"}</strong>
+                    </button>
+                </div>
+
+                {activeBottomPanel === "ticket" && (
+                    <section className="panel bottom-dynamic-panel align-left" ref={leftPanelRef}>
+                        {/* HEADER */}
+                        <div className="section-header ticket-header-row">
+                            <h2>{editingTicketId ? "Editar bilhete" : "Novo bilhete"}</h2>
+
+                            <div className="ticket-form-calendar-field" ref={ticketFormCalendarRef}>
+                                <button
+                                    type="button"
+                                    className="ticket-date-top"
+                                    onClick={() => {
+                                        setIsTicketFormCalendarOpen((prev) => !prev);
+
+                                        setTimeout(() => {
+                                            rightPanelRef.current?.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "start",
+                                            });
+                                        }, 80);
+                                    }}
+                                >
+                                    <span>{formatDateBR(ticketForm.data)}</span>
+                                    <span className="ticket-date-icon">▾</span>
+                                </button>
+
+                                {isTicketFormCalendarOpen && (
+                                    <div className="ticket-form-calendar-popover">
+                                        <DayPicker
+                                            locale={ptBR}
+                                            mode="single"
+                                            captionLayout="dropdown"
+                                            fromYear={2020}
+                                            toYear={2035}
+                                            selected={
+                                                ticketForm.data
+                                                    ? new Date(`${ticketForm.data}T12:00:00`)
+                                                    : undefined
+                                            }
+                                            onSelect={(date) => {
+                                                if (!date) return;
+
+                                                setTicketForm((prev) => ({
+                                                    ...prev,
+                                                    data: dateToISO(date),
+                                                }));
+
+                                                setIsTicketFormCalendarOpen(false);
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <form className="form-stack" onSubmit={handleSaveTicket}>
+                            {/* CASA */}
+                            <div className="form-row">
+                                <div className="field-group">
+                                    <label>Casa de aposta</label>
+                                    <select
+                                        value={ticketForm.casaId}
+                                        onChange={(e) =>
+                                            setTicketForm((prev) => ({
+                                                ...prev,
+                                                casaId: e.target.value,
+                                            }))
+                                        }
+                                    >
+                                        <option value="">Selecione</option>
+                                        {houses.map((house) => (
+                                            <option key={house.id} value={house.id}>
+                                                {house.nome}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* CATEGORIA */}
+                            <div className="form-row">
+                                <div className="field-group">
+                                    <label>Categoria</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex.: Ambas marcam"
+                                        value={ticketForm.categoria}
+                                        onChange={(e) =>
+                                            setTicketForm((prev) => ({
+                                                ...prev,
+                                                categoria: e.target.value,
+                                            }))
+                                        }
+                                    />
+                                </div>
+                            </div>
+
+                            {/* FINANCEIRO */}
+                            <div className="form-row form-row-3">
+                                <div className="field-group">
+                                    <label>Odd</label>
+                                    <input
+                                        type="text"
+                                        inputMode="decimal"
+                                        placeholder="1.80"
+                                        value={ticketForm.odd}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(",", ".");
+                                            if (/^\d*\.?\d*$/.test(value)) {
+                                                setTicketForm((prev) => ({ ...prev, odd: value }));
+                                            }
+                                        }}
+                                    />
+                                </div>
+
+                                <div className="field-group">
+                                    <label>Valor apostado</label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="R$ 0,00"
+                                        value={ticketForm.stake}
+                                        onChange={(e) =>
+                                            setTicketForm((prev) => ({
+                                                ...prev,
+                                                stake: formatCurrencyTyping(e.target.value),
+                                            }))
+                                        }
+                                    />
+                                </div>
+
+                                <div className="field-group">
+                                    <label>Retorno</label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="R$ 0,00"
+                                        value={ticketForm.retorno}
+                                        onChange={(e) =>
+                                            setTicketForm((prev) => ({
+                                                ...prev,
+                                                retorno: formatCurrencyTyping(e.target.value),
+                                            }))
+                                        }
+                                    />
+                                </div>
+                            </div>
+
+                            {/* ORIGEM + RESULTADO */}
+                            <div className="form-row">
+                                <div className="field-group">
+                                    <label>Origem do dinheiro</label>
+                                    <select
+                                        value={ticketForm.origemStake}
+                                        onChange={(e) =>
+                                            setTicketForm((prev) => ({
+                                                ...prev,
+                                                origemStake: e.target.value,
+                                                stakeSaldo: "",
+                                                stakeBonus: "",
+                                            }))
+                                        }
+                                    >
+                                        <option>Saldo</option>
+                                        <option>Bônus</option>
+                                        <option>Saldo + Bônus</option>
+                                    </select>
+                                </div>
+
+                                <div className="field-group">
+                                    <label>Resultado</label>
+                                    <select
+                                        value={ticketForm.resultado}
+                                        onChange={(e) =>
+                                            setTicketForm((prev) => ({
+                                                ...prev,
+                                                resultado: e.target.value,
+                                            }))
+                                        }
+                                    >
+                                        <option value="Pendente">Pendente</option>
+                                        <option value="Green">Ganho</option>
+                                        <option value="Red">Perda</option>
+                                        <option value="Cash Out">Cash Out</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* DIVISÃO */}
+                            {ticketForm.origemStake === "Saldo + Bônus" && (
+                                <div className="form-row form-row-2">
+                                    <div className="field-group">
+                                        <label>Valor em saldo</label>
+                                        <input
+                                            type="text"
+                                            placeholder="R$ 0,00"
+                                            value={ticketForm.stakeSaldo}
+                                            onChange={(e) =>
+                                                setTicketForm((prev) => ({
+                                                    ...prev,
+                                                    stakeSaldo: formatCurrencyTyping(e.target.value),
+                                                }))
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="field-group">
+                                        <label>Valor em bônus</label>
+                                        <input
+                                            type="text"
+                                            placeholder="R$ 0,00"
+                                            value={ticketForm.stakeBonus}
+                                            onChange={(e) =>
+                                                setTicketForm((prev) => ({
+                                                    ...prev,
+                                                    stakeBonus: formatCurrencyTyping(e.target.value),
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* OBS */}
+                            <div className="field-group">
+                                <label>Observações</label>
+                                <textarea
+                                    rows="2"
+                                    placeholder="Opcional"
+                                    value={ticketForm.observacoes}
+                                    onChange={(e) =>
+                                        setTicketForm((prev) => ({
+                                            ...prev,
+                                            observacoes: e.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+
+                            {/* BOTÃO */}
+                            <div className="button-row">
+                                <button type="submit" className="primary-button">
+                                    {editingTicketId ? "Salvar bilhete" : "Adicionar bilhete"}
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+                )}
+                {activeBottomPanel === "ticketsDay" && (
+                    <section className="panel bottom-dynamic-panel align-left" ref={leftPanelRef}>
+                        <div className="section-header">
+                            <h2>Bilhetes do dia</h2>
+                        </div>
+
+                        <div className="movement-extract-filter">
+                            <div className="field-group">
+                                <label>Casa</label>
+                                <select
+                                    value={ticketsDayHouseScope}
+                                    onChange={(e) => {
+                                        setTicketsDayHouseScope(e.target.value);
+                                        setOpenedCollapsedTicketId(null);
+                                    }}
+                                >
+                                    <option value="all">Todas as casas</option>
+                                    {houses.map((house) => (
+                                        <option key={house.id} value={house.id}>
+                                            {house.nome}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="field-group">
+                                <label>Período</label>
+                                <select
+                                    value={ticketsDayPeriodType}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+
+                                        setTicketsDayPeriodType(value);
+                                        setOpenedCollapsedTicketId(null);
+
+                                        if (value === "Geral") {
+                                            setTicketsDayPeriodReference("");
+                                            return;
+                                        }
+
+                                        if (value === "Diário") {
+                                            setTicketsDayPeriodReference(hojeISO());
+                                            return;
+                                        }
+
+                                        if (value === "Semanal") {
+                                            setTicketsDayPeriodReference(getWeekRef(hojeISO()));
+                                            return;
+                                        }
+
+                                        if (value === "Mensal") {
+                                            setTicketsDayPeriodReference(getMonthRef(hojeISO()));
+                                            return;
+                                        }
+
+                                        if (value === "Anual") {
+                                            setTicketsDayPeriodReference(getYearRef(hojeISO()));
+                                        }
+                                    }}
+                                >
+                                    <option value="Diário">Diário</option>
+                                    <option value="Semanal">Semanal</option>
+                                    <option value="Mensal">Mensal</option>
+                                    <option value="Anual">Anual</option>
+                                    <option value="Geral">Geral</option>
+                                </select>
+                            </div>
+
+                            {ticketsDayPeriodType !== "Geral" && (
+                                <div className="field-group">
+                                    <label>Referência</label>
+                                    <div className="movement-extract-calendar-field" ref={ticketsCalendarRef}>
+                                        <button
+                                            type="button"
+                                            className="movement-extract-calendar-button"
+                                            onClick={() => {
+                                                setIsTicketsCalendarOpen((prev) => !prev);
+                                            }}
+                                        >
+                                            {ticketsDayPeriodType === "Diário" &&
+                                                formatDateBR(ticketsDayPeriodReference)}
+
+                                            {ticketsDayPeriodType === "Semanal" &&
+                                                formatWeekRef(ticketsDayPeriodReference)}
+
+                                            {ticketsDayPeriodType === "Mensal" &&
+                                                formatMonthRef(ticketsDayPeriodReference)}
+
+                                            {ticketsDayPeriodType === "Anual" &&
+                                                ticketsDayPeriodReference}
+                                        </button>
+
+                                        {isTicketsCalendarOpen && (
+                                            <div className="tickets-dynamic-calendar-popover">
+                                                <DayPicker
+                                                    locale={ptBR}
+                                                    mode="single"
+                                                    captionLayout="dropdown"
+                                                    fromYear={2020}
+                                                    toYear={2035}
+                                                    selected={
+                                                        ticketsDayPeriodReference
+                                                            ? new Date(`${ticketsDayPeriodReference}T12:00:00`)
+                                                            : undefined
+                                                    }
+                                                    onSelect={(date) => {
+                                                        if (!date) return;
+
+                                                        const selectedISO = dateToISO(date);
+
+                                                        if (ticketsDayPeriodType === "Diário") {
+                                                            setTicketsDayPeriodReference(selectedISO);
+                                                        }
+
+                                                        if (ticketsDayPeriodType === "Semanal") {
+                                                            setTicketsDayPeriodReference(getWeekRef(selectedISO));
+                                                        }
+
+                                                        if (ticketsDayPeriodType === "Mensal") {
+                                                            setTicketsDayPeriodReference(getMonthRef(selectedISO));
+                                                        }
+
+                                                        if (ticketsDayPeriodType === "Anual") {
+                                                            setTicketsDayPeriodReference(getYearRef(selectedISO));
+                                                        }
+
+                                                        setOpenedCollapsedTicketId(null);
+                                                        setIsTicketsCalendarOpen(false);
+                                                    }}
+                                                    modifiers={{
+                                                        hasTicket: ticketMarkedDays,
+                                                    }}
+                                                    modifiersClassNames={{
+                                                        hasTicket: "day-has-tickets",
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="collapsed-ticket-list">
+                            {ticketsOfDay.length === 0 ? (
+                                <div className="empty-state">
+                                    Nenhum bilhete encontrado para este período.
+                                </div>
+                            ) : (
+                                ticketsOfDay.map((ticket) => {
+                                    const house = houses.find(
+                                        (item) => Number(item.id) === Number(ticket.casaId)
+                                    );
+
+                                    return (
+                                        <div
+                                            key={ticket.id}
+                                            id={`collapsed-ticket-${ticket.id}`}
+                                            className={`collapsed-ticket-card ${openedCollapsedTicketId === ticket.id ? "open" : ""
+                                                }`}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="collapsed-ticket-item"
+                                                onClick={() => {
+                                                    setOpenedCollapsedTicketId((prev) =>
+                                                        prev === ticket.id ? null : ticket.id
+                                                    );
+                                                }}
+                                            >
+                                                <div className="collapsed-ticket-main">
+                                                    <div className="collapsed-ticket-name">
+                                                        {ticket.nomeBilhete || "Bilhete"}
+                                                    </div>
+
+                                                    <div className="collapsed-ticket-meta">
+                                                        <span>{house?.nome || "Casa não encontrada"}</span>
+                                                        <span>{ticket.categoria}</span>
+                                                    </div>
+                                                </div>
+
+                                                <span
+                                                    className={`collapsed-ticket-status ${ticket.resultado === "Cash Out"
+                                                        ? Number(ticket.retorno || 0) >= Number(ticket.stake || 0)
+                                                            ? "green"
+                                                            : "red"
+                                                        : String(ticket.resultado || "").toLowerCase()
+                                                        }`}
+                                                >
+                                                    {ticket.resultado === "Green"
+                                                        ? "Ganho"
+                                                        : ticket.resultado === "Red"
+                                                            ? "Perda"
+                                                            : ticket.resultado === "Cash Out"
+                                                                ? "Cash Out"
+                                                                : "Pendente"}
+                                                </span>
+                                            </button>
+
+                                            {openedCollapsedTicketId === ticket.id && (
+                                                <div className="collapsed-ticket-detail">
+                                                    <div className="ticket-info-grid">
+                                                        <div className="info-box">
+                                                            <span>Casa</span>
+                                                            <strong>{house?.nome || "Casa não encontrada"}</strong>
+                                                        </div>
+
+                                                        <div className="info-box">
+                                                            <span>Categoria</span>
+                                                            <strong>{ticket.categoria}</strong>
+                                                        </div>
+
+                                                        <div className="info-box">
+                                                            <span>Odd</span>
+                                                            <strong>{Number(ticket.odd || 0).toFixed(2)}</strong>
+                                                        </div>
+
+                                                        <div className="info-box">
+                                                            <span>Valor apostado</span>
+                                                            <strong>{formatMoney(ticket.stake)}</strong>
+                                                        </div>
+
+                                                        <div className="info-box">
+                                                            <span>Retorno</span>
+                                                            <strong>{formatMoney(ticket.retorno)}</strong>
+                                                        </div>
+                                                    </div>
+
+                                                    {ticket.observacoes && (
+                                                        <div className="ticket-note">{ticket.observacoes}</div>
+                                                    )}
+
+                                                    <div className="card-actions">
+                                                        <button
+                                                            type="button"
+                                                            className="secondary-button"
+                                                            onClick={() => handleStartEditTicket(ticket.id)}
+                                                        >
+                                                            Editar
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="danger-button"
+                                                            onClick={() => handleDeleteTicket(ticket.id)}
+                                                        >
+                                                            Excluir
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </section>
+                )}
+
+                {activeBottomPanel === "movement" && (
+                    <section className="panel bottom-dynamic-panel align-right" ref={rightPanelRef}>
+                        <div className="section-header ticket-header-row">
+                            <h2>{editingMovementId ? "Editar movimentação" : "Nova movimentação"}</h2>
+
+                            <div className="ticket-form-calendar-field" ref={movementFormCalendarRef}>
+                                <button
+                                    type="button"
+                                    className="ticket-date-top"
+                                    onClick={() => {
+                                        setIsMovementFormCalendarOpen((prev) => !prev);
+                                    }}
+                                >
+                                    <span>{formatDateBR(movementForm.data)}</span>
+                                    <span className="ticket-date-icon">▾</span>
+                                </button>
+
+                                {isMovementFormCalendarOpen && (
+                                    <div className="movement-form-calendar-popover">
+                                        <DayPicker
+                                            locale={ptBR}
+                                            mode="single"
+                                            captionLayout="dropdown"
+                                            fromYear={2020}
+                                            toYear={2035}
+                                            selected={
+                                                movementForm.data
+                                                    ? new Date(`${movementForm.data}T12:00:00`)
+                                                    : undefined
+                                            }
+                                            onSelect={(date) => {
+                                                if (!date) return;
+
+                                                setMovementForm((prev) => ({
+                                                    ...prev,
+                                                    data: dateToISO(date),
+                                                }));
+
+                                                setIsMovementFormCalendarOpen(false);
+                                            }}
+                                            modifiers={{
+                                                hasMovement: movementMarkedDays,
+                                            }}
+                                            modifiersClassNames={{
+                                                hasMovement: "day-has-movements",
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <form className="form-stack" onSubmit={handleSaveMovement}>
+                            <div className="form-row">
+                                <div className="field-group">
+                                    <label>Casa de aposta</label>
+                                    <select
+                                        value={movementForm.casaId}
+                                        onChange={(e) =>
+                                            setMovementForm((prev) => ({
+                                                ...prev,
+                                                casaId: e.target.value,
+                                            }))
+                                        }
+                                    >
+                                        <option value="">Selecione</option>
+                                        {houses.map((house) => (
+                                            <option key={house.id} value={house.id}>
+                                                {house.nome}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="field-group">
+                                    <label>Tipo</label>
+                                    <select
+                                        value={movementForm.tipo}
+                                        onChange={(e) =>
+                                            setMovementForm((prev) => ({
+                                                ...prev,
+                                                tipo: e.target.value,
+                                            }))
+                                        }
+                                    >
+                                        <option>Depósito</option>
+                                        <option>Saque</option>
+                                    </select>
+                                </div>
+
+                                <div className="field-group">
+                                    <label>Valor</label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="R$ 0,00"
+                                        value={movementForm.valor}
+                                        onChange={(e) =>
+                                            setMovementForm((prev) => ({
+                                                ...prev,
+                                                valor: formatCurrencyTyping(e.target.value),
+                                            }))
+                                        }
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="field-group">
+                                <label>Observações</label>
+                                <textarea
+                                    rows="2"
+                                    placeholder="Opcional"
+                                    value={movementForm.observacoes}
+                                    onChange={(e) =>
+                                        setMovementForm((prev) => ({
+                                            ...prev,
+                                            observacoes: e.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+
+                            <div className="button-row">
+                                <button type="submit" className="primary-button">
+                                    {editingMovementId ? "Salvar movimentação" : "Adicionar movimentação"}
+                                </button>
+
+                                {editingMovementId && (
+                                    <button
+                                        type="button"
+                                        className="secondary-button"
+                                        onClick={resetMovementForm}
+                                    >
+                                        Cancelar
+                                    </button>
+                                )}
+                            </div>
+                        </form>
+                    </section>
+                )}
+
+                {activeBottomPanel === "extract" && (
+                    <section className="panel bottom-dynamic-panel align-right" ref={rightPanelRef}>
+                        <div className="section-header">
+                            <h2>Extrato de movimentações</h2>
+                        </div>
+
+                        <div className="movement-extract-filter">
+                            <div className="field-group">
+                                <label>Casa</label>
+                                <select
+                                    value={movementExtractHouseScope}
+                                    onChange={(e) => {
+                                        setMovementExtractHouseScope(e.target.value);
+                                        setActiveMovementExtractTab(null);
+                                    }}
+                                >
+                                    <option value="">Selecione uma casa</option>
+                                    <option value="all">Todas as casas</option>
+                                    {houses.map((house) => (
+                                        <option key={house.id} value={house.id}>
+                                            {house.nome}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="field-group">
+                                <label>Período</label>
+                                <select
+                                    value={movementExtractPeriodType || "Diário"}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+
+                                        setMovementExtractPeriodType(value);
+                                        setActiveMovementExtractTab(null);
+
+                                        if (value === "Geral") {
+                                            setMovementExtractPeriodReference("");
+                                            return;
+                                        }
+
+                                        if (value === "Diário") {
+                                            setMovementExtractPeriodReference(hojeISO());
+                                            return;
+                                        }
+
+                                        if (value === "Semanal") {
+                                            setMovementExtractPeriodReference(getWeekRef(hojeISO()));
+                                            return;
+                                        }
+
+                                        if (value === "Mensal") {
+                                            setMovementExtractPeriodReference(getMonthRef(hojeISO()));
+                                            return;
+                                        }
+
+                                        if (value === "Anual") {
+                                            setMovementExtractPeriodReference(getYearRef(hojeISO()));
+                                        }
+                                    }}
+                                >
+                                    <option value="Diário">Diário</option>
+                                    <option value="Semanal">Semanal</option>
+                                    <option value="Mensal">Mensal</option>
+                                    <option value="Anual">Anual</option>
+                                    <option value="Geral">Geral</option>
+                                </select>
+                            </div>
+
+                            {(movementExtractPeriodType || "Diário") !== "Geral" && (
+                                <div className="field-group">
+                                    <label>Referência</label>
+
+                                    <div className="movement-extract-calendar-field" ref={movementExtractCalendarRef}>
+                                        <button
+                                            type="button"
+                                            className="movement-extract-calendar-button"
+                                            onClick={() => {
+                                                if (!movementExtractPeriodType) {
+                                                    setMovementExtractPeriodType("Diário");
+                                                    setMovementExtractPeriodReference(hojeISO());
+                                                }
+
+                                                setIsMovementExtractCalendarOpen((prev) => !prev);
+                                            }}
+                                        >
+                                            {(movementExtractPeriodType || "Diário") === "Diário" &&
+                                                formatDateBR(movementExtractPeriodReference || hojeISO())}
+
+                                            {movementExtractPeriodType === "Semanal" &&
+                                                formatWeekRef(movementExtractPeriodReference)}
+
+                                            {movementExtractPeriodType === "Mensal" &&
+                                                formatMonthRef(movementExtractPeriodReference)}
+
+                                            {movementExtractPeriodType === "Anual" &&
+                                                movementExtractPeriodReference}
+                                        </button>
+
+                                        {isMovementExtractCalendarOpen && (
+                                            <div className="movement-form-calendar-popover">
+                                                <DayPicker
+                                                    locale={ptBR}
+                                                    mode="single"
+                                                    captionLayout="dropdown"
+                                                    fromYear={2020}
+                                                    toYear={2035}
+                                                    selected={
+                                                        movementExtractPeriodReference
+                                                            ? new Date(`${movementExtractPeriodReference}T12:00:00`)
+                                                            : new Date(`${hojeISO()}T12:00:00`)
+                                                    }
+                                                    onSelect={(date) => {
+                                                        if (!date) return;
+
+                                                        const selectedISO = dateToISO(date);
+
+                                                        if ((movementExtractPeriodType || "Diário") === "Diário") {
+                                                            setMovementExtractPeriodReference(selectedISO);
+                                                        }
+
+                                                        if (movementExtractPeriodType === "Semanal") {
+                                                            setMovementExtractPeriodReference(getWeekRef(selectedISO));
+                                                        }
+
+                                                        if (movementExtractPeriodType === "Mensal") {
+                                                            setMovementExtractPeriodReference(getMonthRef(selectedISO));
+                                                        }
+
+                                                        if (movementExtractPeriodType === "Anual") {
+                                                            setMovementExtractPeriodReference(getYearRef(selectedISO));
+                                                        }
+
+                                                        setActiveMovementExtractTab(null);
+                                                        setIsMovementExtractCalendarOpen(false);
+                                                    }}
+                                                    modifiers={{
+                                                        hasMovement: movementMarkedDays,
+                                                    }}
+                                                    modifiersClassNames={{
+                                                        hasMovement: "day-has-movements",
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="movement-summary-grid">
+                            <button
+                                type="button"
+                                className={`movement-summary-card ${activeMovementExtractTab === "deposits" ? "active" : ""}`}
+                                onClick={() =>
+                                    setActiveMovementExtractTab((prev) =>
+                                        prev === "deposits" ? null : "deposits"
+                                    )
+                                }
+                            >
+                                <div className="movement-summary-card-header">
+                                    <span>Depósitos</span>
+                                    <span className="card-action-icon">
+                                        {activeMovementExtractTab === "deposits" ? "−" : "+"}
+                                    </span>
+                                </div>
+                                <strong className="movement-positive">
+                                    {movementExtractHouseScope ? formatMoney(totalDeposits) : "—"}
+                                </strong>
+                            </button>
+
+                            <button
+                                type="button"
+                                className={`movement-summary-card ${activeMovementExtractTab === "withdrawals" ? "active" : ""}`}
+                                onClick={() =>
+                                    setActiveMovementExtractTab((prev) =>
+                                        prev === "withdrawals" ? null : "withdrawals"
+                                    )
+                                }
+                            >
+                                <div className="movement-summary-card-header">
+                                    <span>Saques</span>
+                                    <span className="card-action-icon">
+                                        {activeMovementExtractTab === "withdrawals" ? "−" : "+"}
+                                    </span>
+                                </div>
+                                <strong className="movement-negative">
+                                    {movementExtractHouseScope ? formatMoney(totalWithdrawals) : "—"}
+                                </strong>
+                            </button>
+                        </div>
+
+                        {activeMovementExtractTab === "deposits" && (
+                            <div className="movement-extract-list">
+                                {depositMovements.length === 0 ? (
+                                    <div className="empty-state">Nenhum depósito encontrado.</div>
+                                ) : (
+                                    depositMovements.map((movement) => {
+                                        const house = houses.find(
+                                            (item) => Number(item.id) === Number(movement.casaId)
+                                        );
+
+                                        return (
+                                            <div className="movement-card" key={movement.id}>
+                                                <div className="movement-top">
+                                                    <div>
+                                                        <div className="movement-title">Depósito</div>
+                                                        <div className="movement-subtitle">
+                                                            {formatDateBR(movement.data)} • {house?.nome || "Casa não encontrada"}
+                                                        </div>
+                                                    </div>
+
+                                                    <strong className="movement-positive">
+                                                        +{formatMoney(movement.valor)}
+                                                    </strong>
+                                                </div>
+
+                                                {movement.observacoes && (
+                                                    <div className="movement-note">{movement.observacoes}</div>
+                                                )}
+
+                                                <div className="card-actions">
+                                                    <button
+                                                        type="button"
+                                                        className="secondary-button"
+                                                        onClick={() => handleStartEditMovement(movement.id)}
+                                                    >
+                                                        Editar
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        className="danger-button"
+                                                        onClick={() => handleDeleteMovement(movement.id)}
+                                                    >
+                                                        Excluir
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        )}
+
+                        {activeMovementExtractTab === "withdrawals" && (
+                            <div className="movement-extract-list">
+                                {withdrawalMovements.length === 0 ? (
+                                    <div className="empty-state">Nenhum saque encontrado.</div>
+                                ) : (
+                                    withdrawalMovements.map((movement) => {
+                                        const house = houses.find(
+                                            (item) => Number(item.id) === Number(movement.casaId)
+                                        );
+
+                                        return (
+                                            <div className="movement-card" key={movement.id}>
+                                                <div className="movement-top">
+                                                    <div>
+                                                        <div className="movement-title">Saque</div>
+                                                        <div className="movement-subtitle">
+                                                            {formatDateBR(movement.data)} • {house?.nome || "Casa não encontrada"}
+                                                        </div>
+                                                    </div>
+
+                                                    <strong className="movement-negative">
+                                                        -{formatMoney(movement.valor)}
+                                                    </strong>
+                                                </div>
+
+                                                {movement.observacoes && (
+                                                    <div className="movement-note">{movement.observacoes}</div>
+                                                )}
+
+                                                <div className="card-actions">
+                                                    <button
+                                                        type="button"
+                                                        className="secondary-button"
+                                                        onClick={() => handleStartEditMovement(movement.id)}
+                                                    >
+                                                        Editar
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        className="danger-button"
+                                                        onClick={() => handleDeleteMovement(movement.id)}
+                                                    >
+                                                        Excluir
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        )}
+                    </section>
+                )}
+
+                <section className="main-grid bottom-layout-grid">
                     <div className="left-column">
-                        <section className="panel ticket-panel" ref={ticketPanelRef}>
+
+                        <section
+                            className={`panel ticket-panel ${!isTicketPanelOpen ? "panel-closed-compact" : ""}`}
+                            ref={ticketPanelRef}
+                        >
                             <div
                                 className="section-header"
                                 onClick={() => {
@@ -1977,7 +3921,7 @@ export default function App() {
                                 }}
                                 style={{ cursor: "pointer" }}
                             >
-                                <h2 style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <h2 className="movement-header">
                                     <span>
                                         {editingTicketId ? "Editar bilhete" : "Novo bilhete"}
                                     </span>
@@ -2200,6 +4144,328 @@ export default function App() {
                             )}
                         </section>
 
+                        <section
+                            className={`panel tickets-day-panel ${!isTicketsDayPanelOpen ? "tickets-day-panel-closed" : ""}`}
+                            ref={ticketsDayPanelRef}
+                        >
+                            {isMobile ? (
+                                <>
+                                    <div
+                                        className="section-header"
+                                        onClick={() => {
+                                            const nextOpen = !isTicketsDayPanelOpen;
+                                            setIsTicketsDayPanelOpen(nextOpen);
+
+                                            requestAnimationFrame(() => {
+                                                ticketsDayPanelRef.current?.scrollIntoView({
+                                                    behavior: "smooth",
+                                                    block: "start",
+                                                });
+                                            });
+                                        }}
+                                        style={{ cursor: "pointer", marginBottom: 0 }}
+                                    >
+                                        <h2
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                margin: 0,
+                                            }}
+                                        >
+                                            <span>Bilhetes do dia</span>
+                                            <span className="toggle-icon">
+                                                {isTicketsDayPanelOpen ? "−" : "+"}
+                                            </span>
+                                        </h2>
+                                    </div>
+
+                                </>
+                            ) : (
+                                <>
+                                    <div
+                                        className="movement-extract-title-row"
+                                        onClick={() => {
+                                            setActiveBottomPanel((prev) =>
+                                                prev === "ticketsDay" ? null : "ticketsDay"
+                                            );
+
+                                            setTimeout(() => {
+                                                leftPanelRef.current?.scrollIntoView({
+                                                    behavior: "smooth",
+                                                    block: "start",
+                                                });
+                                            }, 120);
+                                        }}
+                                    >
+                                        <h2>Bilhetes do dia</h2>
+
+                                        <span className="extract-toggle-icon">
+                                            {isTicketsDayPanelOpen ? "−" : "+"}
+                                        </span>
+                                    </div>
+
+                                    <div className="movement-extract-filter">
+
+                                        <div className="movement-extract-filter">
+                                            <div className="field-group">
+                                                <label>Casa</label>
+                                                <select
+                                                    value={ticketsDayHouseScope}
+                                                    onChange={(e) => {
+                                                        setTicketsDayHouseScope(e.target.value);
+                                                        setOpenedCollapsedTicketId(null);
+                                                    }}
+                                                >
+                                                    <option value="all">Todas as casas</option>
+                                                    {houses.map((house) => (
+                                                        <option key={house.id} value={house.id}>
+                                                            {house.nome}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="field-group">
+                                                <label>Período</label>
+                                                <select
+                                                    value={ticketsDayPeriodType}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+
+                                                        setTicketsDayPeriodType(value);
+                                                        setOpenedCollapsedTicketId(null);
+
+                                                        if (value === "Geral") {
+                                                            setTicketsDayPeriodReference("");
+                                                            return;
+                                                        }
+
+                                                        if (value === "Diário") {
+                                                            setTicketsDayPeriodReference(hojeISO());
+                                                            return;
+                                                        }
+
+                                                        if (value === "Semanal") {
+                                                            setTicketsDayPeriodReference(getWeekRef(hojeISO()));
+                                                            return;
+                                                        }
+
+                                                        if (value === "Mensal") {
+                                                            setTicketsDayPeriodReference(getMonthRef(hojeISO()));
+                                                            return;
+                                                        }
+
+                                                        if (value === "Anual") {
+                                                            setTicketsDayPeriodReference(getYearRef(hojeISO()));
+                                                        }
+                                                    }}
+                                                >
+                                                    <option value="Diário">Diário</option>
+                                                    <option value="Semanal">Semanal</option>
+                                                    <option value="Mensal">Mensal</option>
+                                                    <option value="Anual">Anual</option>
+                                                    <option value="Geral">Geral</option>
+                                                </select>
+                                            </div>
+
+                                            {ticketsDayPeriodType !== "Geral" && (
+                                                <div className="field-group">
+                                                    <label>Data</label>
+
+                                                    <div ref={ticketsCalendarRef} className="movement-extract-calendar-field">
+                                                        <button
+                                                            type="button"
+                                                            className="movement-extract-calendar-button"
+                                                            onClick={() => setIsTicketsCalendarOpen((prev) => !prev)}
+                                                        >
+                                                            {ticketsDayPeriodType === "Diário" && formatDateBR(ticketsDayPeriodReference)}
+                                                            {ticketsDayPeriodType === "Semanal" && formatWeekRef(ticketsDayPeriodReference)}
+                                                            {ticketsDayPeriodType === "Mensal" && formatMonthRef(ticketsDayPeriodReference)}
+                                                            {ticketsDayPeriodType === "Anual" && ticketsDayPeriodReference}
+                                                        </button>
+
+                                                        {isTicketsCalendarOpen && (
+                                                            <div className="movement-extract-calendar-popover">
+                                                                <DayPicker
+                                                                    locale={ptBR}
+                                                                    mode="single"
+                                                                    captionLayout="dropdown"
+                                                                    fromYear={2020}
+                                                                    toYear={2035}
+                                                                    selected={
+                                                                        ticketsDayPeriodReference
+                                                                            ? new Date(
+                                                                                ticketsDayPeriodType === "Mensal"
+                                                                                    ? `${ticketsDayPeriodReference}-01T12:00:00`
+                                                                                    : ticketsDayPeriodType === "Anual"
+                                                                                        ? `${ticketsDayPeriodReference}-01-01T12:00:00`
+                                                                                        : `${ticketsDayPeriodReference}T12:00:00`
+                                                                            )
+                                                                            : undefined
+                                                                    }
+                                                                    onSelect={(date) => {
+                                                                        if (!date) return;
+
+                                                                        const selectedISO = dateToISO(date);
+
+                                                                        if (ticketsDayPeriodType === "Diário") {
+                                                                            setTicketsDayPeriodReference(selectedISO);
+                                                                        }
+
+                                                                        if (ticketsDayPeriodType === "Semanal") {
+                                                                            setTicketsDayPeriodReference(getWeekRef(selectedISO));
+                                                                        }
+
+                                                                        if (ticketsDayPeriodType === "Mensal") {
+                                                                            setTicketsDayPeriodReference(getMonthRef(selectedISO));
+                                                                        }
+
+                                                                        if (ticketsDayPeriodType === "Anual") {
+                                                                            setTicketsDayPeriodReference(getYearRef(selectedISO));
+                                                                        }
+
+                                                                        setOpenedCollapsedTicketId(null);
+                                                                        setIsTicketsCalendarOpen(false);
+                                                                    }}
+                                                                    modifiers={{
+                                                                        hasTicket: ticketMarkedDays,
+                                                                    }}
+                                                                    modifiersClassNames={{
+                                                                        hasTicket: "day-has-tickets",
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="collapsed-ticket-list">
+                                        {ticketsOfDay.length === 0 ? (
+                                            <div className="empty-state">
+                                                Nenhum bilhete encontrado para este dia.
+                                            </div>
+                                        ) : (
+                                            ticketsOfDay.map((ticket) => {
+                                                const house = houses.find((item) => item.id === Number(ticket.casaId));
+
+                                                return (
+                                                    <div
+                                                        id={`collapsed-ticket-${ticket.id}`}
+                                                        key={ticket.id}
+                                                        className={`collapsed-ticket-card ${openedCollapsedTicketId === ticket.id ? "open" : ""}`}
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            className="collapsed-ticket-item"
+                                                            onClick={() => {
+                                                                const nextOpenId = openedCollapsedTicketId === ticket.id ? null : ticket.id;
+                                                                setOpenedCollapsedTicketId(nextOpenId);
+
+                                                                if (nextOpenId === ticket.id) {
+                                                                    requestAnimationFrame(() => {
+                                                                        setTimeout(() => {
+                                                                            document.getElementById(`collapsed-ticket-${ticket.id}`)?.scrollIntoView({
+                                                                                behavior: "smooth",
+                                                                                block: "start",
+                                                                            });
+                                                                        }, 50);
+                                                                    });
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div className="collapsed-ticket-main">
+                                                                <div className="collapsed-ticket-name">
+                                                                    {ticket.nomeBilhete || "Bilhete"}
+                                                                </div>
+                                                                <div className="collapsed-ticket-meta">
+                                                                    <span>{house?.nome || "Casa não encontrada"}</span>
+                                                                    <span>{ticket.categoria}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <span
+                                                                className={`collapsed-ticket-status ${ticket.resultado === "Cash Out"
+                                                                    ? (Number(ticket.retorno || 0) >= Number(ticket.stake || 0)
+                                                                        ? "green"
+                                                                        : "red")
+                                                                    : String(ticket.resultado || "").toLowerCase()
+                                                                    }`}
+                                                            >
+                                                                {ticket.resultado === "Green"
+                                                                    ? "Ganho"
+                                                                    : ticket.resultado === "Red"
+                                                                        ? "Perda"
+                                                                        : ticket.resultado === "Cash Out"
+                                                                            ? "Cash Out"
+                                                                            : "Pendente"}
+                                                            </span>
+                                                        </button>
+
+                                                        {openedCollapsedTicketId === ticket.id && (
+                                                            <div className="collapsed-ticket-detail">
+                                                                <div className="ticket-info-grid">
+                                                                    <div className="info-box">
+                                                                        <span>Casa</span>
+                                                                        <strong>{house?.nome || "Casa não encontrada"}</strong>
+                                                                    </div>
+                                                                    <div className="info-box">
+                                                                        <span>Categoria</span>
+                                                                        <strong>{ticket.categoria}</strong>
+                                                                    </div>
+                                                                    <div className="info-box">
+                                                                        <span>Odd</span>
+                                                                        <strong>{Number(ticket.odd || 0).toFixed(2)}</strong>
+                                                                    </div>
+                                                                    <div className="info-box">
+                                                                        <span>Valor apostado</span>
+                                                                        <strong>{formatMoney(ticket.stake)}</strong>
+                                                                    </div>
+                                                                    <div className="info-box">
+                                                                        <span>Retorno</span>
+                                                                        <strong>{formatMoney(ticket.retorno)}</strong>
+                                                                    </div>
+                                                                </div>
+
+                                                                {ticket.observacoes && (
+                                                                    <div className="ticket-note">{ticket.observacoes}</div>
+                                                                )}
+
+                                                                <div className="card-actions">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="secondary-button"
+                                                                        onClick={() => handleStartEditTicket(ticket.id)}
+                                                                    >
+                                                                        Editar
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        className="danger-button"
+                                                                        onClick={() => handleDeleteTicket(ticket.id)}
+                                                                    >
+                                                                        Excluir
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </section>
+
+                    </div>
+
+                    <div className="right-column">
+
                         <section className="panel movement-panel" ref={movementPanelRef}>
                             <div
                                 className="section-header"
@@ -2332,7 +4598,16 @@ export default function App() {
                                 className="section-header"
                                 onClick={() => {
                                     const nextOpen = !isMovementDayPanelOpen;
+
                                     setIsMovementDayPanelOpen(nextOpen);
+
+                                    if (!nextOpen) {
+                                        setActiveMovementExtractTab(null);
+                                        setMovementExtractPeriodType("");
+                                        setMovementExtractPeriodReference("");
+                                        setMovementExtractHouseScope("all");
+                                        setIsMovementExtractCalendarOpen(false);
+                                    }
 
                                     requestAnimationFrame(() => {
                                         movementDayPanelRef.current?.scrollIntoView({
@@ -2343,10 +4618,10 @@ export default function App() {
                                 }}
                                 style={{ cursor: "pointer" }}
                             >
-                                <h2 style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <h2 className="movement-extract-title-row">
                                     <span>Extrato de movimentações</span>
 
-                                    <span style={{ fontWeight: "bold", fontSize: "18px" }}>
+                                    <span className="extract-toggle-icon">
                                         {isMovementDayPanelOpen ? "−" : "+"}
                                     </span>
                                 </h2>
@@ -2354,521 +4629,272 @@ export default function App() {
 
                             {isMovementDayPanelOpen && (
                                 <>
-                                    <div className="day-nav-center">
-                                        <button
-                                            type="button"
-                                            className="arrow-btn"
-                                            onClick={goToPreviousMovementDay}
-                                        >
-                                            ‹
-                                        </button>
-
-                                        <div className="tickets-calendar-field" ref={movementsCalendarRef}>
-                                            <button
-                                                type="button"
-                                                className="tickets-calendar-button"
-                                                onClick={() => setIsMovementsCalendarOpen((prev) => !prev)}
+                                    <div className="movement-extract-filter">
+                                        <div className="field-group">
+                                            <select
+                                                value={movementExtractHouseScope}
+                                                onChange={(e) => {
+                                                    setMovementExtractHouseScope(e.target.value);
+                                                    setActiveMovementExtractTab(null);
+                                                }}
                                             >
-                                                {formatDateBR(movementViewDate)}
-                                            </button>
-
-                                            {isMovementsCalendarOpen && (
-                                                <div className="tickets-calendar-popover">
-                                                    <DayPicker
-                                                        mode="single"
-                                                        selected={(() => {
-                                                            const [year, month, day] = movementViewDate.split("-").map(Number);
-                                                            return new Date(year, month - 1, day);
-                                                        })()}
-                                                        onSelect={(date) => {
-                                                            if (!date) return;
-
-                                                            const year = date.getFullYear();
-                                                            const month = String(date.getMonth() + 1).padStart(2, "0");
-                                                            const day = String(date.getDate()).padStart(2, "0");
-
-                                                            setMovementViewDate(`${year}-${month}-${day}`);
-                                                            setIsMovementsCalendarOpen(false);
-                                                        }}
-                                                        modifiers={{ hasMovements: movementMarkedDays }}
-                                                        modifiersClassNames={{ hasMovements: "day-has-movements" }}
-                                                    />
-                                                </div>
-                                            )}
+                                                <option value="all">Todas as casas</option>
+                                                {houses.map((house) => (
+                                                    <option key={house.id} value={house.id}>
+                                                        {house.nome}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
 
-                                        <button
-                                            type="button"
-                                            className="arrow-btn"
-                                            onClick={goToNextMovementDay}
-                                        >
-                                            ›
-                                        </button>
+                                        <div className="field-group">
+                                            <select
+                                                value={movementExtractPeriodType}
+                                                onChange={(e) => {
+                                                    const newType = e.target.value;
+
+                                                    setMovementExtractPeriodType(newType);
+                                                    setActiveMovementExtractTab(null);
+
+                                                    if (newType === "Diário") {
+                                                        setMovementExtractPeriodReference(hojeISO());
+                                                    }
+
+                                                    if (newType === "Semanal") {
+                                                        setMovementExtractPeriodReference(getWeekRef(hojeISO()));
+                                                    }
+
+                                                    if (newType === "Mensal") {
+                                                        setMovementExtractPeriodReference(getMonthRef(hojeISO()));
+                                                    }
+
+                                                    if (newType === "Anual") {
+                                                        setMovementExtractPeriodReference(getYearRef(hojeISO()));
+                                                    }
+
+                                                    if (newType === "Geral") {
+                                                        setMovementExtractPeriodReference("");
+                                                    }
+                                                }}
+                                            >
+                                                <option value="">Período</option>
+                                                <option value="Diário">Diário</option>
+                                                <option value="Semanal">Semanal</option>
+                                                <option value="Mensal">Mensal</option>
+                                                <option value="Anual">Anual</option>
+                                                <option value="Geral">Geral</option>
+                                            </select>
+                                        </div>
+
+                                        {movementExtractPeriodType !== "Geral" && (
+                                            <>
+                                                {(movementExtractPeriodType === "Diário" || movementExtractPeriodType === "Semanal") && (
+                                                    <div className="movement-extract-calendar-field" ref={movementExtractCalendarRef}>
+                                                        <button
+                                                            type="button"
+                                                            className="movement-extract-calendar-button"
+                                                            onClick={() => {
+                                                                setIsStatsCalendarOpen(false);
+                                                                setIsTicketsCalendarOpen(false);
+                                                                setIsMovementsCalendarOpen(false);
+                                                                setIsMovementExtractCalendarOpen((prev) => !prev);
+                                                            }}
+                                                        >
+                                                            {movementExtractPeriodType === "Diário" &&
+                                                                formatDateBR(movementExtractPeriodReference)}
+
+                                                            {movementExtractPeriodType === "Semanal" &&
+                                                                formatWeekRef(movementExtractPeriodReference)}
+                                                        </button>
+
+                                                        {isMovementExtractCalendarOpen && (
+                                                            <div className="movement-extract-calendar-popover movement-extract-calendar-popover-fixed">
+                                                                <DayPicker
+                                                                    locale={ptBR}
+                                                                    captionLayout="dropdown"
+                                                                    fromYear={2020}
+                                                                    toYear={2035}
+                                                                    mode="single"
+                                                                    selected={
+                                                                        movementExtractPeriodReference
+                                                                            ? new Date(`${movementExtractPeriodReference}T12:00:00`)
+                                                                            : undefined
+                                                                    }
+                                                                    onSelect={(date) => {
+                                                                        if (!date) return;
+
+                                                                        const selectedISO = dateToISO(date);
+
+                                                                        if (movementExtractPeriodType === "Diário") {
+                                                                            setMovementExtractPeriodReference(selectedISO);
+                                                                        }
+
+                                                                        if (movementExtractPeriodType === "Semanal") {
+                                                                            setMovementExtractPeriodReference(getWeekRef(selectedISO));
+                                                                        }
+
+                                                                        setActiveMovementExtractTab(null);
+                                                                        setIsMovementExtractCalendarOpen(false);
+                                                                    }}
+                                                                    modifiers={{
+                                                                        hasMovement: movementMarkedDays,
+                                                                    }}
+                                                                    modifiersClassNames={{
+                                                                        hasMovement: "day-has-movements",
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {(movementExtractPeriodType === "Mensal" || movementExtractPeriodType === "Anual") && (
+                                                    <div className="field-group">
+                                                        <select
+                                                            value={movementExtractPeriodReference}
+                                                            onChange={(e) => {
+                                                                setMovementExtractPeriodReference(e.target.value);
+                                                                setActiveMovementExtractTab(null);
+                                                            }}
+                                                        >
+                                                            {movementExtractReferences.map((ref) => (
+                                                                <option key={ref} value={ref}>
+                                                                    {movementExtractPeriodType === "Mensal" && formatMonthRef(ref)}
+                                                                    {movementExtractPeriodType === "Anual" && ref}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
                                     </div>
 
-                                    <div className="movement-list scrollable-list">
-                                        {movementsOfDay.length === 0 && (
-                                            <div className="empty-state">
-                                                Nenhuma movimentação para a data selecionada.
-                                            </div>
-                                        )}
+                                    {movementExtractPeriodType && (
+                                        <div className="movement-summary-grid">
+                                            <button
+                                                type="button"
+                                                className={`movement-summary-card ${activeMovementExtractTab === "depositos" ? "active" : ""}`}
+                                                onClick={() =>
+                                                    setActiveMovementExtractTab((prev) =>
+                                                        prev === "depositos" ? null : "depositos"
+                                                    )
+                                                }
+                                            >
+                                                <div className="movement-summary-card-header">
+                                                    <span>Total depositado</span>
 
-                                        {movementsOfDay.map((movement) => {
-                                            const houseName =
-                                                houses.find((house) => house.id === Number(movement.casaId))?.nome ||
-                                                "Casa não encontrada";
+                                                    <span className="card-action-icon">
+                                                        {activeMovementExtractTab === "depositos" ? "−" : "+"}
+                                                    </span>
+                                                </div>
 
-                                            const positive = movementSignal(movement.tipo) > 0;
+                                                <strong className="movement-positive">
+                                                    {formatMoney(totalDeposits)}
+                                                </strong>
+                                            </button>
 
-                                            return (
-                                                <div className="movement-card" key={movement.id}>
-                                                    <div className="movement-top">
-                                                        <div>
-                                                            <div className="movement-title">
-                                                                {movement.tipo}
+                                            <button
+                                                type="button"
+                                                className={`movement-summary-card ${activeMovementExtractTab === "saques" ? "active" : ""}`}
+                                                onClick={() =>
+                                                    setActiveMovementExtractTab((prev) =>
+                                                        prev === "saques" ? null : "saques"
+                                                    )
+                                                }
+                                            >
+                                                <div className="movement-summary-card-header">
+                                                    <span>Total sacado</span>
+
+                                                    <span className="card-action-icon">
+                                                        {activeMovementExtractTab === "saques" ? "−" : "+"}
+                                                    </span>
+                                                </div>
+
+                                                <strong className="movement-negative">
+                                                    {formatMoney(totalWithdrawals)}
+                                                </strong>
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {activeMovementExtractTab && (
+                                        <div className="movement-extract-list">
+                                            {(activeMovementExtractTab === "depositos"
+                                                ? depositMovements
+                                                : withdrawalMovements
+                                            ).length === 0 && (
+                                                    <div className="empty-state">
+                                                        Nenhuma movimentação encontrada.
+                                                    </div>
+                                                )}
+
+                                            {(activeMovementExtractTab === "depositos"
+                                                ? depositMovements
+                                                : withdrawalMovements
+                                            ).map((movement) => {
+                                                const houseName =
+                                                    houses.find((house) => house.id === Number(movement.casaId))?.nome ||
+                                                    "Casa não encontrada";
+
+                                                const positive = movementSignal(movement.tipo) > 0;
+
+                                                return (
+                                                    <div className="movement-card" key={movement.id}>
+                                                        <div className="movement-top">
+                                                            <div>
+                                                                <div className="movement-title">
+                                                                    {movement.tipo}
+                                                                </div>
+                                                                <div className="movement-subtitle">
+                                                                    {houseName} • {formatDateBR(movement.data)}
+                                                                </div>
                                                             </div>
-                                                            <div className="movement-subtitle">
-                                                                {houseName} • {formatDateBR(movement.data)}
-                                                            </div>
+
+                                                            <strong
+                                                                className={positive ? "movement-positive" : "movement-negative"}
+                                                            >
+                                                                {positive ? "+" : "-"} {formatMoney(movement.valor)}
+                                                            </strong>
                                                         </div>
 
-                                                        <strong
-                                                            className={positive ? "movement-positive" : "movement-negative"}
-                                                        >
-                                                            {positive ? "+" : "-"} {formatMoney(movement.valor)}
-                                                        </strong>
-                                                    </div>
+                                                        {movement.observacoes && (
+                                                            <div className="movement-note">{movement.observacoes}</div>
+                                                        )}
 
-                                                    {movement.observacoes && (
-                                                        <div className="movement-note">{movement.observacoes}</div>
-                                                    )}
+                                                        <div className="card-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="secondary-button"
+                                                                onClick={() => handleStartEditMovement(movement.id)}
+                                                            >
+                                                                Editar
+                                                            </button>
 
-                                                    <div className="card-actions">
-                                                        <button
-                                                            type="button"
-                                                            className="secondary-button"
-                                                            onClick={() => handleStartEditMovement(movement.id)}
-                                                        >
-                                                            Editar
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="danger-button"
-                                                            onClick={() => handleDeleteMovement(movement.id)}
-                                                        >
-                                                            Excluir
-                                                        </button>
+                                                            <button
+                                                                type="button"
+                                                                className="danger-button"
+                                                                onClick={() => handleDeleteMovement(movement.id)}
+                                                            >
+                                                                Excluir
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </section>
 
                     </div>
 
-                    <div className="right-column">
-                        <section className="panel tickets-day-panel" ref={ticketsDayPanelRef}>
-                            {isMobile ? (
-                                <>
-                                    <div
-                                        className="section-header"
-                                        onClick={() => {
-                                            const nextOpen = !isTicketsDayPanelOpen;
-                                            setIsTicketsDayPanelOpen(nextOpen);
-
-                                            requestAnimationFrame(() => {
-                                                ticketsDayPanelRef.current?.scrollIntoView({
-                                                    behavior: "smooth",
-                                                    block: "start",
-                                                });
-                                            });
-                                        }}
-                                        style={{ cursor: "pointer", marginBottom: 0 }}
-                                    >
-                                        <h2
-                                            style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                margin: 0,
-                                            }}
-                                        >
-                                            <span>Bilhetes do dia</span>
-                                            <span className="toggle-icon">
-                                                {isTicketsDayPanelOpen ? "−" : "+"}
-                                            </span>
-                                        </h2>
-                                    </div>
-
-                                    {isTicketsDayPanelOpen && (
-                                        <>
-                                            <div className="tickets-topbar">
-                                                <div className="tickets-title-wrap"></div>
-
-                                                <div className="tickets-date-nav">
-                                                    <button
-                                                        type="button"
-                                                        className="nav-mini-button arrow-btn"
-                                                        onClick={() => setViewDate(addDays(viewDate, -1))}
-                                                        aria-label="Dia anterior"
-                                                    >
-                                                        &#8249;
-                                                    </button>
-
-                                                    <div ref={ticketsCalendarRef} className="tickets-calendar-field">
-
-                                                        <button
-                                                            type="button"
-                                                            className="tickets-calendar-button"
-                                                            onClick={() => setIsTicketsCalendarOpen((prev) => !prev)}
-                                                        >
-                                                            {formatDateBR(viewDate)}
-                                                        </button>
-
-                                                        {isTicketsCalendarOpen && (
-                                                            <div className="tickets-calendar-popover">
-                                                                <DayPicker
-                                                                    mode="single"
-                                                                    selected={(() => {
-                                                                        const [year, month, day] = viewDate.split("-").map(Number);
-                                                                        return new Date(year, month - 1, day);
-                                                                    })()}
-                                                                    onSelect={(date) => {
-                                                                        if (!date) return;
-
-                                                                        const year = date.getFullYear();
-                                                                        const month = String(date.getMonth() + 1).padStart(2, "0");
-                                                                        const day = String(date.getDate()).padStart(2, "0");
-
-                                                                        setViewDate(`${year}-${month}-${day}`);
-                                                                        setIsTicketsCalendarOpen(false);
-                                                                    }}
-                                                                    modifiers={{ hasTickets: ticketMarkedDays }}
-                                                                    modifiersClassNames={{ hasTickets: "day-has-tickets" }}
-                                                                />
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    <button
-                                                        type="button"
-                                                        className="nav-mini-button arrow-btn"
-                                                        onClick={() => setViewDate(addDays(viewDate, 1))}
-                                                        aria-label="Próximo dia"
-                                                    >
-                                                        &#8250;
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className="collapsed-ticket-list">
-                                                {ticketsOfDay.length === 0 ? (
-                                                    <div className="empty-state">
-                                                        Nenhum bilhete encontrado para este dia.
-                                                    </div>
-                                                ) : (
-                                                    ticketsOfDay.map((ticket) => {
-                                                        const house = houses.find((item) => item.id === Number(ticket.casaId));
-
-                                                        return (
-                                                            <div
-                                                                id={`collapsed-ticket-${ticket.id}`}
-                                                                key={ticket.id}
-                                                                className={`collapsed-ticket-card ${openedCollapsedTicketId === ticket.id ? "open" : ""}`}
-                                                            >
-                                                                <button
-                                                                    type="button"
-                                                                    className="collapsed-ticket-item"
-                                                                    onClick={() => {
-                                                                        const nextOpenId = openedCollapsedTicketId === ticket.id ? null : ticket.id;
-                                                                        setOpenedCollapsedTicketId(nextOpenId);
-
-                                                                        if (nextOpenId === ticket.id) {
-                                                                            requestAnimationFrame(() => {
-                                                                                setTimeout(() => {
-                                                                                    document.getElementById(`collapsed-ticket-${ticket.id}`)?.scrollIntoView({
-                                                                                        behavior: "smooth",
-                                                                                        block: "start",
-                                                                                    });
-                                                                                }, 50);
-                                                                            });
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <div className="collapsed-ticket-main">
-                                                                        <div className="collapsed-ticket-name">
-                                                                            {ticket.nomeBilhete || "Bilhete"}
-                                                                        </div>
-                                                                        <div className="collapsed-ticket-meta">
-                                                                            <span>{house?.nome || "Casa não encontrada"}</span>
-                                                                            <span>{ticket.categoria}</span>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <span
-                                                                        className={`collapsed-ticket-status ${ticket.resultado === "Cash Out"
-                                                                            ? (Number(ticket.retorno || 0) >= Number(ticket.stake || 0)
-                                                                                ? "green"
-                                                                                : "red")
-                                                                            : String(ticket.resultado || "").toLowerCase()
-                                                                            }`}
-                                                                    >
-                                                                        {ticket.resultado === "Green"
-                                                                            ? "Ganho"
-                                                                            : ticket.resultado === "Red"
-                                                                                ? "Perda"
-                                                                                : ticket.resultado === "Cash Out"
-                                                                                    ? "Cash Out"
-                                                                                    : "Pendente"}
-                                                                    </span>
-                                                                </button>
-
-                                                                {openedCollapsedTicketId === ticket.id && (
-                                                                    <div className="collapsed-ticket-detail">
-                                                                        <div className="ticket-info-grid">
-                                                                            <div className="info-box">
-                                                                                <span>Casa</span>
-                                                                                <strong>{house?.nome || "Casa não encontrada"}</strong>
-                                                                            </div>
-                                                                            <div className="info-box">
-                                                                                <span>Categoria</span>
-                                                                                <strong>{ticket.categoria}</strong>
-                                                                            </div>
-                                                                            <div className="info-box">
-                                                                                <span>Odd</span>
-                                                                                <strong>{Number(ticket.odd || 0).toFixed(2)}</strong>
-                                                                            </div>
-                                                                            <div className="info-box">
-                                                                                <span>Valor apostado</span>
-                                                                                <strong>{formatMoney(ticket.stake)}</strong>
-                                                                            </div>
-                                                                            <div className="info-box">
-                                                                                <span>Retorno</span>
-                                                                                <strong>{formatMoney(ticket.retorno)}</strong>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        {ticket.observacoes && (
-                                                                            <div className="ticket-note">{ticket.observacoes}</div>
-                                                                        )}
-
-                                                                        <div className="card-actions">
-                                                                            <button
-                                                                                type="button"
-                                                                                className="secondary-button"
-                                                                                onClick={() => handleStartEditTicket(ticket.id)}
-                                                                            >
-                                                                                Editar
-                                                                            </button>
-
-                                                                            <button
-                                                                                type="button"
-                                                                                className="danger-button"
-                                                                                onClick={() => handleDeleteTicket(ticket.id)}
-                                                                            >
-                                                                                Excluir
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })
-                                                )}
-                                            </div>
-                                        </>
-                                    )}
-                                </>
-                            ) : (
-                                <>
-                                    <div className="tickets-topbar">
-                                        <div className="section-header tickets-title-wrap">
-                                            <h2>Bilhetes do dia</h2>
-                                        </div>
-
-                                        <div className="tickets-date-nav">
-                                            <button
-                                                type="button"
-                                                className="nav-mini-button arrow-btn"
-                                                onClick={() => setViewDate(addDays(viewDate, -1))}
-                                                aria-label="Dia anterior"
-                                            >
-                                                &#8249;
-                                            </button>
-
-                                            <div ref={ticketsCalendarRef} className="tickets-calendar-field">
-
-                                                <button
-                                                    type="button"
-                                                    className="tickets-calendar-button"
-                                                    onClick={() => setIsTicketsCalendarOpen((prev) => !prev)}
-                                                >
-                                                    {formatDateBR(viewDate)}
-                                                </button>
-
-                                                {isTicketsCalendarOpen && (
-                                                    <div className="tickets-calendar-popover">
-                                                        <DayPicker
-                                                            mode="single"
-                                                            selected={(() => {
-                                                                const [year, month, day] = viewDate.split("-").map(Number);
-                                                                return new Date(year, month - 1, day);
-                                                            })()}
-                                                            onSelect={(date) => {
-                                                                if (!date) return;
-
-                                                                const year = date.getFullYear();
-                                                                const month = String(date.getMonth() + 1).padStart(2, "0");
-                                                                const day = String(date.getDate()).padStart(2, "0");
-
-                                                                setViewDate(`${year}-${month}-${day}`);
-                                                                setIsTicketsCalendarOpen(false);
-                                                            }}
-                                                            modifiers={{ hasTickets: ticketMarkedDays }}
-                                                            modifiersClassNames={{ hasTickets: "day-has-tickets" }}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                className="nav-mini-button arrow-btn"
-                                                onClick={() => setViewDate(addDays(viewDate, 1))}
-                                                aria-label="Próximo dia"
-                                            >
-                                                &#8250;
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="collapsed-ticket-list">
-                                        {ticketsOfDay.length === 0 ? (
-                                            <div className="empty-state">
-                                                Nenhum bilhete encontrado para este dia.
-                                            </div>
-                                        ) : (
-                                            ticketsOfDay.map((ticket) => {
-                                                const house = houses.find((item) => item.id === Number(ticket.casaId));
-
-                                                return (
-                                                    <div
-                                                        id={`collapsed-ticket-${ticket.id}`}
-                                                        key={ticket.id}
-                                                        className={`collapsed-ticket-card ${openedCollapsedTicketId === ticket.id ? "open" : ""}`}
-                                                    >
-                                                        <button
-                                                            type="button"
-                                                            className="collapsed-ticket-item"
-                                                            onClick={() => {
-                                                                const nextOpenId = openedCollapsedTicketId === ticket.id ? null : ticket.id;
-                                                                setOpenedCollapsedTicketId(nextOpenId);
-
-                                                                if (nextOpenId === ticket.id) {
-                                                                    requestAnimationFrame(() => {
-                                                                        setTimeout(() => {
-                                                                            document.getElementById(`collapsed-ticket-${ticket.id}`)?.scrollIntoView({
-                                                                                behavior: "smooth",
-                                                                                block: "start",
-                                                                            });
-                                                                        }, 50);
-                                                                    });
-                                                                }
-                                                            }}
-                                                        >
-                                                            <div className="collapsed-ticket-main">
-                                                                <div className="collapsed-ticket-name">
-                                                                    {ticket.nomeBilhete || "Bilhete"}
-                                                                </div>
-                                                                <div className="collapsed-ticket-meta">
-                                                                    <span>{house?.nome || "Casa não encontrada"}</span>
-                                                                    <span>{ticket.categoria}</span>
-                                                                </div>
-                                                            </div>
-
-                                                            <span
-                                                                className={`collapsed-ticket-status ${ticket.resultado === "Cash Out"
-                                                                    ? (Number(ticket.retorno || 0) >= Number(ticket.stake || 0)
-                                                                        ? "green"
-                                                                        : "red")
-                                                                    : String(ticket.resultado || "").toLowerCase()
-                                                                    }`}
-                                                            >
-                                                                {ticket.resultado === "Green"
-                                                                    ? "Ganho"
-                                                                    : ticket.resultado === "Red"
-                                                                        ? "Perda"
-                                                                        : ticket.resultado === "Cash Out"
-                                                                            ? "Cash Out"
-                                                                            : "Pendente"}
-                                                            </span>
-                                                        </button>
-
-                                                        {openedCollapsedTicketId === ticket.id && (
-                                                            <div className="collapsed-ticket-detail">
-                                                                <div className="ticket-info-grid">
-                                                                    <div className="info-box">
-                                                                        <span>Casa</span>
-                                                                        <strong>{house?.nome || "Casa não encontrada"}</strong>
-                                                                    </div>
-                                                                    <div className="info-box">
-                                                                        <span>Categoria</span>
-                                                                        <strong>{ticket.categoria}</strong>
-                                                                    </div>
-                                                                    <div className="info-box">
-                                                                        <span>Odd</span>
-                                                                        <strong>{Number(ticket.odd || 0).toFixed(2)}</strong>
-                                                                    </div>
-                                                                    <div className="info-box">
-                                                                        <span>Valor apostado</span>
-                                                                        <strong>{formatMoney(ticket.stake)}</strong>
-                                                                    </div>
-                                                                    <div className="info-box">
-                                                                        <span>Retorno</span>
-                                                                        <strong>{formatMoney(ticket.retorno)}</strong>
-                                                                    </div>
-                                                                </div>
-
-                                                                {ticket.observacoes && (
-                                                                    <div className="ticket-note">{ticket.observacoes}</div>
-                                                                )}
-
-                                                                <div className="card-actions">
-                                                                    <button
-                                                                        type="button"
-                                                                        className="secondary-button"
-                                                                        onClick={() => handleStartEditTicket(ticket.id)}
-                                                                    >
-                                                                        Editar
-                                                                    </button>
-
-                                                                    <button
-                                                                        type="button"
-                                                                        className="danger-button"
-                                                                        onClick={() => handleDeleteTicket(ticket.id)}
-                                                                    >
-                                                                        Excluir
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                                                </section>
-                    </div>
                 </section>
 
                 <footer className="footer">
-    Desenvolvido por <strong>Alves Tech</strong> © 2026
-</footer>
+                    Desenvolvido por <strong>Alves Tech</strong> © 2026
+                </footer>
             </div>
         </div>
     );
