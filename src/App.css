@@ -3665,10 +3665,10 @@ select * {
         padding-bottom: 0 !important;
     }
 
-    .stats-calendar-field > label {
-    position: relative !important;
-    top: 6px !important;
-}
+    .stats-calendar-field>label {
+        position: relative !important;
+        top: 6px !important;
+    }
 
 
 }
