@@ -2683,7 +2683,7 @@ select * {
 
 
 
-TABLET / TELAS MÉDIAS=========================*/ @media (max-width: 1200px) and (min-width: 769px) {
+@media (max-width: 1200px) and (min-width: 769px) {
     .top-houses-row {
         display: grid !important;
         grid-template-columns: 1fr !important;
