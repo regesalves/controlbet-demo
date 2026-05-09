@@ -119,6 +119,20 @@ function formatWeekRef(ref) {
     return `${formatDayMonth(start)} a ${formatDayMonth(end)}/${year}`;
 }
 
+function formatWeekRefShort(ref) {
+    const start = new Date(`${ref}T12:00:00`);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+
+    const formatDayMonth = (date) => {
+        const d = String(date.getDate()).padStart(2, "0");
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        return `${d}/${m}`;
+    };
+
+    return `${formatDayMonth(start)} a ${formatDayMonth(end)}`;
+}
+
 function formatQuarterRef(ref) {
     const [year, quarter] = ref.split("-T");
     return `${quarter}º tri/${year}`;
@@ -445,7 +459,7 @@ export default function App() {
     const [isMovementDayPanelOpen, setIsMovementDayPanelOpen] = useState(false);
     const [activeMovementExtractTab, setActiveMovementExtractTab] = useState(null);
     const [movementExtractHouseScope, setMovementExtractHouseScope] = useState("");
-    const [movementExtractPeriodType, setMovementExtractPeriodType] = useState("");
+    const [movementExtractPeriodType, setMovementExtractPeriodType] = useState("Geral");
     const [movementExtractPeriodReference, setMovementExtractPeriodReference] = useState("");
 
     const [isMovementExtractCalendarOpen, setIsMovementExtractCalendarOpen] = useState(false);
@@ -470,7 +484,7 @@ export default function App() {
 
     const [isBankChartOpen, setIsBankChartOpen] = useState(false);
     const bankChartRef = useRef(null);
-
+    const movementExtractListRef = useRef(null);
 
     const [activeBottomPanel, setActiveBottomPanel] = useState(null);
     const [isTicketFormCalendarOpen, setIsTicketFormCalendarOpen] = useState(false);
@@ -479,6 +493,8 @@ export default function App() {
     const movementFormCalendarRef = useRef(null);
     const leftPanelRef = useRef(null);
     const rightPanelRef = useRef(null);
+    const showStatsBottomArrows =
+        periodType !== "Diário" && periodType !== "Semanal";
 
 
     useEffect(() => {
@@ -703,6 +719,9 @@ export default function App() {
                     .select("*")
                     .order("id", { ascending: false });
 
+                console.log("movementsData:", movementsData);
+                console.log("movementsError:", movementsError);
+
                 if (movementsError) {
                     console.error("Erro ao carregar movimentações:", movementsError);
                     setMovements([]);
@@ -717,6 +736,7 @@ export default function App() {
                     }));
 
                     setMovements(formattedMovements);
+                    console.log("formattedMovements:", formattedMovements);
                 }
 
                 if (error) {
@@ -761,6 +781,16 @@ export default function App() {
             console.error("Erro ao salvar dados no localStorage:", error);
         }
     }, [houses, tickets, movements, storageLoaded]);
+
+    useEffect(() => {
+        if (activeBottomPanel !== "extract") {
+            setActiveMovementExtractTab(null);
+            setMovementExtractHouseScope("");
+            setMovementExtractPeriodType("Geral");
+            setMovementExtractPeriodReference("");
+            setIsMovementExtractCalendarOpen(false);
+        }
+    }, [activeBottomPanel]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -1099,12 +1129,7 @@ export default function App() {
 
         let banca = initialBank;
 
-        const result = [
-            {
-                data: startDate,
-                banca: Number(banca.toFixed(2)),
-            },
-        ];
+        const result = [];
 
         orderedDates.forEach((date) => {
             if (date < startDate || date > endDate) return;
@@ -1119,11 +1144,15 @@ export default function App() {
             });
         });
 
-        if (result[result.length - 1]?.data !== endDate) {
-            result.push({
-                data: endDate,
-                banca: Number(banca.toFixed(2)),
-            });
+        if (result.length === 0) {
+            return [
+                {
+                    data: startDate,
+                    banca: Number(initialBank.toFixed(2)),
+                    deposito: 0,
+                    saque: 0,
+                },
+            ];
         }
 
         return result;
@@ -1686,6 +1715,7 @@ export default function App() {
             setOpenedCollapsedTicketId(null);
             resetTicketForm();
             setIsTicketPanelOpen(false);
+            setActiveBottomPanel(null);
             return;
         }
 
@@ -1746,6 +1776,7 @@ export default function App() {
         setOpenedCollapsedTicketId(null);
         resetTicketForm();
         setIsTicketPanelOpen(false);
+        setActiveBottomPanel(null);
     }
 
     async function handleSaveMovement(event) {
@@ -1793,6 +1824,7 @@ export default function App() {
             resetMovementForm();
             setIsMovementPanelOpen(false);
             setIsMovementDayPanelOpen(false);
+            setActiveBottomPanel(null);
             return;
         }
 
@@ -1827,6 +1859,7 @@ export default function App() {
         resetMovementForm();
         setIsMovementPanelOpen(false);
         setIsMovementDayPanelOpen(false);
+        setActiveBottomPanel(null);
     }
 
     function handleStartEditTicket(ticketId) {
@@ -1849,15 +1882,15 @@ export default function App() {
         });
 
         setEditingTicketId(ticketId);
-        setIsTicketPanelOpen(true);
+        setActiveBottomPanel("ticket");
         setOpenedCollapsedTicketId(null);
 
-        requestAnimationFrame(() => {
-            ticketPanelRef.current?.scrollIntoView({
+        setTimeout(() => {
+            leftPanelRef.current?.scrollIntoView({
                 behavior: "smooth",
                 block: "start",
             });
-        });
+        }, 120);
     }
 
     async function handleDeleteTicket(ticketId) {
@@ -1900,15 +1933,15 @@ export default function App() {
         });
 
         setEditingMovementId(movementId);
-        setIsMovementPanelOpen(true);
+        setActiveBottomPanel("movement");
         setIsMovementDayPanelOpen(false);
 
-        requestAnimationFrame(() => {
-            movementPanelRef.current?.scrollIntoView({
+        setTimeout(() => {
+            rightPanelRef.current?.scrollIntoView({
                 behavior: "smooth",
                 block: "start",
             });
-        });
+        }, 120);
     }
 
     async function handleDeleteMovement(movementId) {
@@ -2421,8 +2454,9 @@ export default function App() {
                                                         className={`top-house-card ${Number(selectedHouseScope) === Number(house.id) ? "selected-house-card" : ""
                                                             }`}
                                                     >
-                                                        <button
-                                                            type="button"
+                                                        <div
+                                                            role="button"
+                                                            tabIndex={0}
                                                             className="top-house-card-button"
                                                             onClick={() => selectHouseScope(house.id)}
                                                         >
@@ -2452,7 +2486,7 @@ export default function App() {
                                                                 <span>Taxa de acerto</span>
                                                                 <strong>{formatPercent(house.taxaAcerto)}</strong>
                                                             </div>
-                                                        </button>
+                                                        </div>
 
                                                         {menuHouseId === house.id && (
                                                             <div className="top-house-menu-box" ref={menuRef}>
@@ -2481,7 +2515,7 @@ export default function App() {
                             </div>
                         </div>
 
-                        {isMobile && (
+                        {isMobile && (periodType === "Diário" || periodType === "Semanal") && (
                             <div className="top-houses-arrows bottom-arrows">
                                 <button
                                     type="button"
@@ -2506,7 +2540,7 @@ export default function App() {
                         <div className="top-filter-summary-row">
                             <div className="top-filter-group">
                                 <div className="field-group stats-house-field">
-                                    <label>Casa</label>
+                                    <label>Casa de aposta</label>
                                     <select
                                         value={selectedHouseScope ?? ""}
                                         onChange={(e) => {
@@ -2523,7 +2557,7 @@ export default function App() {
                                             setTopMetricIndex(0);
                                         }}
                                     >
-                                        <option value="">Selecione uma casa</option>
+                                        <option value="">Selecione</option>
                                         <option value="all">Todas as casas</option>
                                         {houses.map((house) => (
                                             <option key={house.id} value={house.id}>
@@ -2537,7 +2571,32 @@ export default function App() {
                                     <label>Período</label>
                                     <select
                                         value={periodType}
-                                        onChange={(e) => setPeriodType(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+
+                                            setPeriodType(value);
+                                            setTopMetricIndex(0);
+
+                                            if (value === "Diário") {
+                                                setPeriodReference(hojeISO());
+                                            }
+
+                                            if (value === "Semanal") {
+                                                setPeriodReference(getWeekRef(hojeISO()));
+                                            }
+
+                                            if (value === "Mensal") {
+                                                setPeriodReference(getMonthRef(hojeISO()));
+                                            }
+
+                                            if (value === "Anual") {
+                                                setPeriodReference(getYearRef(hojeISO()));
+                                            }
+
+                                            if (value === "Geral") {
+                                                setPeriodReference("");
+                                            }
+                                        }}
                                     >
                                         <option value="Diário">Diário</option>
                                         <option value="Semanal">Semanal</option>
@@ -2549,106 +2608,149 @@ export default function App() {
 
                                 {periodType !== "Geral" && (
                                     <>
-                                        {(periodType === "Diário" || periodType === "Semanal") && (
-                                            <div className="field-group stats-calendar-field" ref={statsCalendarRef}>
-                                                <label>Data</label>
-
-                                                <button
-                                                    ref={statsButtonRef}
-                                                    type="button"
-                                                    className="stats-calendar-button"
-                                                    onClick={(e) => {
-                                                        const rect = e.currentTarget.getBoundingClientRect();
-
-                                                        const calendarHeight = 360;
-                                                        const overflow = rect.bottom + calendarHeight - window.innerHeight;
-
-                                                        if (overflow > 0) {
-                                                            window.scrollBy({
-                                                                top: overflow + 40,
-                                                                behavior: "smooth",
-                                                            });
-                                                        }
-
-                                                        setIsStatsCalendarOpen((prev) => !prev);
-                                                    }}
-                                                >
-                                                    {periodType === "Diário" && formatDateBR(periodReference)}
-                                                    {periodType === "Semanal" && formatWeekRef(periodReference)}
-                                                </button>
-
-                                                {isStatsCalendarOpen && (
-                                                    <div className="stats-calendar-popover">
-                                                        <DayPicker
-                                                            mode="single"
-                                                            locale={ptBR}
-                                                            captionLayout="dropdown"
-                                                            fromYear={2020}
-                                                            toYear={2035}
-                                                            selected={
-                                                                periodReference
-                                                                    ? new Date(`${periodReference}T12:00:00`)
-                                                                    : undefined
-                                                            }
-                                                            onSelect={(date) => {
-                                                                if (!date) return;
-
-                                                                const selectedISO = dateToISO(date);
-
-                                                                if (periodType === "Diário") {
-                                                                    setPeriodReference(selectedISO);
-                                                                }
-
-                                                                if (periodType === "Semanal") {
-                                                                    setPeriodReference(getWeekRef(selectedISO));
-                                                                }
-
-                                                                setTopMetricIndex(0);
-                                                                setIsStatsCalendarOpen(false);
-                                                            }}
-                                                            modifiers={{
-                                                                hasTicket: ticketMarkedDays,
-                                                                hasMovement: movementMarkedDays,
-                                                            }}
-                                                            modifiersClassNames={{
-                                                                hasTicket: "day-has-tickets",
-                                                                hasMovement: "day-has-movements",
-                                                            }}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {(periodType === "Mensal" ||
-                                            periodType === "Trimestral" ||
-                                            periodType === "Semestral" ||
+                                        {(periodType === "Diário" ||
+                                            periodType === "Semanal" ||
+                                            periodType === "Mensal" ||
                                             periodType === "Anual") && (
-                                                <div className="field-group period-field">
+                                                <div className="field-group stats-calendar-field" ref={statsCalendarRef}>
                                                     <label>Data</label>
 
-                                                    <select
-                                                        value={periodReference}
-                                                        onChange={(e) => {
-                                                            setPeriodReference(e.target.value);
-                                                            setTopMetricIndex(0);
+                                                    <button
+                                                        ref={statsButtonRef}
+                                                        type="button"
+                                                        className="stats-calendar-button"
+                                                        onClick={(e) => {
+                                                            const rect = e.currentTarget.getBoundingClientRect();
+
+                                                            const calendarHeight = 360;
+                                                            const overflow = rect.bottom + calendarHeight - window.innerHeight;
+
+                                                            if (overflow > 0) {
+                                                                window.scrollBy({
+                                                                    top: overflow + 40,
+                                                                    behavior: "smooth",
+                                                                });
+                                                            }
+
+                                                            setIsStatsCalendarOpen((prev) => !prev);
                                                         }}
                                                     >
-                                                        {availableReferences.map((reference) => (
-                                                            <option key={reference} value={reference}>
-                                                                {periodType === "Mensal" && formatMonthRef(reference)}
-                                                                {periodType === "Trimestral" && formatQuarterRef(reference)}
-                                                                {periodType === "Semestral" && formatSemesterRef(reference)}
-                                                                {periodType === "Anual" && reference}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                        <span className="stats-calendar-text">
+                                                            {periodType === "Diário" && formatDateBR(periodReference)}
+                                                            {periodType === "Semanal" && formatWeekRef(periodReference)}
+                                                            {periodType === "Mensal" && formatMonthRef(periodReference)}
+                                                            {periodType === "Anual" && String(periodReference).slice(0, 4)}
+                                                            {periodType === "Geral" && "Geral"}
+                                                        </span>
+
+                                                        <span className="stats-calendar-icon">
+                                                            🗓️
+                                                        </span>
+                                                    </button>
+
+                                                    {isStatsCalendarOpen && (
+                                                        <div className="stats-calendar-popover">
+                                                            <DayPicker
+                                                                mode="single"
+                                                                locale={ptBR}
+                                                                captionLayout="dropdown"
+                                                                fromYear={2020}
+                                                                toYear={2035}
+                                                                selected={
+                                                                    periodReference
+                                                                        ? new Date(`${periodReference}T12:00:00`)
+                                                                        : undefined
+                                                                }
+                                                                onSelect={(date) => {
+                                                                    if (!date) return;
+
+                                                                    const selectedISO = dateToISO(date);
+
+                                                                    if (periodType === "Diário") {
+                                                                        setPeriodReference(selectedISO);
+                                                                    }
+
+                                                                    if (periodType === "Semanal") {
+                                                                        setPeriodReference(getWeekRef(selectedISO));
+                                                                    }
+
+                                                                    if (periodType === "Mensal") {
+                                                                        setPeriodReference(selectedISO.slice(0, 7));
+                                                                    }
+
+                                                                    if (periodType === "Anual") {
+                                                                        setPeriodReference(selectedISO.slice(0, 4));
+                                                                    }
+
+                                                                    setTopMetricIndex(0);
+                                                                    setIsStatsCalendarOpen(false);
+                                                                }}
+                                                                modifiers={{
+                                                                    hasTicket: ticketMarkedDays,
+                                                                    hasMovement: movementMarkedDays,
+                                                                }}
+                                                                modifiersClassNames={{
+                                                                    hasTicket: "day-has-tickets",
+                                                                    hasMovement: "day-has-movements",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
+
+                                        {false && (
+                                            <div className="field-group period-field">
+                                                <label>Data</label>
+
+                                                <select
+                                                    value={periodReference}
+                                                    onChange={(e) => {
+                                                        setPeriodReference(e.target.value);
+                                                        setTopMetricIndex(0);
+                                                    }}
+                                                >
+                                                    {availableReferences.map((reference) => (
+                                                        <option key={reference} value={reference}>
+                                                            {periodType === "Mensal" && formatMonthRef(reference)}
+                                                            {periodType === "Trimestral" && formatQuarterRef(reference)}
+                                                            {periodType === "Semestral" && formatSemesterRef(reference)}
+                                                            {periodType === "Anual" && reference}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
                                     </>
                                 )}
 
                             </div>
+
+                            {showStatsBottomArrows && (
+                                <div className="stats-bottom-arrows-mobile">
+                                    <button
+                                        type="button"
+                                        className="arrow-btn"
+                                        onClick={() => setTopMetricIndex((prev) => Math.max(0, prev - 1))}
+                                        disabled={topMetricIndex === 0}
+                                    >
+                                        ‹
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="arrow-btn"
+                                        onClick={() =>
+                                            setTopMetricIndex((prev) =>
+                                                Math.min(topMetricPages.length - 1, prev + 1)
+                                            )
+                                        }
+                                        disabled={topMetricIndex >= topMetricPages.length - 1}
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+                            )}
 
                             {!isMobile && topMetricPages.length > 1 && (
                                 <div className="stats-top-arrows-inline">
@@ -2745,10 +2847,10 @@ export default function App() {
                         </div>
 
                         <div className="bank-chart-box">
-                            <ResponsiveContainer width="100%" height={300}>
+                            <ResponsiveContainer width="100%" height={310}>
                                 <AreaChart
                                     data={bankHistoryData}
-                                    margin={{ top: 12, right: 18, left: 0, bottom: 24 }}
+                                    margin={{ top: 20, right: 12, left: -10, bottom: 15 }}
                                 >
                                     <defs>
                                         <linearGradient id="bankGradient" x1="0" y1="0" x2="0" y2="1">
@@ -2782,7 +2884,7 @@ export default function App() {
                                         axisLine={false}
                                         tickLine={false}
                                         interval={0}
-                                        dy={20}
+                                        dy={12}
                                         tick={{ fontSize: 11, fill: "#64748b" }}
                                         tickFormatter={(value) => {
                                             const date = new Date(`${value}T12:00:00`);
@@ -2793,6 +2895,7 @@ export default function App() {
                                         domain={["dataMin - 50", "dataMax + 50"]}
                                         axisLine={false}
                                         tickLine={false}
+                                        width={64}
                                         tick={{ fontSize: 11, fill: "#64748b" }}
                                         tickFormatter={(value) =>
                                             `R$ ${Number(value).toLocaleString("pt-BR")}`
@@ -2833,7 +2936,20 @@ export default function App() {
                                         stroke={isBankChartPositive ? "#16a34a" : "#dc2626"}
                                         fill="url(#bankGradient)"
                                         strokeWidth={3}
-                                        dot={false}
+                                        dot={({ cx, cy, payload }) => {
+                                            if (!payload?.deposito && !payload?.saque) return null;
+
+                                            return (
+                                                <circle
+                                                    cx={cx}
+                                                    cy={cy}
+                                                    r={6}
+                                                    fill={Number(payload.saque || 0) > 0 ? "#dc2626" : "#16a34a"}
+                                                    stroke="#ffffff"
+                                                    strokeWidth={3}
+                                                />
+                                            );
+                                        }}
                                         activeDot={{
                                             r: 7,
                                             stroke: "#ffffff",
@@ -2850,10 +2966,11 @@ export default function App() {
                                                 key={index}
                                                 x={item.data}
                                                 y={item.banca}
-                                                r={5}
+                                                r={7}
                                                 fill={item.deposito > 0 ? "#16a34a" : "#dc2626"}
                                                 stroke="#ffffff"
-                                                strokeWidth={2}
+                                                strokeWidth={3}
+                                                isFront={true}
                                             />
                                         );
                                     })}
@@ -2924,7 +3041,11 @@ export default function App() {
                             }
                         }}
                     >
-                        <span>Nova movimentação</span>
+                        <span>
+                            {window.innerWidth <= 375
+                                ? "Movimentação"
+                                : "Nova movimentação"}
+                        </span>
                         <strong>{activeBottomPanel === "movement" ? "−" : "+"}</strong>
                     </button>
 
@@ -2932,17 +3053,25 @@ export default function App() {
                         type="button"
                         className={`bottom-action-card ${activeBottomPanel === "extract" ? "active" : ""}`}
                         onClick={() => {
-                            const nextPanel = activeBottomPanel === "extract" ? null : "extract";
+                            const isClosing = activeBottomPanel === "extract";
+                            const nextPanel = isClosing ? null : "extract";
+
                             setActiveBottomPanel(nextPanel);
 
-                            if (nextPanel === "extract") {
-                                setTimeout(() => {
-                                    rightPanelRef.current?.scrollIntoView({
-                                        behavior: "smooth",
-                                        block: "start",
-                                    });
-                                }, 120);
+                            if (isClosing) {
+                                setActiveMovementExtractTab(null);
+                                setMovementExtractHouseScope("");
+                                setMovementExtractPeriodType("");
+                                setMovementExtractPeriodReference("");
+                                return;
                             }
+
+                            setTimeout(() => {
+                                rightPanelRef.current?.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start",
+                                });
+                            }, 120);
                         }}
                     >
                         <span>Extrato</span>
@@ -3205,7 +3334,7 @@ export default function App() {
 
                         <div className="movement-extract-filter">
                             <div className="field-group">
-                                <label>Casa</label>
+                                <label>Casa de aposta</label>
                                 <select
                                     value={ticketsDayHouseScope}
                                     onChange={(e) => {
@@ -3280,7 +3409,9 @@ export default function App() {
                                                 formatDateBR(ticketsDayPeriodReference)}
 
                                             {ticketsDayPeriodType === "Semanal" &&
-                                                formatWeekRef(ticketsDayPeriodReference)}
+                                                (window.innerWidth <= 375
+                                                    ? formatWeekRefShort(ticketsDayPeriodReference)
+                                                    : formatWeekRef(ticketsDayPeriodReference))}
 
                                             {ticketsDayPeriodType === "Mensal" &&
                                                 formatMonthRef(ticketsDayPeriodReference)}
@@ -3288,7 +3419,6 @@ export default function App() {
                                             {ticketsDayPeriodType === "Anual" &&
                                                 ticketsDayPeriodReference}
                                         </button>
-
                                         {isTicketsCalendarOpen && (
                                             <div className="tickets-dynamic-calendar-popover">
                                                 <DayPicker
@@ -3355,6 +3485,7 @@ export default function App() {
                                         <div
                                             key={ticket.id}
                                             id={`collapsed-ticket-${ticket.id}`}
+                                            id={`collapsed-ticket-${ticket.id}`}
                                             className={`collapsed-ticket-card ${openedCollapsedTicketId === ticket.id ? "open" : ""
                                                 }`}
                                         >
@@ -3362,9 +3493,17 @@ export default function App() {
                                                 type="button"
                                                 className="collapsed-ticket-item"
                                                 onClick={() => {
-                                                    setOpenedCollapsedTicketId((prev) =>
-                                                        prev === ticket.id ? null : ticket.id
-                                                    );
+                                                    const nextOpenId = openedCollapsedTicketId === ticket.id ? null : ticket.id;
+                                                    setOpenedCollapsedTicketId(nextOpenId);
+
+                                                    if (nextOpenId === ticket.id) {
+                                                        setTimeout(() => {
+                                                            document.getElementById(`collapsed-ticket-${ticket.id}`)?.scrollIntoView({
+                                                                behavior: "smooth",
+                                                                block: "start",
+                                                            });
+                                                        }, 120);
+                                                    }
                                                 }}
                                             >
                                                 <div className="collapsed-ticket-main">
@@ -3478,9 +3617,10 @@ export default function App() {
                                         <DayPicker
                                             locale={ptBR}
                                             mode="single"
+                                            disabled={{ after: new Date() }}
                                             captionLayout="dropdown"
                                             fromYear={2020}
-                                            toYear={2035}
+                                            toYear={new Date().getFullYear()}
                                             selected={
                                                 movementForm.data
                                                     ? new Date(`${movementForm.data}T12:00:00`)
@@ -3509,7 +3649,7 @@ export default function App() {
                         </div>
 
                         <form className="form-stack" onSubmit={handleSaveMovement}>
-                            <div className="form-row">
+                            <div className="form-row form-row-3 movement-mobile-row">
                                 <div className="field-group">
                                     <label>Casa de aposta</label>
                                     <select
@@ -3529,9 +3669,7 @@ export default function App() {
                                         ))}
                                     </select>
                                 </div>
-                            </div>
 
-                            <div className="form-row">
                                 <div className="field-group">
                                     <label>Tipo</label>
                                     <select
@@ -3564,6 +3702,8 @@ export default function App() {
                                     />
                                 </div>
                             </div>
+
+
 
                             <div className="field-group">
                                 <label>Observações</label>
@@ -3607,7 +3747,7 @@ export default function App() {
 
                         <div className="movement-extract-filter">
                             <div className="field-group">
-                                <label>Casa</label>
+                                <label>Casa de aposta</label>
                                 <select
                                     value={movementExtractHouseScope}
                                     onChange={(e) => {
@@ -3615,7 +3755,7 @@ export default function App() {
                                         setActiveMovementExtractTab(null);
                                     }}
                                 >
-                                    <option value="">Selecione uma casa</option>
+                                    <option value="">Selecione</option>
                                     <option value="all">Todas as casas</option>
                                     {houses.map((house) => (
                                         <option key={house.id} value={house.id}>
@@ -3689,7 +3829,9 @@ export default function App() {
                                                 formatDateBR(movementExtractPeriodReference || hojeISO())}
 
                                             {movementExtractPeriodType === "Semanal" &&
-                                                formatWeekRef(movementExtractPeriodReference)}
+                                                (window.innerWidth <= 375
+                                                    ? formatWeekRefShort(movementExtractPeriodReference)
+                                                    : formatWeekRef(movementExtractPeriodReference))}
 
                                             {movementExtractPeriodType === "Mensal" &&
                                                 formatMonthRef(movementExtractPeriodReference)}
@@ -3753,11 +3895,19 @@ export default function App() {
                             <button
                                 type="button"
                                 className={`movement-summary-card ${activeMovementExtractTab === "deposits" ? "active" : ""}`}
-                                onClick={() =>
-                                    setActiveMovementExtractTab((prev) =>
-                                        prev === "deposits" ? null : "deposits"
-                                    )
-                                }
+                                onClick={() => {
+                                    const nextTab = activeMovementExtractTab === "deposits" ? null : "deposits";
+                                    setActiveMovementExtractTab(nextTab);
+
+                                    if (nextTab) {
+                                        setTimeout(() => {
+                                            movementExtractListRef.current?.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "start",
+                                            });
+                                        }, 120);
+                                    }
+                                }}
                             >
                                 <div className="movement-summary-card-header">
                                     <span>Depósitos</span>
@@ -3773,11 +3923,19 @@ export default function App() {
                             <button
                                 type="button"
                                 className={`movement-summary-card ${activeMovementExtractTab === "withdrawals" ? "active" : ""}`}
-                                onClick={() =>
-                                    setActiveMovementExtractTab((prev) =>
-                                        prev === "withdrawals" ? null : "withdrawals"
-                                    )
-                                }
+                                onClick={() => {
+                                    const nextTab = activeMovementExtractTab === "withdrawals" ? null : "withdrawals";
+                                    setActiveMovementExtractTab(nextTab);
+
+                                    if (nextTab) {
+                                        setTimeout(() => {
+                                            movementExtractListRef.current?.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "start",
+                                            });
+                                        }, 120);
+                                    }
+                                }}
                             >
                                 <div className="movement-summary-card-header">
                                     <span>Saques</span>
@@ -3792,7 +3950,7 @@ export default function App() {
                         </div>
 
                         {activeMovementExtractTab === "deposits" && (
-                            <div className="movement-extract-list">
+                            <div className="movement-extract-list" ref={movementExtractListRef}>
                                 {depositMovements.length === 0 ? (
                                     <div className="empty-state">Nenhum depósito encontrado.</div>
                                 ) : (
@@ -3845,7 +4003,7 @@ export default function App() {
                         )}
 
                         {activeMovementExtractTab === "withdrawals" && (
-                            <div className="movement-extract-list">
+                            <div className="movement-extract-list" ref={movementExtractListRef}>
                                 {withdrawalMovements.length === 0 ? (
                                     <div className="empty-state">Nenhum saque encontrado.</div>
                                 ) : (
@@ -4207,140 +4365,140 @@ export default function App() {
 
                                     <div className="movement-extract-filter">
 
-                                        <div className="movement-extract-filter">
-                                            <div className="field-group">
-                                                <label>Casa</label>
-                                                <select
-                                                    value={ticketsDayHouseScope}
-                                                    onChange={(e) => {
-                                                        setTicketsDayHouseScope(e.target.value);
-                                                        setOpenedCollapsedTicketId(null);
-                                                    }}
-                                                >
-                                                    <option value="all">Todas as casas</option>
-                                                    {houses.map((house) => (
-                                                        <option key={house.id} value={house.id}>
-                                                            {house.nome}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
 
-                                            <div className="field-group">
-                                                <label>Período</label>
-                                                <select
-                                                    value={ticketsDayPeriodType}
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-
-                                                        setTicketsDayPeriodType(value);
-                                                        setOpenedCollapsedTicketId(null);
-
-                                                        if (value === "Geral") {
-                                                            setTicketsDayPeriodReference("");
-                                                            return;
-                                                        }
-
-                                                        if (value === "Diário") {
-                                                            setTicketsDayPeriodReference(hojeISO());
-                                                            return;
-                                                        }
-
-                                                        if (value === "Semanal") {
-                                                            setTicketsDayPeriodReference(getWeekRef(hojeISO()));
-                                                            return;
-                                                        }
-
-                                                        if (value === "Mensal") {
-                                                            setTicketsDayPeriodReference(getMonthRef(hojeISO()));
-                                                            return;
-                                                        }
-
-                                                        if (value === "Anual") {
-                                                            setTicketsDayPeriodReference(getYearRef(hojeISO()));
-                                                        }
-                                                    }}
-                                                >
-                                                    <option value="Diário">Diário</option>
-                                                    <option value="Semanal">Semanal</option>
-                                                    <option value="Mensal">Mensal</option>
-                                                    <option value="Anual">Anual</option>
-                                                    <option value="Geral">Geral</option>
-                                                </select>
-                                            </div>
-
-                                            {ticketsDayPeriodType !== "Geral" && (
-                                                <div className="field-group">
-                                                    <label>Data</label>
-
-                                                    <div ref={ticketsCalendarRef} className="movement-extract-calendar-field">
-                                                        <button
-                                                            type="button"
-                                                            className="movement-extract-calendar-button"
-                                                            onClick={() => setIsTicketsCalendarOpen((prev) => !prev)}
-                                                        >
-                                                            {ticketsDayPeriodType === "Diário" && formatDateBR(ticketsDayPeriodReference)}
-                                                            {ticketsDayPeriodType === "Semanal" && formatWeekRef(ticketsDayPeriodReference)}
-                                                            {ticketsDayPeriodType === "Mensal" && formatMonthRef(ticketsDayPeriodReference)}
-                                                            {ticketsDayPeriodType === "Anual" && ticketsDayPeriodReference}
-                                                        </button>
-
-                                                        {isTicketsCalendarOpen && (
-                                                            <div className="movement-extract-calendar-popover">
-                                                                <DayPicker
-                                                                    locale={ptBR}
-                                                                    mode="single"
-                                                                    captionLayout="dropdown"
-                                                                    fromYear={2020}
-                                                                    toYear={2035}
-                                                                    selected={
-                                                                        ticketsDayPeriodReference
-                                                                            ? new Date(
-                                                                                ticketsDayPeriodType === "Mensal"
-                                                                                    ? `${ticketsDayPeriodReference}-01T12:00:00`
-                                                                                    : ticketsDayPeriodType === "Anual"
-                                                                                        ? `${ticketsDayPeriodReference}-01-01T12:00:00`
-                                                                                        : `${ticketsDayPeriodReference}T12:00:00`
-                                                                            )
-                                                                            : undefined
-                                                                    }
-                                                                    onSelect={(date) => {
-                                                                        if (!date) return;
-
-                                                                        const selectedISO = dateToISO(date);
-
-                                                                        if (ticketsDayPeriodType === "Diário") {
-                                                                            setTicketsDayPeriodReference(selectedISO);
-                                                                        }
-
-                                                                        if (ticketsDayPeriodType === "Semanal") {
-                                                                            setTicketsDayPeriodReference(getWeekRef(selectedISO));
-                                                                        }
-
-                                                                        if (ticketsDayPeriodType === "Mensal") {
-                                                                            setTicketsDayPeriodReference(getMonthRef(selectedISO));
-                                                                        }
-
-                                                                        if (ticketsDayPeriodType === "Anual") {
-                                                                            setTicketsDayPeriodReference(getYearRef(selectedISO));
-                                                                        }
-
-                                                                        setOpenedCollapsedTicketId(null);
-                                                                        setIsTicketsCalendarOpen(false);
-                                                                    }}
-                                                                    modifiers={{
-                                                                        hasTicket: ticketMarkedDays,
-                                                                    }}
-                                                                    modifiersClassNames={{
-                                                                        hasTicket: "day-has-tickets",
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
+                                        <div className="field-group">
+                                            <label>Casa de aposta</label>
+                                            <select
+                                                value={ticketsDayHouseScope}
+                                                onChange={(e) => {
+                                                    setTicketsDayHouseScope(e.target.value);
+                                                    setOpenedCollapsedTicketId(null);
+                                                }}
+                                            >
+                                                <option value="all">Todas as casas</option>
+                                                {houses.map((house) => (
+                                                    <option key={house.id} value={house.id}>
+                                                        {house.nome}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
+
+                                        <div className="field-group">
+                                            <label>Período</label>
+                                            <select
+                                                value={ticketsDayPeriodType}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+
+                                                    setTicketsDayPeriodType(value);
+                                                    setOpenedCollapsedTicketId(null);
+
+                                                    if (value === "Geral") {
+                                                        setTicketsDayPeriodReference("");
+                                                        return;
+                                                    }
+
+                                                    if (value === "Diário") {
+                                                        setTicketsDayPeriodReference(hojeISO());
+                                                        return;
+                                                    }
+
+                                                    if (value === "Semanal") {
+                                                        setTicketsDayPeriodReference(getWeekRef(hojeISO()));
+                                                        return;
+                                                    }
+
+                                                    if (value === "Mensal") {
+                                                        setTicketsDayPeriodReference(getMonthRef(hojeISO()));
+                                                        return;
+                                                    }
+
+                                                    if (value === "Anual") {
+                                                        setTicketsDayPeriodReference(getYearRef(hojeISO()));
+                                                    }
+                                                }}
+                                            >
+                                                <option value="Diário">Diário</option>
+                                                <option value="Semanal">Semanal</option>
+                                                <option value="Mensal">Mensal</option>
+                                                <option value="Anual">Anual</option>
+                                                <option value="Geral">Geral</option>
+                                            </select>
+                                        </div>
+
+                                        {ticketsDayPeriodType !== "Geral" && (
+                                            <div className="field-group">
+                                                <label>Data</label>
+
+                                                <div ref={ticketsCalendarRef} className="movement-extract-calendar-field">
+                                                    <button
+                                                        type="button"
+                                                        className="movement-extract-calendar-button"
+                                                        onClick={() => setIsTicketsCalendarOpen((prev) => !prev)}
+                                                    >
+                                                        {ticketsDayPeriodType === "Diário" && formatDateBR(ticketsDayPeriodReference)}
+                                                        {ticketsDayPeriodType === "Semanal" && formatWeekRef(ticketsDayPeriodReference)}
+                                                        {ticketsDayPeriodType === "Mensal" && formatMonthRef(ticketsDayPeriodReference)}
+                                                        {ticketsDayPeriodType === "Anual" && ticketsDayPeriodReference}
+                                                    </button>
+
+                                                    {isTicketsCalendarOpen && (
+                                                        <div className="movement-extract-calendar-popover">
+                                                            <DayPicker
+                                                                locale={ptBR}
+                                                                mode="single"
+                                                                captionLayout="dropdown"
+                                                                fromYear={2020}
+                                                                toYear={2035}
+                                                                selected={
+                                                                    ticketsDayPeriodReference
+                                                                        ? new Date(
+                                                                            ticketsDayPeriodType === "Mensal"
+                                                                                ? `${ticketsDayPeriodReference}-01T12:00:00`
+                                                                                : ticketsDayPeriodType === "Anual"
+                                                                                    ? `${ticketsDayPeriodReference}-01-01T12:00:00`
+                                                                                    : `${ticketsDayPeriodReference}T12:00:00`
+                                                                        )
+                                                                        : undefined
+                                                                }
+                                                                onSelect={(date) => {
+                                                                    if (!date) return;
+
+                                                                    const selectedISO = dateToISO(date);
+
+                                                                    if (ticketsDayPeriodType === "Diário") {
+                                                                        setTicketsDayPeriodReference(selectedISO);
+                                                                    }
+
+                                                                    if (ticketsDayPeriodType === "Semanal") {
+                                                                        setTicketsDayPeriodReference(getWeekRef(selectedISO));
+                                                                    }
+
+                                                                    if (ticketsDayPeriodType === "Mensal") {
+                                                                        setTicketsDayPeriodReference(getMonthRef(selectedISO));
+                                                                    }
+
+                                                                    if (ticketsDayPeriodType === "Anual") {
+                                                                        setTicketsDayPeriodReference(getYearRef(selectedISO));
+                                                                    }
+
+                                                                    setOpenedCollapsedTicketId(null);
+                                                                    setIsTicketsCalendarOpen(false);
+                                                                }}
+                                                                modifiers={{
+                                                                    hasTicket: ticketMarkedDays,
+                                                                }}
+                                                                modifiersClassNames={{
+                                                                    hasTicket: "day-has-tickets",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
                                     </div>
 
                                     <div className="collapsed-ticket-list">
@@ -4704,7 +4862,9 @@ export default function App() {
                                                                 formatDateBR(movementExtractPeriodReference)}
 
                                                             {movementExtractPeriodType === "Semanal" &&
-                                                                formatWeekRef(movementExtractPeriodReference)}
+                                                                (window.innerWidth <= 375
+                                                                    ? formatWeekRefShort(movementExtractPeriodReference)
+                                                                    : formatWeekRef(movementExtractPeriodReference))}
                                                         </button>
 
                                                         {isMovementExtractCalendarOpen && (

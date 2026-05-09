@@ -75,7 +75,7 @@ body {
 }
 
 .page-header {
-    margin-bottom: -40px;
+    margin-bottom: -30px;
 }
 
 .page-header h1 {
@@ -120,10 +120,10 @@ body {
 }
 
 .logo {
-    height: 180px;
+    height: 120px;
     width: auto;
     display: block;
-    margin: -50px 8px auto;
+    margin: -40px 8px auto;
 }
 
 .title-group {
@@ -1400,17 +1400,23 @@ hr.section-divider {
 
 .top-house-menu-box {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    min-width: 120px;
+    top: 8px;
+    right: 4px;
+
+    min-width: 92px;
+
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 8px;
+    gap: 4px;
+
+    padding: 6px;
+
     background: #ffffff;
     border: 1px solid var(--border-soft);
-    border-radius: 12px;
+    border-radius: 10px;
+
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+
     z-index: 20;
 }
 
@@ -1418,6 +1424,10 @@ hr.section-divider {
     border-radius: 10px;
     border: 1px solid transparent;
     background: #f8fafc;
+    height: 28px;
+    padding: 4px 8px;
+    font-size: 0.78rem;
+
 }
 
 .top-house-menu-box .house-menu-item:hover {
@@ -2584,36 +2594,96 @@ select * {
     border: 1px solid rgba(220, 38, 38, 0.22);
 }
 
-/* Mostra só no mobile */
-@media (max-width: 768px) {
-    .btn-icon {
-        display: inline;
-    }
-
-    .btn-text {
-        display: none;
-    }
+.stats-bottom-arrows-mobile {
+    display: none;
 }
 
-@media (max-width: 768px) {
-    .bottom-action-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin: 14px 0;
-    }
-
-    .bottom-action-card {
-        min-height: 92px;
-        padding: 12px;
-    }
-
-    .bottom-action-card span {
-        font-size: 0.92rem;
-    }
+.stats-calendar-icon {
+    display: none !important;
 }
 
-@media (max-width: 1200px) and (min-width: 769px) {
+.bottom-action-card strong {
+    background: rgba(0, 0, 0, 0.06);
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 600;
+    color: #111827;
+    font-size: 0.9rem;
+    transform: scale(0.92);
+}
+
+.stats-top-card .metric-toggle-indicator {
+    background: rgba(0, 0, 0, 0.06);
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 600;
+    color: #111827;
+    font-size: 0.9rem;
+}
+
+.stats-top-card.clickable {
+    position: relative;
+}
+
+.stats-top-card.clickable .metric-toggle-indicator {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    /* 👈 controla altura no desktop */
+}
+
+.bottom-action-card:hover,
+.stats-top-card.clickable:hover {
+    transform: translateY(-2px);
+    transition: 0.2s ease;
+}
+
+.movement-summary-card .card-action-icon {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 6px;
+
+    background: #e5e7eb;
+    color: #475569;
+
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+
+    border: none;
+}
+
+.movement-summary-card .card-action-icon {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+
+    font-size: 0.72rem !important;
+
+    border-radius: 5px !important;
+}
+
+
+
+TABLET / TELAS MÉDIAS=========================*/ @media (max-width: 1200px) and (min-width: 769px) {
     .top-houses-row {
         display: grid !important;
         grid-template-columns: 1fr !important;
@@ -2626,15 +2696,6 @@ select * {
         gap: 10px !important;
         width: 100% !important;
         overflow: hidden !important;
-        touch-action: pan-y;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-
-    .top-house-card,
-    .top-house-general-card {
-        width: 100% !important;
-        max-width: 100% !important;
     }
 
     .top-filter-summary-row {
@@ -2657,62 +2718,16 @@ select * {
         gap: 10px !important;
     }
 
-    .stats-top-card {
-        min-height: 86px !important;
-    }
-
-    .tickets-topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .tickets-title-wrap {
-        flex: 1 1 100%;
-    }
-
-    .tickets-date-nav {
-        position: static !important;
-        transform: none !important;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
     .main-grid {
-        grid-template-columns: 320px 1fr !important;
+        grid-template-columns: 1fr !important;
         gap: 14px !important;
     }
 }
 
-@media (max-width: 980px) and (min-width: 769px) {
 
-    .main-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .top-filter-summary-row {
-        grid-template-columns: 1fr !important;
-    }
-
-    .top-houses-row {
-        grid-template-columns: 1fr !important;
-    }
-
-    .top-houses-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        touch-action: pan-y;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-
-    .stats-top-grid,
-    .summary-four-row {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-}
+/* =========================
+   MOBILE BASE
+========================= */
 
 @media (max-width: 768px) {
 
@@ -2722,7 +2737,6 @@ select * {
         width: 100% !important;
         min-height: 100% !important;
         height: auto !important;
-        max-height: none !important;
         overflow-x: hidden !important;
     }
 
@@ -2732,39 +2746,292 @@ select * {
         -webkit-overflow-scrolling: touch;
     }
 
-    html {
-        scroll-behavior: smooth;
-    }
-
     .app {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 auto !important;
-        padding: 14px !important;
-        padding-top: 12px !important;
-        height: auto !important;
-        max-height: none !important;
+        padding: 8px !important;
+        padding-top: 10px !important;
         overflow: visible !important;
     }
 
     .container {
         width: 100% !important;
         min-width: 0 !important;
-        height: auto !important;
-        max-height: none !important;
         overflow: visible !important;
     }
 
-    .main-grid {
+    .panel,
+    .top-panel,
+    .bottom-dynamic-panel,
+    .bank-chart-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 14px !important;
+        border-radius: 16px !important;
+        overflow: visible !important;
+    }
+
+    .logo {
+        height: 120px !important;
+        margin: -28px auto 10px auto !important;
+        display: block !important;
+        transform: translateX(10px);
+    }
+
+    .top-desktop-layout {
+        gap: 12px !important;
+    }
+
+    .top-house-form-row {
+        width: 100% !important;
+    }
+
+    .top-house-form-inline {
+        position: relative;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 100px 42px !important;
+        gap: 8px !important;
+        align-items: end !important;
+        width: 100% !important;
+    }
+
+    .top-house-form-inline>* {
+        min-width: 0 !important;
+    }
+
+    .top-house-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: initial !important;
+    }
+
+    .top-house-bank-field {
+        width: 100px !important;
+        min-width: 100px !important;
+        max-width: 100px !important;
+        flex: initial !important;
+    }
+
+    .top-house-field label,
+    .top-house-bank-field label {
+        font-size: 12px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .top-house-field input,
+    .top-house-bank-field input {
+        height: 40px !important;
+        padding: 4px 8px !important;
+        font-size: 0.88rem !important;
+        border-radius: 9px !important;
+    }
+
+    .top-house-add-button {
+        width: 42px !important;
+        min-width: 42px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0 !important;
+    }
+
+    .top-house-add-button .btn-text {
+        display: none !important;
+    }
+
+    .top-house-add-button .btn-icon {
+        display: inline-flex !important;
+        font-size: 18px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+    }
+
+    .house-feedback {
+        position: static !important;
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 38px !important;
+        margin: 2px 0 0 0 !important;
+        padding: 8px 10px !important;
+        font-size: 0.78rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .top-houses-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .top-houses-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .top-house-card,
+    .top-house-general-card {
+        width: 100% !important;
+        min-height: 92px !important;
+        padding: 8px 9px !important;
+        border-radius: 15px !important;
+    }
+
+    .top-house-card-title {
+        font-size: 0.88rem !important;
+        line-height: 1.15 !important;
+        margin-bottom: 4px !important;
+    }
+
+    .top-house-card-info {
+        gap: 1px !important;
+    }
+
+    .top-house-card-info span {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        font-size: 0.76rem !important;
+        line-height: 1.5 !important;
+    }
+
+    .top-house-card-info strong {
+        font-size: 0.78rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .top-houses-arrows,
+    .stats-top-arrows-inline,
+    .stats-bottom-arrows {
+        position: static !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin: 4px 0 0 0 !important;
+        transform: none !important;
+    }
+
+    .arrow-btn {
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .top-filter-summary-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+        align-items: end !important;
+        margin-top: 10px !important;
+    }
+
+    .top-filter-group {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+    }
+
+    .stats-house-field,
+    .period-field,
+    .stats-calendar-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: initial !important;
+    }
+
+    .top-filter-group label {
+        font-size: 12px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .top-filter-group select,
+    .top-filter-group input,
+    .stats-calendar-button {
+        height: 40px !important;
+        padding: 4px 8px !important;
+        font-size: 0.86rem !important;
+        border-radius: 9px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .stats-calendar-popover {
+        top: calc(100% - 50px) !important;
+        left: 0 !important;
+        z-index: 80 !important;
+    }
+
+    .stats-top-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin-top: 0 !important;
+    }
+
+    .stats-top-card {
+        min-height: 90px !important;
+        padding: 9px 10px !important;
+        border-radius: 15px !important;
+    }
+
+    .stats-top-card span {
+        font-size: 12px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .stats-top-card strong,
+    .stats-top-card .metric-value {
+        font-size: 1.08rem !important;
+        line-height: 1.1 !important;
+    }
+
+    .bottom-action-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        margin: 14px 0 !important;
+    }
+
+    .bottom-action-card {
+        min-height: 92px !important;
+        padding: 12px !important;
+        border-radius: 16px !important;
+    }
+
+    .bottom-action-card span {
+        font-size: 0.92rem !important;
+    }
+
+    .bottom-action-card strong {
+        font-size: 18px !important;
+    }
+
+    .main-grid,
+    .bottom-layout-grid {
         display: flex !important;
         flex-direction: column !important;
         gap: 14px !important;
-        align-items: stretch !important;
         width: 100% !important;
         min-width: 0 !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
     }
 
     .left-column,
@@ -2772,148 +3039,145 @@ select * {
         display: contents !important;
     }
 
-    .left-column>section:nth-of-type(1) {
-        order: 1;
+    .form-row,
+    .form-row-2,
+    .form-row-3 {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
     }
 
-    .right-column>section:nth-of-type(1) {
-        order: 2;
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+        height: 40px !important;
+        padding: 4px 8px !important;
+        font-size: 0.9rem !important;
+        border-radius: 9px !important;
     }
 
-    .left-column>section:nth-of-type(2) {
-        order: 3;
+    .field-group textarea {
+        height: auto !important;
+        min-height: 72px !important;
     }
 
-    .right-column>section:nth-of-type(2) {
-        order: 4;
+    .bank-chart-panel {
+        margin-top: 18px !important;
+    }
+
+    .bank-chart-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .bank-chart-header h2 {
+        width: 100% !important;
+        font-size: 1.05rem !important;
+    }
+
+    .bank-chart-select {
+        flex: 1 !important;
+        min-width: 120px !important;
+        height: 38px !important;
+        font-size: 0.86rem !important;
+    }
+
+    .bank-chart-box {
+        overflow: hidden !important;
+        border-radius: 14px !important;
+    }
+
+    .footer {
+        font-size: 0.65rem !important;
+        margin-top: 16px !important;
+        text-align: center !important;
+    }
+}
+
+
+/* =========================
+   MOBILE FINO — 375px
+========================= */
+
+@media (max-width: 375px) {
+    .app {
+        padding: 6px !important;
     }
 
     .panel,
     .top-panel,
-    .tickets-day-panel,
-    .right-column>.panel {
-        width: 100% !important;
-        max-width: 100% !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
+    .bottom-dynamic-panel,
+    .bank-chart-panel {
         padding: 14px !important;
         border-radius: 16px !important;
+        margin-bottom: 14px !important;
     }
 
-    .stats-bottom-arrows {
-        display: flex !important;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    .stats-bottom-arrows .arrow-btn,
-    .stats-bottom-arrows button {
-        width: 32px !important;
-        height: 32px !important;
-        min-width: 32px !important;
-        display: inline-flex !important;
-        flex: 0 0 auto !important;
-    }
-
-    .summary-nav-buttons,
-    .stats-top-arrows,
-    .stats-top-arrows-inline,
-    .top-houses-arrows {
-        position: static !important;
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-        gap: 10px;
-        width: 100%;
-        margin: 0;
-        transform: translateY(-4px);
-    }
-
-    .houses-nav-buttons {
-        position: static !important;
-        transform: none !important;
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: center !important;
-        gap: 8px;
-        width: 100%;
-        margin-top: 6px;
+    .logo {
+        height: 90px !important;
+        margin-top: -20px !important;
+        margin-bottom: 8px !important;
+        transform: translateX(8px);
     }
 
     .top-house-form-inline {
         display: grid !important;
-        grid-template-columns: 1fr 130px auto !important;
-        gap: 8px !important;
+        grid-template-columns: 160px 110px 40px !important;
+        gap: 11px !important;
         align-items: end !important;
         width: 100% !important;
     }
 
-    .top-house-form-inline>* {
-        min-width: 0;
-    }
-
-    .top-house-field {
-        grid-column: 1;
-        min-width: 173px !important;
-        max-width: 100% !important;
-        width: 100% !important;
-    }
-
     .top-house-bank-field {
-        grid-column: 2;
-        min-width: 0 !important;
-        max-width: 140px !important;
-        width: 125px !important;
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+    }
+
+    .top-house-field input {
+        width: 162.5px !important;
+        max-width: 162.5px !important;
+        height: 38px !important;
+        font-size: 0.85rem !important;
+    }
+
+    .top-house-bank-field input {
+        width: 113px !important;
+        max-width: 113px !important;
+        height: 38px !important;
+        font-size: 0.85rem !important;
     }
 
     .top-house-add-button {
-        grid-column: 3;
-        margin-left: 0 !important;
-        font-size: 0 !important;
-        padding: 0 !important;
-        width: 36px !important;
-        min-width: 36px !important;
-        height: 34px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+        width: 41px !important;
+        min-width: 41px !important;
+        height: 32px !important;
+
     }
 
-    .top-house-add-button::before {
-        content: "+";
-        font-size: 20px;
-        font-weight: 700;
-    }
-
-    .top-house-field input,
-    .top-house-bank-field input {
-        height: 34px;
-        font-size: 0.88rem;
-        padding: 4px 8px;
+    .top-houses-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        column-gap: 8px !important;
+        row-gap: 4px !important;
+        width: 100% !important;
     }
 
     .top-house-card,
     .top-house-general-card {
-        min-height: 96px !important;
-        border-radius: 16px !important;
-        padding: 8px 10px !important;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
-    }
-
-    .top-house-general-card {
-        width: 100%;
-        max-width: 100%;
-        background: linear-gradient(180deg, #f7faff 0%, #edf3fb 100%) !important;
-        border: 1px solid #b9c8dd !important;
+        min-height: 92px !important;
+        padding: 9px 8px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .top-house-card-title {
-        font-size: 0.88rem !important;
-        line-height: 1.15 !important;
+        font-size: 0.86rem !important;
+        margin-bottom: -2px !important;
+        line-height: 1.1 !important;
     }
 
     .top-house-card-info span {
@@ -2921,532 +3185,490 @@ select * {
     }
 
     .top-house-card-info strong {
-        font-size: 0.80rem !important;
-        font-weight: 700;
-        line-height: 1.1;
+        font-size: 0.74rem !important;
     }
 
-    .top-houses-row {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        gap: 8px !important;
-    }
-
-    .top-houses-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 10px !important;
-        touch-action: pan-y;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-
-    .top-filter-summary-row {
-        display: grid !important;
-        grid-template-columns: 1.2fr 0.8fr !important;
-        gap: 6px !important;
-        align-items: end !important;
-    }
-
-    .top-filter-group {
-        display: grid !important;
-        grid-template-columns: 1fr 31px !important;
-        gap: 10px !important;
-        align-items: end !important;
-        width: 100% !important;
-        margin-top: -10px;
-    }
-
-    .period-field {
-        width: 100% !important;
-        min-width: 173px !important;
-    }
-
-    .date-search-field {
-        width: 100% !important;
-        min-width: 140px !important;
-    }
-
-    .stats-top-grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-        margin-top: -4px;
-    }
-
-    .summary-four-row {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-
-    .logo {
-        height: 120px;
-        margin: -30px auto 10px auto;
-        transform: translateX(15px);
-    }
-
-    .header {
-        display: flex;
-        justify-content: center;
-    }
-
-    .header img {
-        display: block;
-        margin: 0 auto;
-    }
-
-    .tickets-day-panel .section-header {
-        margin-bottom: 0 !important;
-        height: 42px !important;
-        display: flex !important;
-        align-items: center !important;
-        padding: 0 1px !important;
-    }
-
-    .tickets-day-panel .tickets-topbar {
-        margin-top: 8px;
-    }
-
-    .panel .section-header span:last-child {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        font-size: 20px;
-        font-weight: 700;
-    }
-
-    .tickets-day-panel .section-header h2 {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        width: 100% !important;
-        transform: translateY(-4px);
-    }
-
-    .tickets-day-panel .section-header span:last-child {
-        margin-left: auto !important;
-    }
-
-    .ticket-panel {
-        order: 1;
-    }
-
-    .tickets-day-panel {
-        order: 2;
-        min-height: 60px;
-    }
-
-    .movement-panel {
-        order: 3;
-    }
-
-    .movement-day-panel {
-        order: 4;
-    }
-}
-
-@media (max-width: 375px) {
-
-    html,
-    body,
-    #root {
-        width: 100% !important;
-        min-height: 100% !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow-x: hidden !important;
-    }
-
-    body {
-        overflow-y: auto !important;
-        position: static !important;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    html {
-        scroll-behavior: smooth;
-    }
-
-    .app {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 auto !important;
-        padding: 14px !important;
-        padding-top: 12px !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-    }
-
-    .container {
-        width: 100% !important;
-        min-width: 0 !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-    }
-
-    .main-grid {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 14px !important;
-        align-items: stretch !important;
-        width: 100% !important;
-        min-width: 0 !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-    }
-
-    .left-column,
-    .right-column {
-        display: contents !important;
-    }
-
-    .left-column>section:nth-of-type(1) {
-        order: 1;
-    }
-
-    .right-column>section:nth-of-type(1) {
-        order: 2;
-    }
-
-    .left-column>section:nth-of-type(2) {
-        order: 3;
-    }
-
-    .right-column>section:nth-of-type(2) {
-        order: 4;
-    }
-
-    .panel,
-    .top-panel,
-    .tickets-day-panel,
-    .right-column>.panel {
-        width: 100% !important;
-        max-width: 100% !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-        padding: 14px !important;
-        border-radius: 16px !important;
-    }
-
-    .stats-bottom-arrows {
-        display: flex !important;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    .stats-bottom-arrows .arrow-btn,
-    .stats-bottom-arrows button {
-        width: 32px !important;
-        height: 32px !important;
-        min-width: 32px !important;
-        display: inline-flex !important;
-        flex: 0 0 auto !important;
-    }
-
-    .summary-nav-buttons,
-    .stats-top-arrows,
-    .stats-top-arrows-inline,
     .top-houses-arrows {
-        position: static !important;
-        display: flex !important;
-        flex-direction: row !important;
+        margin-top: -2px !important;
+        margin-bottom: 2px !important;
         justify-content: flex-end !important;
-        gap: 10px;
-        width: 100%;
-        margin: 0;
-        transform: translateY(-4px);
     }
 
-    .houses-nav-buttons {
-        position: static !important;
-        transform: none !important;
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: center !important;
-        gap: 8px;
-        width: 100%;
-        margin-top: 6px;
-    }
-
-    .top-house-form-inline {
-        display: grid !important;
-        grid-template-columns: 1fr 109px !important;
-        gap: 9px !important;
-        align-items: end !important;
-        width: 100% !important;
-    }
-
-    .top-house-form-inline>* {
-        min-width: 0;
-    }
-
-    .top-house-field {
-        grid-column: 1;
-        min-width: 154px !important;
-        max-width: 100% !important;
-        width: 100% !important;
-    }
-
-    .top-house-bank-field {
-        grid-column: 2;
-        min-width: 0 !important;
-        max-width: 110px !important;
-        width: 125px !important;
-    }
-
-    .top-house-add-button {
-        grid-column: 3;
-        margin-left: 0 !important;
-        font-size: 0 !important;
+    .top-houses-arrows button,
+    .stats-bottom-arrows-mobile button.arrow-btn {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        max-width: 28px !important;
         padding: 0 !important;
-        width: 36px !important;
-        min-width: 36px !important;
-        height: 42px !important;
+        font-size: 0.75rem !important;
+        border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-    }
-
-    .top-house-add-button::before {
-        content: "+";
-        font-size: 20px;
-        font-weight: 700;
-    }
-
-    .top-house-field input,
-    .top-house-bank-field input {
-        height: 34px;
-        font-size: 0.88rem;
-        padding: 4px 8px;
-    }
-
-    .top-house-card,
-    .top-house-general-card {
-        width: 100% !important;
-    }
-
-    .top-house-card {
-        min-height: 90px !important;
-        padding: 6px 7px !important;
-    }
-
-    .top-house-general-card {
-        min-height: 90px !important;
-        padding: 6px 7px !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        background: linear-gradient(180deg, #f7faff 0%, #edf3fb 100%) !important;
-        border: 1px solid #b9c8dd !important;
-    }
-
-    .top-house-card-title {
-        font-size: 0.88rem !important;
-        line-height: 1.15 !important;
-        margin-bottom: -2px !important;
-    }
-
-    .top-house-general-card .top-house-card-title {
-        font-size: .89rem !important;
-        margin-bottom: -3px !important;
-    }
-
-    .top-house-card-info span {
-        font-size: 0.7rem !important;
-    }
-
-    .top-house-card-info strong {
-        font-size: 0.70rem !important;
-        font-weight: 700;
-        line-height: 1.7;
-    }
-
-    .top-houses-row {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        gap: 8px !important;
-        width: 100% !important;
-    }
-
-    .top-houses-grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-        width: 100% !important;
-    }
-
-    .top-filter-summary-row {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 8px !important;
-        align-items: end !important;
+        opacity: 0.85;
     }
 
     .top-filter-group {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        align-items: end !important;
-        gap: 8px !important;
-        width: auto !important;
-        margin-top: -15px;
+        display: grid !important;
+        grid-template-columns: 162.5px 113px 40px !important;
+        column-gap: 8px !important;
+        row-gap: 4px !important;
+        width: 100% !important;
+        margin-top: -4px !important;
     }
 
-    .period-field {
-        flex: 0 0 102px !important;
-        width: 102px !important;
-        min-width: 154.5px !important;
-        max-width: 102px !important;
-    }
-
-    .date-search-field {
-        width: 100px !important;
+    .stats-house-field {
+        grid-column: auto !important;
     }
 
     .top-filter-group select,
     .top-filter-group input {
-        height: 34px !important;
-        padding: 3px 6px !important;
+        height: 38px !important;
         font-size: 0.80rem !important;
-        border-radius: 8px !important;
+        padding: 2px 6px !important;
+    }
+
+    .top-filter-group .stats-calendar-text {
+        display: none !important;
+    }
+
+    .top-filter-group .stats-calendar-icon {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 32px !important;
+        line-height: 1 !important;
+        transform: translateY(4px) !important;
+    }
+
+    .top-filter-group .stats-calendar-button {
+        width: 38px !important;
+        min-width: 38px !important;
+        max-width: 38px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+    }
+
+    .stats-bottom-arrows {
+        display: none !important;
+    }
+
+    .stats-bottom-arrows-mobile {
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 6px !important;
+        margin-top: -2px !important;
+        margin-bottom: px !important;
+        padding-right: 3px !important;
     }
 
     .stats-top-grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-        margin-top: -4px;
-    }
-
-    .summary-four-row {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-
-    .logo {
-        height: 120px;
-        margin: -30px auto 10px auto;
-        transform: translateX(15px);
-    }
-
-    .header {
-        display: flex;
-        justify-content: center;
-    }
-
-    .header img {
-        display: block;
-        margin: 0 auto;
-    }
-
-    .tickets-day-panel .section-header {
-        margin-bottom: 0 !important;
-        height: 42px !important;
-        display: flex !important;
-        align-items: center !important;
-        padding: 0 1px !important;
-    }
-
-    .tickets-day-panel .tickets-topbar {
-        margin-top: 8px;
-    }
-
-    .panel .section-header span:last-child {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        font-size: 20px;
-        font-weight: 700;
-    }
-
-    .tickets-day-panel .section-header h2 {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        width: 100% !important;
-        transform: translateY(-4px);
-    }
-
-    .tickets-day-panel .section-header span:last-child {
-        margin-left: auto !important;
-    }
-
-    .ticket-panel {
-        order: 1;
-    }
-
-    .tickets-day-panel {
-        order: 2;
-        min-height: 60px;
-    }
-
-    .movement-panel {
-        order: 3;
-    }
-
-    .movement-day-panel {
-        order: 4;
+        gap: 10px !important;
     }
 
     .stats-top-card {
-        min-height: 90px !important;
-        padding: 8px 10px !important;
+        min-height: 88px !important;
+        padding: 8px 9px !important;
     }
 
     .stats-top-card span {
-        font-size: 12px !important;
-        margin-bottom: 10px !important;
+        font-size: 11px !important;
+        opacity: 0.75;
     }
 
-    .stats-top-card strong {
-        font-size: 1.1rem !important;
+    .stats-top-card strong,
+    .stats-top-card .metric-value {
+        font-size: 1.05rem !important;
+        font-weight: 600;
+    }
+
+    .bottom-action-grid {
+        gap: 9px !important;
+    }
+
+    .bottom-action-card {
+        min-height: 88px !important;
+        padding: 11px !important;
+    }
+
+    .bottom-action-card span {
+        font-size: 0.9rem !important;
+    }
+
+    .top-houses-arrows button:disabled,
+    .stats-bottom-arrows-mobile button:disabled {
+        opacity: 0.45 !important;
+        background: #f8fafc !important;
+        color: #94a3b8 !important;
+    }
+
+    .top-houses-arrows button:not(:disabled),
+    .stats-bottom-arrows-mobile button:not(:disabled) {
+        opacity: 1 !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+    }
+
+    .top-houses-arrows:has(button:disabled:first-child):has(button:disabled:last-child) {
+        display: none !important;
+    }
+
+    .top-house-card-menu,
+    .top-house-menu,
+    .card-menu {
+        min-width: 95px !important;
+        padding: 4px !important;
+        border-radius: 10px !important;
+    }
+
+    .top-house-card-menu button,
+    .top-house-menu button,
+    .card-menu button {
+        height: 30px !important;
+        padding: 4px 8px !important;
+        font-size: 0.78rem !important;
+    }
+
+    .top-house-menu-box {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+        padding: 4px !important;
+        border-radius: 10px !important;
+    }
+
+    .top-house-menu-box button {
+        height: 28px !important;
+        padding: 3px 8px !important;
+        font-size: 0.76rem !important;
+        justify-content: flex-start !important;
+    }
+
+    .stats-top-card span {
+        line-height: 1.15 !important;
+    }
+
+    .stats-top-card.clickable {
+        position: relative !important;
+    }
+
+    .stats-top-card .metric-toggle-indicator {
+        position: absolute !important;
+        right: 9px !important;
+        top: 4px !important;
+
+        transform: none !important;
+        margin: 0 !important;
+    }
+
+    .card-plus:active,
+    .metric-toggle-indicator:active,
+    .bottom-action-card strong:active {
+        transform: scale(0.92);
+    }
+
+    .stats-calendar-popover {
+        width: 320px !important;
+        max-width: 320px !important;
+        padding: 8px !important;
+        border-radius: 14px !important;
+        transform: translateX(-300px) scale(0.88) !important;
+        transform-origin: top right !important;
+    }
+
+    .stats-calendar-popover .rdp {
+        --rdp-cell-size: 32px !important;
+        margin: 0 !important;
+    }
+
+    .stats-calendar-popover .rdp-months {
+        justify-content: center !important;
+    }
+
+    .stats-calendar-popover .rdp-caption {
+        padding: 0 !important;
+        margin-bottom: 6px !important;
+    }
+
+    .stats-calendar-popover .rdp-head_cell,
+    .stats-calendar-popover .rdp-day {
+        font-size: 0.78rem !important;
+    }
+
+    .bank-chart-header {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+
+        width: 100% !important;
+        gap: 10px !important;
+        margin-bottom: 14px !important;
+    }
+
+    .bank-chart-header h2 {
+        margin: 0 !important;
+        flex: 1 !important;
+
+        font-size: 1rem !important;
         line-height: 1.1 !important;
     }
 
-    .field-group input,
-    .field-group select {
-        height: 42px !important;
+    .bank-chart-select {
+        width: 110px !important;
+        min-width: 110px !important;
+
+        height: 36px !important;
+        margin: 0 !important;
+    }
+
+    /* ===== FORMULÁRIO NOVO BILHETE ===== */
+
+    .form-stack {
+        gap: 8px !important;
+    }
+
+    .form-row {
+        gap: 8px !important;
+    }
+
+    .form-row.form-row-3 {
+        grid-template-columns: 72px 1fr 1fr !important;
+        align-items: end !important;
+    }
+
+    .form-row.form-row-2 {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .form-row.form-row-3 .field-group label,
+    .form-row.form-row-2 .field-group label,
+    .form-row .field-group label {
+        font-size: 11px !important;
+        margin-bottom: 5px !important;
+        line-height: 1.1 !important;
+    }
+
+    .bottom-dynamic-panel .movement-extract-filter label {
+        margin-bottom: 5px !important;
+        display: block !important;
+        line-height: 1.1 !important;
+    }
+
+    .form-row.form-row-3 input,
+    .form-row.form-row-3 select,
+    .form-row.form-row-2 input,
+    .form-row.form-row-2 select,
+    .form-row input,
+    .form-row select {
+        height: 38px !important;
         padding: 4px 8px !important;
-        font-size: 0.9rem !important;
-        border-radius: 8px !important;
+        font-size: 0.82rem !important;
+        min-width: 0 !important;
     }
 
-    .form-row input[type="date"] {
-        width: 152.5px !important;
+    .button-row {
+        gap: 8px !important;
+        margin-top: 2px !important;
     }
 
-    .top-houses-scroll {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 4px;
+    .button-row button {
+        height: 38px !important;
+        font-size: 0.82rem !important;
+        padding: 0 10px !important;
     }
 
-    .top-houses-scroll::-webkit-scrollbar {
-        display: none;
+    .ticket-header-row h2 {
+        font-size: 1rem !important;
     }
 
-    .top-houses-scroll {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 4px;
+    .ticket-date-top {
+        height: 34px !important;
+        padding: 0 10px !important;
+        font-size: 0.80rem !important;
+        width: 122.5px !important;
+        max-width: 122.5px !important;
+        min-width: 122.5px !important;
     }
 
-    .top-houses-scroll::-webkit-scrollbar {
-        display: none;
+    .ticket-form-calendar-popover {
+        transform: translateX(-10px) scale(0.88) !important;
+        transform-origin: top right !important;
     }
 
-    .footer {
-        font-size: 0.65rem;
-        margin-top: 16px;
+    /* Casa de aposta e Categoria com metade do bloco */
+    .form-stack>.form-row:nth-of-type(1),
+    .form-stack>.form-row:nth-of-type(2) {
+        grid-template-columns: 1fr 1fr !important;
     }
+
+    .form-stack>.form-row:nth-of-type(1) .field-group,
+    .form-stack>.form-row:nth-of-type(2) .field-group {
+        width: 203px !important;
+        max-width: 203px !important;
+    }
+
+    /* Origem do dinheiro e Resultado na mesma linha */
+    .form-stack>.form-row:nth-of-type(4) {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+    }
+
+    .bottom-dynamic-panel .movement-extract-filter {
+        display: grid !important;
+        grid-template-columns: 130px 86px 125px !important;
+        column-gap: 7px !important;
+        row-gap: 6px !important;
+        align-items: end !important;
+        margin-bottom: 12px !important;
+    }
+
+
+
+    .bottom-dynamic-panel .movement-extract-filter select,
+    .bottom-dynamic-panel .movement-extract-filter button {
+        height: 36px !important;
+        font-size: 0.78rem !important;
+        padding: 4px 8px !important;
+    }
+
+    .bottom-dynamic-panel .movement-extract-filter .field-group {
+        min-width: 0 !important;
+    }
+
+    .bottom-dynamic-panel .movement-extract-filter .field-group:nth-child(3),
+    .bottom-dynamic-panel .movement-extract-filter .field-group:nth-child(3) .movement-extract-calendar-field,
+    .bottom-dynamic-panel .movement-extract-filter .field-group:nth-child(3) .movement-extract-calendar-button {
+        width: 125px !important;
+        max-width: 125px !important;
+        min-width: 125px !important;
+    }
+
+    .bottom-dynamic-panel .movement-extract-filter .field-group:nth-child(1) select {
+        width: 130px !important;
+        max-width: 130px !important;
+    }
+
+    .bottom-dynamic-panel .movement-extract-filter .field-group:nth-child(3) .movement-extract-calendar-field {
+        width: 130px !important;
+        max-width: 130px !important;
+    }
+
+    .bottom-dynamic-panel .movement-extract-filter .field-group:nth-child(3) .movement-extract-calendar-button {
+        width: 120px !important;
+        max-width: 104px !important;
+        min-width: 104px !important;
+    }
+
+    .collapsed-ticket-item {
+        align-items: flex-start !important;
+    }
+
+    .collapsed-ticket-status {
+        min-width: 64px !important;
+        height: 20px !important;
+        padding: 0 6px !important;
+        font-size: 0.68rem !important;
+        margin-top: -1px !important;
+        margin-right: -2px !important;
+
+    }
+
+    /* ===== PADRONIZA ESPAÇO TÍTULO → CAMPOS NOS PAINÉIS ===== */
+
+    .bottom-dynamic-panel .section-header {
+        margin-bottom: 10px !important;
+    }
+
+    .bottom-dynamic-panel .section-header h2 {
+        margin: 0 !important;
+        line-height: 1.1 !important;
+    }
+
+    .bottom-dynamic-panel .ticket-header-row {
+        min-height: 34px !important;
+        align-items: center !important;
+        margin-bottom: 20px !important;
+    }
+
+    .bottom-dynamic-panel .movement-extract-filter {
+        margin-top: 20px !important;
+    }
+
+    .bottom-dynamic-panel.align-left .section-header {
+        margin-bottom: 20px !important;
+    }
+
+    /* ===== CORREÇÃO NOVA MOVIMENTAÇÃO ===== */
+    .movement-mobile-row {
+        display: grid !important;
+        grid-template-columns: auto auto auto !important;
+        column-gap: 0px !important;
+        align-items: end !important;
+    }
+
+    .movement-mobile-row .field-group:nth-child(1),
+    .movement-mobile-row .field-group:nth-child(1) select {
+        width: 130px !important;
+        max-width: 130px !important;
+        min-width: 130px !important;
+    }
+
+    .movement-mobile-row .field-group:nth-child(2),
+    .movement-mobile-row .field-group:nth-child(2) select {
+        width: 90px !important;
+        max-width: 90px !important;
+        min-width: 90px !important;
+    }
+
+    .movement-mobile-row .field-group:nth-child(3),
+    .movement-mobile-row .field-group:nth-child(3) input {
+        width: 95px !important;
+
+    }
+
+    .movement-mobile-row {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: end !important;
+        gap: 8px !important;
+    }
+
+    .movement-mobile-row .field-group {
+        margin-right: 1px !important;
+    }
+
+    .bottom-dynamic-panel.align-right .ticket-date-top {
+        width: 105px !important;
+        max-width: 105px !important;
+        min-width: 105px !important;
+    }
+
+    select,
+    input,
+    .ticket-date-top,
+    .movement-extract-calendar-button {
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+
+        font-size: 0.78rem !important;
+
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .stats-calendar-field > label {
+    position: relative !important;
+    top: 6px !important;
+}
+
 
 }
