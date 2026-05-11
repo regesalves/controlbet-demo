@@ -790,6 +790,30 @@ export default function App() {
             setMovementExtractPeriodReference("");
             setIsMovementExtractCalendarOpen(false);
         }
+
+        if (activeBottomPanel !== "ticketsDay") {
+            setTicketsDayHouseScope("all");
+            setTicketsDayPeriodType("Diário");
+            setTicketsDayPeriodReference(hojeISO());
+            setOpenedCollapsedTicketId(null);
+            setIsTicketsCalendarOpen(false);
+        }
+
+        if (activeBottomPanel !== "movementsDay") {
+            setMovementViewDate(hojeISO());
+            setIsMovementsCalendarOpen(false);
+        }
+
+        if (activeBottomPanel !== "movement") {
+            resetMovementForm();
+            setIsMovementFormCalendarOpen(false);
+        }
+
+        if (activeBottomPanel !== "ticket") {
+            resetTicketForm();
+            setIsTicketFormCalendarOpen(false);
+        }
+
     }, [activeBottomPanel]);
 
     useEffect(() => {
@@ -950,6 +974,39 @@ export default function App() {
 
     const housesWithCurrentBank = useMemo(() => {
         return houses.map((house) => {
+            const previousResolvedTickets =
+                periodType === "Geral"
+                    ? []
+                    : tickets.filter(
+                        (ticket) =>
+                            Number(ticket.casaId) === house.id &&
+                            ticket.resultado !== "Pendente" &&
+                            ticket.data < periodInterval.start
+                    );
+
+            const previousTicketBalance = previousResolvedTickets.reduce(
+                (acc, ticket) => acc + getRealTicketImpact(ticket),
+                0
+            );
+
+            const previousMovements =
+                periodType === "Geral"
+                    ? []
+                    : movements.filter(
+                        (movement) =>
+                            Number(movement.casaId) === house.id &&
+                            movement.data < periodInterval.start
+                    );
+
+            const previousMovementBalance = previousMovements.reduce((acc, movement) => {
+                return acc + Number(movement.valor || 0) * movementSignal(movement.tipo);
+            }, 0);
+
+            const bancaInicialPeriodo =
+                Number(house.bancaInicial || 0) +
+                previousTicketBalance +
+                previousMovementBalance;
+
             const periodHouseTickets = baseTicketsForPeriod.filter(
                 (ticket) => Number(ticket.casaId) === house.id
             );
@@ -989,13 +1046,21 @@ export default function App() {
 
             return {
                 ...house,
-                bancaAtual:
-                    Number(house.bancaInicial || 0) + totalProfit + movementBalance,
+                bancaInicialPeriodo,
+                bancaAtual: bancaInicialPeriodo + totalProfit + movementBalance,
                 quantidadeApostas: periodHouseTickets.length,
                 taxaAcerto: hitRate,
             };
         });
-    }, [houses, baseTicketsForPeriod, baseMovementsForPeriod]);
+    }, [
+        houses,
+        tickets,
+        movements,
+        baseTicketsForPeriod,
+        baseMovementsForPeriod,
+        periodType,
+        periodInterval,
+    ]);
 
     const visibleHouses = useMemo(() => {
         return housesWithCurrentBank.slice(
@@ -1069,12 +1134,16 @@ export default function App() {
             return Number(movement.casaId) === Number(selectedHouseScope);
         });
 
-        const initialBank = houses
+        const initialBank = housesWithCurrentBank
             .filter((house) => {
                 if (selectedHouseScope === "all") return true;
                 return Number(house.id) === Number(selectedHouseScope);
             })
-            .reduce((acc, house) => acc + Number(house.bancaInicial || 0), 0);
+            .reduce(
+                (acc, house) =>
+                    acc + Number(house.bancaInicialPeriodo ?? house.bancaInicial ?? 0),
+                0
+            );
 
         const dailyTotals = {};
         const dailyMovements = {};
@@ -1120,46 +1189,42 @@ export default function App() {
                 ? orderedDates[0] || hojeISO()
                 : periodInterval.start;
 
+        const lastActivityDateInPeriod = orderedDates
+            .filter((date) => date >= periodInterval.start && date <= periodInterval.end)
+            .pop();
+
         const endDate =
             periodType === "Geral"
                 ? orderedDates[orderedDates.length - 1] || hojeISO()
-                : periodInterval.end;
+                : periodType === "Mensal" || periodType === "Semanal"
+                    ? lastActivityDateInPeriod || periodInterval.start
+                    : periodInterval.end;
 
         if (!startDate || !endDate) return [];
 
         let banca = initialBank;
 
         const result = [];
+        let currentDate = startDate;
 
-        orderedDates.forEach((date) => {
-            if (date < startDate || date > endDate) return;
+       while (currentDate <= endDate) {
+    result.push({
+        data: currentDate,
+        banca: Number(banca.toFixed(2)),
+        deposito: dailyMovements[currentDate]?.deposito || 0,
+        saque: dailyMovements[currentDate]?.saque || 0,
+    });
 
-            banca += dailyTotals[date];
+    banca += dailyTotals[currentDate] || 0;
 
-            result.push({
-                data: date,
-                banca: Number(banca.toFixed(2)),
-                deposito: dailyMovements[date]?.deposito || 0,
-                saque: dailyMovements[date]?.saque || 0,
-            });
-        });
-
-        if (result.length === 0) {
-            return [
-                {
-                    data: startDate,
-                    banca: Number(initialBank.toFixed(2)),
-                    deposito: 0,
-                    saque: 0,
-                },
-            ];
-        }
+    currentDate = addDays(currentDate, 1);
+}
 
         return result;
     }, [
         baseTicketsForPeriod,
         baseMovementsForPeriod,
-        houses,
+        housesWithCurrentBank,
         selectedHouseScope,
         periodType,
         periodInterval,
@@ -1174,7 +1239,7 @@ export default function App() {
 
     const totalInitialBank = useMemo(() => {
         return housesWithCurrentBank.reduce(
-            (acc, house) => acc + Number(house.bancaInicial || 0),
+            (acc, house) => acc + Number(house.bancaInicialPeriodo ?? house.bancaInicial ?? 0),
             0
         );
     }, [housesWithCurrentBank]);
@@ -1202,14 +1267,13 @@ export default function App() {
             ? null
             : selectedHouseScope === "all"
                 ? totalInitialBank
-                : selectedHouseData?.bancaInicial ?? 0;
+                : selectedHouseData?.bancaInicialPeriodo ?? selectedHouseData?.bancaInicial ?? 0;
 
     const topCurrentBank =
-        selectedHouseScope === null
+        selectedHouseScope === null || topInitialBank === null
             ? null
-            : selectedHouseScope === "all"
-                ? totalCurrentBank
-                : selectedHouseData?.bancaAtual ?? 0;
+            : topInitialBank + summaryStats.realProfit + summaryStats.movementBalance;
+
 
     const bankEvolution =
         topInitialBank === null || topCurrentBank === null
@@ -1647,6 +1711,53 @@ export default function App() {
             return;
         }
 
+        if (
+            ticketForm.origemStake !== "Bonus"
+        ) {
+            const selectedHouse = housesWithCurrentBank.find(
+                (house) => Number(house.id) === Number(ticketForm.casaId)
+            );
+
+            const currentBank = Number(selectedHouse?.bancaAtual || 0);
+
+            const realStakeToUse = Number(breakdown.stakeSaldo || 0);
+
+            let previousRealStake = 0;
+
+            if (editingTicketId) {
+                const previousTicket = tickets.find(
+                    (ticket) => Number(ticket.id) === Number(editingTicketId)
+                );
+
+                if (
+                    previousTicket &&
+                    Number(previousTicket.casaId) === Number(ticketForm.casaId)
+                ) {
+                    previousRealStake = Number(previousTicket.stakeReal || 0);
+                }
+            }
+
+            const availableBank = currentBank + previousRealStake;
+
+            if (realStakeToUse > availableBank) {
+                alert(
+                    `Aposta não permitida. A banca disponível para esta casa é ${formatMoney(availableBank)}.`
+                );
+                return;
+            }
+        }
+
+        if (
+            ticketForm.resultado !== "Pendente" &&
+            ticketForm.resultado !== "Cash Out" &&
+            returned === stake
+        ) {
+            alert(
+                "Quando o retorno é igual ao valor apostado, o resultado deve ser Cash Out ou Pendente."
+            );
+            return;
+        }
+
         const profit = returned - stake;
         const stakeDetails = calculateStakeDetails({
             stake,
@@ -1771,8 +1882,11 @@ export default function App() {
             return;
         }
 
-        setTickets((prev) => [newTicket, ...prev]);
+        setTickets((prev) => reorderTickets([newTicket, ...prev]));
         setViewDate(ticketForm.data);
+        setTicketsDayPeriodType("Diário");
+        setTicketsDayPeriodReference(hojeISO());
+        setTicketsDayHouseScope("all");
         setOpenedCollapsedTicketId(null);
         resetTicketForm();
         setIsTicketPanelOpen(false);
@@ -1795,6 +1909,39 @@ export default function App() {
             valor: parsedValue,
         };
 
+        if (payload.tipo === "Saque") {
+            const selectedHouse = housesWithCurrentBank.find(
+                (house) => Number(house.id) === Number(payload.casaId)
+            );
+
+            const currentBank = Number(selectedHouse?.bancaAtual || 0);
+
+            let previousMovementValue = 0;
+
+            if (editingMovementId) {
+                const previousMovement = movements.find(
+                    (movement) => Number(movement.id) === Number(editingMovementId)
+                );
+
+                if (
+                    previousMovement &&
+                    previousMovement.tipo === "Saque" &&
+                    Number(previousMovement.casaId) === Number(payload.casaId)
+                ) {
+                    previousMovementValue = Number(previousMovement.valor || 0);
+                }
+            }
+
+            const availableBank = currentBank + previousMovementValue;
+
+            if (payload.valor > availableBank) {
+                alert(
+                    `Saque não permitido. A banca disponível para esta casa é ${formatMoney(availableBank)}.`
+                );
+                return;
+            }
+        }
+
         if (editingMovementId) {
             const { error } = await supabase
                 .from("movements")
@@ -1815,8 +1962,8 @@ export default function App() {
 
             setMovements((prev) =>
                 prev.map((movement) =>
-                    movement.id === editingMovementId
-                        ? { ...movement, ...payload }
+                    Number(movement.id) === Number(editingMovementId)
+                        ? { ...movement, ...payload, id: movement.id }
                         : movement
                 )
             );
@@ -2099,6 +2246,11 @@ export default function App() {
             formatter: formatMoney,
             highlight: true,
             tone: "neutral",
+            extraValue:
+                selectedHouseScope !== null && Math.abs(summaryStats.movementBalance) > 0.009
+                    ? summaryStats.movementBalance
+                    : null,
+            extraLabel: "Mov.",
         };
 
         const investedCard = {
@@ -2106,6 +2258,11 @@ export default function App() {
             value: selectedHouseScope === null ? null : summaryStats.invested,
             formatter: formatMoney,
             tone: "neutral",
+            extraValue:
+                (periodType === "Diário" || periodType === "Semanal") &&
+                    Math.abs(summaryStats.invested - summaryStats.investedReal) > 0.009
+                    ? summaryStats.investedReal
+                    : null,
         };
 
         const realInvestedCard = {
@@ -2793,9 +2950,18 @@ export default function App() {
                                                 </strong>
                                             )}
                                         </span>
-                                        <strong className={`metric-value ${item.tone || "neutral"}`}>
-                                            {renderTopValue(item.value, item.formatter)}
-                                        </strong>
+                                        <div className="metric-main-content">
+                                            <strong className={`metric-value ${item.tone || "neutral"}`}>
+                                                {renderTopValue(item.value, item.formatter)}
+                                            </strong>
+
+                                            {item.extraValue !== null && item.extraValue !== undefined && (
+                                                <div className="metric-extra-value">
+                                                    {item.extraLabel || "Real"}: {item.extraValue > 0 ? "+" : ""}
+                                                    {formatMoney(item.extraValue)}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

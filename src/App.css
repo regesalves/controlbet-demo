@@ -1631,6 +1631,19 @@ hr.section-divider {
     color: #0f172a;
 }
 
+.metric-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.metric-extra-value {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    line-height: 1.15;
+}
+
 /* ===== PADRÃO GLOBAL DE SETAS ===== */
 
 .arrow-btn {
@@ -3672,11 +3685,11 @@ select * {
         top: 6px !important;
     }
 
-.top-houses-grid .top-house-general-card.selected-house-card {
-    transform: translateY(-2px) !important;
-}
-    
+    .top-houses-grid .top-house-general-card.selected-house-card {
+        transform: translateY(-2px) !important;
+    }
 
-    
+
+
 
 }
