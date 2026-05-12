@@ -912,6 +912,12 @@ export default function App() {
     ]);
 
     useEffect(() => {
+        if (periodType === "Diário") {
+            setIsBankChartOpen(false);
+        }
+    }, [periodType]);
+
+    useEffect(() => {
         if (periodType === "Geral") {
             setPeriodReference("");
             return;
@@ -1204,21 +1210,33 @@ export default function App() {
 
         let banca = initialBank;
 
-        const result = [];
+        const result = [
+            {
+                data: startDate,
+                banca: Number(banca.toFixed(2)),
+                deposito: 0,
+                saque: 0,
+            },
+        ];
+
         let currentDate = startDate;
 
-       while (currentDate <= endDate) {
-    result.push({
-        data: currentDate,
-        banca: Number(banca.toFixed(2)),
-        deposito: dailyMovements[currentDate]?.deposito || 0,
-        saque: dailyMovements[currentDate]?.saque || 0,
-    });
+        while (currentDate <= endDate) {
+            const dailyValue = dailyTotals[currentDate] || 0;
 
-    banca += dailyTotals[currentDate] || 0;
+            if (!(currentDate === startDate && dailyValue === 0)) {
+                banca += dailyValue;
 
-    currentDate = addDays(currentDate, 1);
-}
+                result.push({
+                    data: currentDate,
+                    banca: Number(banca.toFixed(2)),
+                    deposito: dailyMovements[currentDate]?.deposito || 0,
+                    saque: dailyMovements[currentDate]?.saque || 0,
+                });
+            }
+
+            currentDate = addDays(currentDate, 1);
+        }
 
         return result;
     }, [
