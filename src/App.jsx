@@ -405,6 +405,12 @@ const initialMovementForm = {
 
 export default function App() {
     const [houses, setHouses] = useState([]);
+
+    const [isMobileLive, setIsMobileLive] = useState(() => window.innerWidth <= 768);
+
+    const housesPerPageLive = isMobileLive
+        ? MOBILE_HOUSES_PER_PAGE
+        : DESKTOP_HOUSES_PER_PAGE;
     const [isAddingHouse, setIsAddingHouse] = useState(false);
     const [tickets, setTickets] = useState([]);
 
@@ -837,12 +843,26 @@ export default function App() {
 
     useEffect(() => {
         const totalHouseCards = houses.length + 1;
-        const maxStart = Math.max(0, totalHouseCards - housesPerPage);
+        const maxStart = Math.max(0, totalHouseCards - housesPerPageLive);
 
         if (housePageStart > maxStart) {
             setHousePageStart(maxStart);
         }
-    }, [houses.length, housePageStart, housesPerPage]);
+    }, [houses.length, housePageStart, housesPerPageLive]);
+
+    useEffect(() => {
+        function handleResize() {
+            setIsMobileLive(window.innerWidth <= 768);
+        }
+
+        window.addEventListener("resize", handleResize);
+
+        handleResize();
+
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
 
     const dailyReferences = useMemo(() => {
         const ticketDates = tickets.map((t) => t.data);
@@ -2553,7 +2573,7 @@ export default function App() {
                                 )}
                             </form>
 
-                            {!isMobile && houses.length + 1 > DESKTOP_HOUSES_PER_PAGE && (
+                            {!isMobileLive && houses.length + 1 > DESKTOP_HOUSES_PER_PAGE && (
                                 <div className="top-houses-arrows">
                                     <button
                                         type="button"
@@ -2594,7 +2614,7 @@ export default function App() {
                                         },
                                         ...housesWithCurrentBank,
                                     ]
-                                        .slice(housePageStart, housePageStart + housesPerPage)
+                                        .slice(housePageStart, housePageStart + housesPerPageLive)
                                         .map((house) => {
                                             if (house.isAll) {
                                                 return (
@@ -2690,7 +2710,7 @@ export default function App() {
                             </div>
                         </div>
 
-                        {isMobile && (periodType === "Diário" || periodType === "Semanal") && (
+                        {isMobileLive && houses.length + 1 > MOBILE_HOUSES_PER_PAGE && (
                             <div className="top-houses-arrows bottom-arrows">
                                 <button
                                     type="button"
@@ -2927,7 +2947,7 @@ export default function App() {
                                 </div>
                             )}
 
-                            {!isMobile && topMetricPages.length > 1 && (
+                            {!isMobileLive && topMetricPages.length > 1 && (
                                 <div className="stats-top-arrows-inline">
                                     <button
                                         type="button"
@@ -2984,7 +3004,7 @@ export default function App() {
                                 ))}
                             </div>
 
-                            {isMobile && (
+                            {isMobileLive && topMetricPages.length > 1 && (
                                 <div className="stats-bottom-arrows">
                                     <button
                                         type="button"
@@ -4490,7 +4510,7 @@ export default function App() {
                             className={`panel tickets-day-panel ${!isTicketsDayPanelOpen ? "tickets-day-panel-closed" : ""}`}
                             ref={ticketsDayPanelRef}
                         >
-                            {isMobile ? (
+                            {isMobileLive ? (
                                 <>
                                     <div
                                         className="section-header"
