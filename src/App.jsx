@@ -5,6 +5,9 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import TermsPage from "./pages/TermsPage";
 import ScrollToTop from "./ScrollToTop";
 import { AuthProvider } from "./auth/AuthProvider";
 import ProtectedRoute from "./auth/ProtectedRoute";
@@ -53,6 +56,18 @@ export default function App() {
                 <Route
                     path="/register"
                     element={<RegisterPage landingTheme={landingTheme} onToggleTheme={toggleLandingTheme} />}
+                />
+                <Route
+                    path="/redefinir-senha"
+                    element={<ResetPasswordPage landingTheme={landingTheme} />}
+                />
+                <Route
+                    path="/termos"
+                    element={<TermsPage landingTheme={landingTheme} />}
+                />
+                <Route
+                    path="/privacidade"
+                    element={<PrivacyPage landingTheme={landingTheme} />}
                 />
                 <Route
                     path="/dashboard"

@@ -1,10 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 import { supabase } from "../supabase";
 
 export default function LoginPage({ landingTheme }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [loginIdentifier, setLoginIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +15,17 @@ export default function LoginPage({ landingTheme }) {
     const [recoveryEmail, setRecoveryEmail] = useState("");
     const [supportIdentifier, setSupportIdentifier] = useState("");
     const [accessFeedback, setAccessFeedback] = useState({ type: "", message: "" });
+
+    useEffect(() => {
+        if (!location.state?.message) return;
+
+        setFeedback({
+            type: "success",
+            message: location.state.message,
+        });
+
+        window.history.replaceState({}, document.title);
+    }, [location.state]);
 
     function isEmail(value) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -27,7 +39,7 @@ export default function LoginPage({ landingTheme }) {
         }
 
         if (normalizedMessage.includes("email not confirmed")) {
-            return "Confirme seu e-mail antes de entrar.";
+            return "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.";
         }
 
         return "Não foi possível entrar agora. Tente novamente em instantes.";
@@ -126,7 +138,7 @@ export default function LoginPage({ landingTheme }) {
 
         setAccessFeedback({
             type: "info",
-            message: "Use seu usuário ou telefone cadastrado para solicitar suporte. Nesta etapa, a recuperação automática por usuário ou telefone ainda não está disponível.",
+            message: "Use seu usuário ou telefone cadastrado para solicitar suporte. Em breve essa recuperação será automática.",
         });
     }
 
@@ -184,7 +196,7 @@ export default function LoginPage({ landingTheme }) {
                                 disabled={isLoading || isRecoveryLoading}
                                 aria-expanded={isAccessRecoveryOpen}
                             >
-                                Esqueceu seu acesso?
+                                Esqueceu seu e-mail ou senha?
                             </button>
                         </div>
 
@@ -219,6 +231,7 @@ export default function LoginPage({ landingTheme }) {
 
                             <div className="auth-modal-header">
                                 <h2 id="access-recovery-title">Recuperar acesso</h2>
+                                <p>Escolha a melhor forma de recuperar sua conta.</p>
                             </div>
 
                             <div className="auth-modal-options">

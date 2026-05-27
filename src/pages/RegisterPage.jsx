@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 import { supabase } from "../supabase";
 
@@ -32,6 +32,45 @@ const passwordRequirements = [
 ];
 
 const usernamePattern = /^[a-z0-9._-]+$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function getPhoneDigits(value = "") {
+    return value.replace(/\D/g, "").slice(0, 11);
+}
+
+function formatBrazilianPhone(value = "") {
+    const digits = getPhoneDigits(value);
+
+    if (!digits) return "";
+
+    if (digits.length <= 2) {
+        return `(${digits}`;
+    }
+
+    if (digits.length <= 6) {
+        return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    }
+
+    if (digits.length <= 10) {
+        return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function getProfileAvailabilityErrorMessage(error) {
+    const message = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`.toLowerCase();
+
+    if (message.includes("phone")) {
+        return "Este telefone já está em uso.";
+    }
+
+    if (message.includes("username")) {
+        return "Este usuário já está em uso.";
+    }
+
+    return "";
+}
 
 export default function RegisterPage({ landingTheme }) {
     const navigate = useNavigate();
@@ -40,10 +79,14 @@ export default function RegisterPage({ landingTheme }) {
     const [username, setUsername] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
+    const [confirmEmail, setConfirmEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [hasAcceptedLegalTerms, setHasAcceptedLegalTerms] = useState(false);
     const [isPasswordFocused, setIsPasswordFocused] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isResendLoading, setIsResendLoading] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
     const [feedback, setFeedback] = useState({ type: "", message: "" });
     const passwordChecks = passwordRequirements.map((requirement) => ({
         ...requirement,
@@ -52,6 +95,16 @@ export default function RegisterPage({ landingTheme }) {
     const isPasswordStrong = passwordChecks.every((requirement) => requirement.isValid);
     const shouldShowPasswordRequirements = isPasswordFocused || password.length > 0;
     const normalizedUsername = username.trim();
+
+    useEffect(() => {
+        if (resendCooldown <= 0) return undefined;
+
+        const timeoutId = window.setTimeout(() => {
+            setResendCooldown((currentValue) => Math.max(currentValue - 1, 0));
+        }, 1000);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [resendCooldown]);
 
     function getRegisterErrorMessage(message = "") {
         const normalizedMessage = message.toLowerCase();
@@ -62,18 +115,22 @@ export default function RegisterPage({ landingTheme }) {
             normalizedMessage.includes("already exists") ||
             normalizedMessage.includes("user already")
         ) {
-            return "Este e-mail já está cadastrado. Tente entrar na sua conta ou recuperar o acesso.";
+            return "Este e-mail já está cadastrado. Tente entrar ou recuperar o acesso.";
         }
 
         if (normalizedMessage.includes("password")) {
             return "Sua senha precisa atender aos requisitos mínimos do Supabase.";
         }
 
-        if (normalizedMessage.includes("invalid")) {
-            return "Confira os dados informados e tente novamente.";
+        if (normalizedMessage.includes("invalid") && normalizedMessage.includes("email")) {
+            return "Informe um e-mail válido.";
         }
 
-        return "Não foi possível criar sua conta agora. Tente novamente em instantes.";
+        if (normalizedMessage.includes("invalid")) {
+            return "Confira os dados informados.";
+        }
+
+        return "Confira os dados informados.";
     }
 
     async function handleSubmit(event) {
@@ -83,8 +140,34 @@ export default function RegisterPage({ landingTheme }) {
 
         setFeedback({ type: "", message: "" });
 
+        const trimmedFirstName = firstName.trim();
+        const trimmedLastName = lastName.trim();
+
+        if (!trimmedFirstName) {
+            setFeedback({
+                type: "error",
+                message: "Informe seu nome.",
+            });
+            return;
+        }
+
+        if (!trimmedLastName) {
+            setFeedback({
+                type: "error",
+                message: "Informe seu sobrenome.",
+            });
+            return;
+        }
+
+        if (!normalizedUsername) {
+            setFeedback({
+                type: "error",
+                message: "Informe seu usuário.",
+            });
+            return;
+        }
+
         if (
-            !normalizedUsername ||
             normalizedUsername.length < 3 ||
             normalizedUsername.length > 30 ||
             /\s/.test(username) ||
@@ -92,7 +175,69 @@ export default function RegisterPage({ landingTheme }) {
         ) {
             setFeedback({
                 type: "error",
-                message: "Informe um usuário válido: 3 a 30 caracteres, sem espaços, usando apenas letras minúsculas, números, ponto, underline ou hífen.",
+                message: "Use apenas letras, números, ponto, underline ou hífen.",
+            });
+            return;
+        }
+
+        const phoneDigits = getPhoneDigits(phone);
+
+        if (!phoneDigits) {
+            setFeedback({
+                type: "error",
+                message: "Informe seu telefone.",
+            });
+            return;
+        }
+
+        if (phoneDigits.length !== 10 && phoneDigits.length !== 11) {
+            setFeedback({
+                type: "error",
+                message: "Informe um telefone válido com DDD.",
+            });
+            return;
+        }
+
+        const trimmedEmail = email.trim();
+
+        if (!trimmedEmail) {
+            setFeedback({
+                type: "error",
+                message: "Informe seu e-mail.",
+            });
+            return;
+        }
+
+        const trimmedConfirmEmail = confirmEmail.trim();
+
+        if (!trimmedConfirmEmail) {
+            setFeedback({
+                type: "error",
+                message: "Confirme seu e-mail.",
+            });
+            return;
+        }
+
+        if (!emailPattern.test(trimmedEmail)) {
+            setFeedback({
+                type: "error",
+                message: "Informe um e-mail válido.",
+            });
+            return;
+        }
+
+        if (!emailPattern.test(trimmedConfirmEmail)) {
+            setFeedback({
+                type: "error",
+                message: "Informe um e-mail válido.",
+            });
+            return;
+        }
+
+        if (trimmedEmail.toLowerCase() !== trimmedConfirmEmail.toLowerCase()) {
+            setFeedback({
+                type: "error",
+                message: "Os e-mails não coincidem.",
             });
             return;
         }
@@ -113,14 +258,54 @@ export default function RegisterPage({ landingTheme }) {
             return;
         }
 
+        if (!hasAcceptedLegalTerms) {
+            setFeedback({
+                type: "error",
+                message: "Você precisa aceitar os Termos de Uso e a Política de Privacidade.",
+            });
+            return;
+        }
+
         setIsLoading(true);
 
-        const trimmedFirstName = firstName.trim();
-        const trimmedLastName = lastName.trim();
-        const trimmedPhone = phone.trim();
+        const { data: availabilityData, error: availabilityError } = await supabase
+            .rpc("check_profile_availability", {
+                p_username: normalizedUsername,
+                p_phone: phoneDigits,
+            })
+            .maybeSingle();
+
+        if (availabilityError) {
+            setIsLoading(false);
+            setFeedback({
+                type: "error",
+                message: getProfileAvailabilityErrorMessage(availabilityError) || "Não foi possível verificar usuário e telefone agora. Tente novamente em instantes.",
+            });
+            return;
+        }
+
+        if (availabilityData && !availabilityData.username_available) {
+            setIsLoading(false);
+            setFeedback({
+                type: "error",
+                message: "Este usuário já está em uso.",
+            });
+            return;
+        }
+
+        if (availabilityData && !availabilityData.phone_available) {
+            setIsLoading(false);
+            setFeedback({
+                type: "error",
+                message: "Este telefone já está em uso.",
+            });
+            return;
+        }
+
+        const consentAt = new Date().toISOString();
 
         const { data, error } = await supabase.auth.signUp({
-            email: email.trim(),
+            email: trimmedEmail,
             password,
             options: {
                 data: {
@@ -128,7 +313,9 @@ export default function RegisterPage({ landingTheme }) {
                     last_name: trimmedLastName,
                     full_name: `${trimmedFirstName} ${trimmedLastName}`.trim(),
                     username: normalizedUsername,
-                    phone: trimmedPhone,
+                    phone: phoneDigits,
+                    accepted_terms_at: consentAt,
+                    accepted_privacy_at: consentAt,
                 },
             },
         });
@@ -138,7 +325,7 @@ export default function RegisterPage({ landingTheme }) {
         if (error) {
             setFeedback({
                 type: "error",
-                message: getRegisterErrorMessage(error.message),
+                message: getProfileAvailabilityErrorMessage(error) || getRegisterErrorMessage(error.message),
             });
             return;
         }
@@ -146,7 +333,7 @@ export default function RegisterPage({ landingTheme }) {
         if (!data?.session && (!data?.user || data.user.identities?.length === 0)) {
             setFeedback({
                 type: "error",
-                message: "Este e-mail já está cadastrado. Tente entrar na sua conta ou recuperar o acesso.",
+                message: "Este e-mail já está cadastrado. Tente entrar ou recuperar o acesso.",
             });
             return;
         }
@@ -159,6 +346,33 @@ export default function RegisterPage({ landingTheme }) {
         setFeedback({
             type: "success",
             message: "Conta criada. Confira seu e-mail para confirmar o cadastro antes de entrar.",
+        });
+    }
+
+    async function handleResendConfirmation() {
+        if (isResendLoading || resendCooldown > 0) return;
+
+        setIsResendLoading(true);
+
+        const { error } = await supabase.auth.resend({
+            type: "signup",
+            email: email.trim(),
+        });
+
+        setIsResendLoading(false);
+
+        if (error) {
+            setFeedback({
+                type: "error",
+                message: "Não foi possível reenviar o e-mail agora. Tente novamente em instantes.",
+            });
+            return;
+        }
+
+        setResendCooldown(30);
+        setFeedback({
+            type: "success",
+            message: "Reenviamos o e-mail de confirmação. Verifique sua caixa de entrada.",
         });
     }
 
@@ -175,7 +389,7 @@ export default function RegisterPage({ landingTheme }) {
                         <p>Monte sua base para controlar banca, casas de aposta e desempenho.</p>
                     </div>
 
-                    <form className="auth-form" onSubmit={handleSubmit}>
+                    <form className="auth-form" onSubmit={handleSubmit} noValidate>
                         <div className="auth-name-row">
                             <label>
                                 Nome
@@ -221,30 +435,47 @@ export default function RegisterPage({ landingTheme }) {
                             </label>
 
                             <label>
-                                Telefone (recomendado)
+                                Telefone
                                 <input
                                     type="tel"
+                                    inputMode="numeric"
                                     placeholder="(00) 00000-0000"
                                     autoComplete="tel"
                                     value={phone}
-                                    onChange={(event) => setPhone(event.target.value)}
+                                    onChange={(event) => setPhone(formatBrazilianPhone(event.target.value))}
+                                    required
                                     disabled={isLoading}
                                 />
                             </label>
                         </div>
 
-                        <label>
-                            E-mail
-                            <input
-                                type="email"
-                                placeholder="voce@email.com"
-                                autoComplete="email"
-                                value={email}
-                                onChange={(event) => setEmail(event.target.value)}
-                                required
-                                disabled={isLoading}
-                            />
-                        </label>
+                        <div className="auth-name-row">
+                            <label>
+                                E-mail
+                                <input
+                                    type="email"
+                                    placeholder="voce@email.com"
+                                    autoComplete="email"
+                                    value={email}
+                                    onChange={(event) => setEmail(event.target.value)}
+                                    required
+                                    disabled={isLoading}
+                                />
+                            </label>
+
+                            <label>
+                                Confirmar e-mail
+                                <input
+                                    type="email"
+                                    placeholder="repita seu e-mail"
+                                    autoComplete="email"
+                                    value={confirmEmail}
+                                    onChange={(event) => setConfirmEmail(event.target.value)}
+                                    required
+                                    disabled={isLoading}
+                                />
+                            </label>
+                        </div>
 
                         <div className="auth-name-row auth-password-row">
                             <label>
@@ -296,10 +527,40 @@ export default function RegisterPage({ landingTheme }) {
                             </div>
                         )}
 
+                        <label className="auth-consent-inline">
+                            <input
+                                type="checkbox"
+                                checked={hasAcceptedLegalTerms}
+                                onChange={(event) => {
+                                    setFeedback({ type: "", message: "" });
+                                    setHasAcceptedLegalTerms(event.target.checked);
+                                }}
+                                disabled={isLoading}
+                            />
+                            <span>
+                                Li e concordo com os <Link to="/termos">Termos de Uso</Link> e a <Link to="/privacidade">Política de Privacidade</Link>.
+                            </span>
+                        </label>
+
                         {feedback.message && (
                             <p className={`auth-message ${feedback.type === "success" ? "auth-message-success" : "auth-message-error"}`}>
                                 {feedback.message}
                             </p>
+                        )}
+
+                        {feedback.type === "success" && (
+                            <button
+                                type="button"
+                                className="auth-secondary-button auth-resend-button"
+                                onClick={handleResendConfirmation}
+                                disabled={isResendLoading || resendCooldown > 0}
+                            >
+                                {resendCooldown > 0
+                                    ? `Reenviar em ${resendCooldown}s`
+                                    : isResendLoading
+                                        ? "Reenviando..."
+                                        : "Reenviar e-mail"}
+                            </button>
                         )}
 
                         <button type="submit" className="auth-submit-button" disabled={isLoading}>

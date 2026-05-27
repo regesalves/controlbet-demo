@@ -409,6 +409,19 @@ export default function DashboardPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const userId = user?.id;
+    const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
+    const [isProfileEditing, setIsProfileEditing] = useState(false);
+    const [isProfileSaving, setIsProfileSaving] = useState(false);
+    const [isPasswordResetSending, setIsPasswordResetSending] = useState(false);
+    const [profileFeedback, setProfileFeedback] = useState({ type: "", message: "" });
+    const [passwordActionFeedback, setPasswordActionFeedback] = useState({ type: "", message: "" });
+    const [profileDraft, setProfileDraft] = useState({
+        firstName: "",
+        lastName: "",
+    });
+    const [savedProfile, setSavedProfile] = useState(null);
     const [houses, setHouses] = useState([]);
 
     const [isMobileLive, setIsMobileLive] = useState(() => window.innerWidth <= 768);
@@ -661,6 +674,7 @@ export default function DashboardPage() {
     }, [editingMovementId]);
 
     const menuRef = useRef(null);
+    const accountMenuRef = useRef(null);
     const animationTimeoutRef = useRef(null);
     const movementPanelRef = useRef(null);
     const ticketPanelRef = useRef(null);
@@ -848,6 +862,39 @@ export default function DashboardPage() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
+                setIsAccountMenuOpen(false);
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === "Escape") {
+                setIsAccountMenuOpen(false);
+                setIsProfileModalOpen(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
+
+    useEffect(() => {
+        const metadata = user?.user_metadata || {};
+        const fullNameParts = String(metadata.full_name || "").trim().split(/\s+/).filter(Boolean);
+
+        setProfileDraft({
+            firstName: savedProfile?.firstName || metadata.first_name || metadata.nome || fullNameParts[0] || "",
+            lastName: savedProfile?.lastName || metadata.last_name || fullNameParts.slice(1).join(" ") || "",
+        });
+    }, [savedProfile, user]);
 
     useEffect(() => {
         return () => {
@@ -2520,6 +2567,117 @@ export default function DashboardPage() {
         };
     }, [isTicketFormCalendarOpen, isMovementFormCalendarOpen]);
 
+    const metadata = user?.user_metadata || {};
+    const metadataFullNameParts = String(metadata.full_name || "").trim().split(/\s+/).filter(Boolean);
+    const accountFirstName =
+        savedProfile?.firstName ||
+        metadata.first_name ||
+        metadata.nome ||
+        metadataFullNameParts[0] ||
+        "";
+    const accountLastName =
+        savedProfile?.lastName ||
+        metadata.last_name ||
+        metadataFullNameParts.slice(1).join(" ") ||
+        "";
+    const accountName =
+        `${accountFirstName} ${accountLastName}`.trim() ||
+        metadata.full_name ||
+        metadata.nome ||
+        user?.email?.split("@")[0] ||
+        "Usuário";
+    const accountEmail = user?.email || "E-mail não disponível";
+    const accountPlan = "Plano Free";
+    const accountInitial = (accountName?.[0] || accountEmail?.[0] || "U").toUpperCase();
+    const accountUsername = metadata.username || "Não informado";
+    const accountPhone = metadata.phone || "Não informado";
+    const accountProvider = user?.app_metadata?.provider || "E-mail e senha";
+    const accountLastLogin = user?.last_sign_in_at
+        ? new Date(user.last_sign_in_at).toLocaleString("pt-BR")
+        : "Não disponível";
+
+    function handleCancelProfileEdit() {
+        setIsProfileEditing(false);
+        setProfileFeedback({ type: "", message: "" });
+        setProfileDraft({
+            firstName: accountFirstName,
+            lastName: accountLastName,
+        });
+    }
+
+    async function handleSaveProfile(event) {
+        event.preventDefault();
+
+        if (isProfileSaving) return;
+
+        const firstName = profileDraft.firstName.trim();
+        const lastName = profileDraft.lastName.trim();
+
+        if (!firstName || !lastName) {
+            setProfileFeedback({
+                type: "error",
+                message: "Informe nome e sobrenome para salvar.",
+            });
+            return;
+        }
+
+        setIsProfileSaving(true);
+        setProfileFeedback({ type: "", message: "" });
+
+        const fullName = `${firstName} ${lastName}`.trim();
+        const { error } = await supabase.auth.updateUser({
+            data: {
+                first_name: firstName,
+                last_name: lastName,
+                full_name: fullName,
+            },
+        });
+
+        setIsProfileSaving(false);
+
+        if (error) {
+            setProfileFeedback({
+                type: "error",
+                message: "Não foi possível salvar o perfil agora.",
+            });
+            return;
+        }
+
+        setSavedProfile({ firstName, lastName });
+        setIsProfileEditing(false);
+        setProfileFeedback({
+            type: "success",
+            message: "Perfil atualizado com sucesso.",
+        });
+    }
+
+    async function handleSendPasswordReset() {
+        if (isPasswordResetSending || !user?.email) return;
+
+        setPasswordActionFeedback({ type: "", message: "" });
+        setIsPasswordResetSending(true);
+
+        const redirectTo = `${window.location.origin}/redefinir-senha`;
+        const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+            redirectTo,
+        });
+
+        setIsPasswordResetSending(false);
+
+        if (error) {
+            setPasswordActionFeedback({
+                type: "error",
+                message: "Não foi possível enviar o link agora. Tente novamente em instantes.",
+            });
+            return;
+        }
+
+        setPasswordActionFeedback({
+            type: "success",
+            message: "Enviamos um link para redefinir sua senha no email da conta.",
+        });
+    }
+
     async function handleLogout() {
         await supabase.auth.signOut();
         navigate("/login");
@@ -2535,16 +2693,346 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="dashboard-topbar-actions">
-                        <span className="dashboard-account-label">Conta demo</span>
-                        <button
-                            type="button"
-                            className="dashboard-logout-button"
-                            onClick={handleLogout}
-                        >
-                            Sair
-                        </button>
+                        <div className="dashboard-account-menu-wrap" ref={accountMenuRef}>
+                            <button
+                                type="button"
+                                className="dashboard-account-button"
+                                onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}
+                                aria-haspopup="menu"
+                                aria-expanded={isAccountMenuOpen}
+                            >
+                                <span className="dashboard-account-avatar">{accountInitial}</span>
+
+                                <span className="dashboard-account-copy">
+                                    <strong>{accountName}</strong>
+                                    <span>{accountPlan}</span>
+                                </span>
+
+                                <span className="dashboard-account-caret">▼</span>
+                            </button>
+
+                            {isAccountMenuOpen && (
+                                <div className="dashboard-account-menu" role="menu">
+                                    <button
+                                        type="button"
+                                        role="menuitem"
+                                        onClick={() => {
+                                            setIsAccountMenuOpen(false);
+                                            setIsAccountSettingsOpen(false);
+                                            setPasswordActionFeedback({ type: "", message: "" });
+                                            setIsProfileModalOpen(true);
+                                        }}
+                                    >
+                                        Minha Conta
+                                    </button>
+
+                                    <button type="button" role="menuitem" onClick={handleLogout}>
+                                        Sair
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </header>
+
+                {isProfileModalOpen && (
+                    <div
+                        className="profile-modal-overlay"
+                        role="presentation"
+                        onMouseDown={(event) => {
+                            if (event.target === event.currentTarget) {
+                                setIsProfileModalOpen(false);
+                            }
+                        }}
+                    >
+                        <section className="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+                            <button
+                                type="button"
+                                className="profile-modal-close"
+                                onClick={() => setIsProfileModalOpen(false)}
+                                aria-label="Fechar minha conta"
+                            >
+                                ×
+                            </button>
+
+                            <div className="profile-modal-header">
+                                <span className="dashboard-account-avatar profile-modal-avatar">{accountInitial}</span>
+
+                                <div>
+                                    <h2 id="profile-modal-title">Minha Conta</h2>
+                                    <p>Informações da sua conta ControlBet.</p>
+                                </div>
+                            </div>
+
+                            <section className="profile-security-session-box">
+                                <div className="profile-security-panel-header">
+                                    <strong>Informações da conta</strong>
+                                    <p>Resumo dos dados vinculados ao cadastro atual.</p>
+                                </div>
+
+                                {isProfileEditing ? (
+                                    <form className="profile-form profile-inline-edit-form" onSubmit={handleSaveProfile}>
+                                        <div className="profile-session-details">
+                                            <div>
+                                                <label>
+                                                    Nome
+                                                    <input
+                                                        type="text"
+                                                        value={profileDraft.firstName}
+                                                        onChange={(event) => {
+                                                            setProfileDraft((currentDraft) => ({
+                                                                ...currentDraft,
+                                                                firstName: event.target.value,
+                                                            }));
+                                                            setProfileFeedback({ type: "", message: "" });
+                                                        }}
+                                                        disabled={isProfileSaving}
+                                                    />
+                                                </label>
+                                            </div>
+
+                                            <div>
+                                                <label>
+                                                    Sobrenome
+                                                    <input
+                                                        type="text"
+                                                        value={profileDraft.lastName}
+                                                        onChange={(event) => {
+                                                            setProfileDraft((currentDraft) => ({
+                                                                ...currentDraft,
+                                                                lastName: event.target.value,
+                                                            }));
+                                                            setProfileFeedback({ type: "", message: "" });
+                                                        }}
+                                                        disabled={isProfileSaving}
+                                                    />
+                                                </label>
+                                            </div>
+
+                                            <div>
+                                                <dt>Usuário</dt>
+                                                <dd>{accountUsername}</dd>
+                                            </div>
+
+                                            <div>
+                                                <dt>Plano</dt>
+                                                <dd>{accountPlan}</dd>
+                                            </div>
+
+                                            <div>
+                                                <dt>Telefone</dt>
+                                                <dd>{accountPhone}</dd>
+                                            </div>
+
+                                            <div style={{ gridColumn: "1 / -1" }}>
+                                                <dt>Email</dt>
+                                                <dd style={{ overflowWrap: "anywhere" }}>{accountEmail}</dd>
+                                            </div>
+                                        </div>
+
+                                        {profileFeedback.message && (
+                                            <p className={`profile-inline-message profile-inline-message-${profileFeedback.type}`}>
+                                                {profileFeedback.message}
+                                            </p>
+                                        )}
+
+                                        <div className="profile-actions">
+                                            <button
+                                                type="button"
+                                                className="profile-secondary-button"
+                                                onClick={handleCancelProfileEdit}
+                                                disabled={isProfileSaving}
+                                            >
+                                                Cancelar
+                                            </button>
+
+                                            <button
+                                                type="submit"
+                                                className="profile-primary-button"
+                                                disabled={isProfileSaving}
+                                            >
+                                                {isProfileSaving ? "Salvando..." : "Salvar Alterações"}
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <>
+                                        <dl className="profile-session-details">
+                                            <div>
+                                                <dt>Nome</dt>
+                                                <dd>{accountName}</dd>
+                                            </div>
+
+                                            <div>
+                                                <dt>Usuário</dt>
+                                                <dd>{accountUsername}</dd>
+                                            </div>
+
+                                            <div>
+                                                <dt>Plano</dt>
+                                                <dd>{accountPlan}</dd>
+                                            </div>
+
+                                            <div>
+                                                <dt>Telefone</dt>
+                                                <dd>{accountPhone}</dd>
+                                            </div>
+
+                                            <div style={{ gridColumn: "1 / -1" }}>
+                                                <dt>Email</dt>
+                                                <dd style={{ overflowWrap: "anywhere" }}>{accountEmail}</dd>
+                                            </div>
+                                        </dl>
+
+                                        <div className="profile-actions">
+                                            <button
+                                                type="button"
+                                                className="profile-secondary-button"
+                                                onClick={() => {
+                                                    setProfileDraft({
+                                                        firstName: accountFirstName,
+                                                        lastName: accountLastName,
+                                                    });
+                                                    setProfileFeedback({ type: "", message: "" });
+                                                    setIsProfileEditing(true);
+                                                }}
+                                            >
+                                                Editar dados básicos
+                                            </button>
+                                        </div>
+
+                                        {profileFeedback.message && (
+                                            <p className={`profile-inline-message profile-inline-message-${profileFeedback.type}`}>
+                                                {profileFeedback.message}
+                                            </p>
+                                        )}
+                                    </>
+                                )}
+                            </section>
+
+                            <section className="profile-security-session-box">
+                                <button
+                                    type="button"
+                                    className="profile-security-box profile-accordion-trigger"
+                                    aria-expanded={isAccountSettingsOpen}
+                                    onClick={() => setIsAccountSettingsOpen((isOpen) => !isOpen)}
+                                >
+                                    <span className="profile-security-panel-header">
+                                        <strong>Segurança e gerenciamento</strong>
+                                        <p>Credenciais, identificadores, sessão e conta.</p>
+                                    </span>
+                                    <span className="profile-accordion-caret" aria-hidden="true" />
+                                </button>
+
+                                <div
+                                    className={`profile-accordion-content ${isAccountSettingsOpen ? "is-open" : ""}`}
+                                    aria-hidden={!isAccountSettingsOpen}
+                                >
+                                    <div className="profile-accordion-inner">
+                                        <div className="profile-security-panel-header">
+                                            <strong>Credenciais</strong>
+                                        </div>
+
+                                        <div className="profile-security-box">
+                                            <div>
+                                                <strong>Email da conta</strong>
+                                                <p style={{ overflowWrap: "anywhere" }}>{accountEmail}</p>
+                                            </div>
+
+                                            <div className="profile-security-actions">
+                                                <button type="button" className="profile-secondary-button" disabled>
+                                                    Alterar email
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="profile-security-box">
+                                            <div>
+                                                <strong>Senha</strong>
+                                            </div>
+
+                                            <div className="profile-security-actions">
+                                                <button
+                                                    type="button"
+                                                    className="profile-secondary-button"
+                                                    onClick={handleSendPasswordReset}
+                                                    disabled={isPasswordResetSending || !user?.email}
+                                                >
+                                                    {isPasswordResetSending ? "Enviando..." : "Alterar senha"}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {passwordActionFeedback.message && (
+                                            <p className={`profile-inline-message profile-inline-message-${passwordActionFeedback.type}`}>
+                                                {passwordActionFeedback.message}
+                                            </p>
+                                        )}
+
+                                        <div className="profile-security-panel-header">
+                                            <strong>Identificadores</strong>
+                                        </div>
+
+                                        <div className="profile-security-box">
+                                            <div>
+                                                <strong>Telefone</strong>
+                                                <p>{accountPhone}</p>
+                                            </div>
+
+                                            <div className="profile-security-actions">
+                                                <button type="button" className="profile-secondary-button" disabled>
+                                                    Alterar telefone
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="profile-security-box">
+                                            <div>
+                                                <strong>Usuário</strong>
+                                                <p>{accountUsername}</p>
+                                            </div>
+
+                                            <div className="profile-security-actions">
+                                                <button type="button" className="profile-secondary-button" disabled>
+                                                    Alterar usuário
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="profile-security-panel-header">
+                                            <strong>Sessão atual</strong>
+                                        </div>
+
+                                        <dl className="profile-session-details">
+                                            <div>
+                                                <dt>Provedor</dt>
+                                                <dd>{accountProvider}</dd>
+                                            </div>
+
+                                            <div>
+                                                <dt>Último login</dt>
+                                                <dd>{accountLastLogin}</dd>
+                                            </div>
+                                        </dl>
+
+                                        <section className="profile-security-panel profile-security-panel-danger">
+                                            <div className="profile-security-panel-header">
+                                                <strong>Conta</strong>
+                                                <p>A exclusão de conta ainda não está disponível. Quando habilitada, seguirá um fluxo seguro com confirmação e período de cancelamento.</p>
+                                            </div>
+
+                                            <div className="profile-security-panel-actions">
+                                                <button type="button" className="profile-danger-button" disabled>
+                                                    Solicitar exclusão
+                                                </button>
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                            </section>
+                        </section>
+                    </div>
+                )}
 
                 <section className={`panel top-panel ${isStatsCalendarOpen ? "calendar-open" : ""}`}>
                     <div className="top-desktop-layout">
@@ -2590,7 +3078,7 @@ export default function DashboardPage() {
                                                 : "Adicionar casa"}
                                     </span>
                                     <span className="btn-icon">
-                                        {editingHouseId ? "✓" : "+"}
+                                        {editingHouseId ? "\u2713" : "+"}
                                     </span>
                                 </button>
 
@@ -2622,7 +3110,7 @@ export default function DashboardPage() {
                                         onClick={() => handleHousePage("prev")}
                                         disabled={!canGoPrev}
                                     >
-                                        ‹
+                                        {"\u2039"}
                                     </button>
 
                                     <button
@@ -2631,7 +3119,7 @@ export default function DashboardPage() {
                                         onClick={() => handleHousePage("next")}
                                         disabled={!canGoNext}
                                     >
-                                        ›
+                                        {"\u203A"}
                                     </button>
                                 </div>
                             )}
@@ -2709,7 +3197,7 @@ export default function DashboardPage() {
                                                                         );
                                                                     }}
                                                                 >
-                                                                    ⋮
+                                                                    {"\u22EE"}
                                                                 </button>
                                                             </div>
 
@@ -2759,7 +3247,7 @@ export default function DashboardPage() {
                                     onClick={() => handleHousePage("prev")}
                                     disabled={!canGoPrev}
                                 >
-                                    ‹
+                                    {"\u2039"}
                                 </button>
 
                                 <button
@@ -2768,7 +3256,7 @@ export default function DashboardPage() {
                                     onClick={() => handleHousePage("next")}
                                     disabled={!canGoNext}
                                 >
-                                    ›
+                                    {"\u203A"}
                                 </button>
                             </div>
                         )}
@@ -2880,7 +3368,7 @@ export default function DashboardPage() {
                                                         </span>
 
                                                         <span className="stats-calendar-icon">
-                                                            🗓️
+                                                            {"\u{1F4C5}"}
                                                         </span>
                                                     </button>
 
@@ -2970,7 +3458,7 @@ export default function DashboardPage() {
                                         onClick={() => setTopMetricIndex((prev) => Math.max(0, prev - 1))}
                                         disabled={topMetricIndex === 0}
                                     >
-                                        ‹
+                                        {"\u2039"}
                                     </button>
 
                                     <button
@@ -2983,7 +3471,7 @@ export default function DashboardPage() {
                                         }
                                         disabled={topMetricIndex >= topMetricPages.length - 1}
                                     >
-                                        ›
+                                        {"\u203A"}
                                     </button>
                                 </div>
                             )}
@@ -2996,7 +3484,7 @@ export default function DashboardPage() {
                                         onClick={prevMetric}
                                         disabled={!canPrevMetric}
                                     >
-                                        ‹
+                                        {"\u2039"}
                                     </button>
 
                                     <button
@@ -3005,7 +3493,7 @@ export default function DashboardPage() {
                                         onClick={nextMetric}
                                         disabled={!canNextMetric}
                                     >
-                                        ›
+                                        {"\u203A"}
                                     </button>
                                 </div>
                             )}
@@ -3021,14 +3509,12 @@ export default function DashboardPage() {
                                         className={`stats-top-card ${item.onClick ? "clickable" : ""} ${item.tone === "positive" ? "positive" : item.tone === "negative" ? "negative" : ""}`}
                                         onClick={item.onClick}
                                     >
-                                        <span>
-                                            {item.title}
+                                        <div className="metric-title-row">
+                                            <span>{item.title}</span>
                                             {item.title === "Evolução da banca" && (
-                                                <strong className="metric-toggle-indicator">
-                                                    {isBankChartOpen ? "−" : "+"}
-                                                </strong>
+                                                <span className={`metric-toggle-indicator ${isBankChartOpen ? "is-open" : ""}`} aria-hidden="true" />
                                             )}
-                                        </span>
+                                        </div>
                                         <div className="metric-main-content">
                                             <strong className={`metric-value ${item.tone || "neutral"}`}>
                                                 {renderTopValue(item.value, item.formatter)}
@@ -3053,7 +3539,7 @@ export default function DashboardPage() {
                                         onClick={() => setTopMetricIndex((prev) => Math.max(0, prev - 1))}
                                         disabled={topMetricIndex === 0}
                                     >
-                                        ‹
+                                        {"\u2039"}
                                     </button>
 
                                     <button
@@ -3066,7 +3552,7 @@ export default function DashboardPage() {
                                         }
                                         disabled={topMetricIndex >= topMetricPages.length - 1}
                                     >
-                                        ›
+                                        {"\u203A"}
                                     </button>
                                 </div>
                             )}
@@ -3078,7 +3564,10 @@ export default function DashboardPage() {
                 {isBankChartOpen && bankHistoryData.length > 0 && (
                     <section ref={bankChartRef} className="panel bank-chart-panel">
                         <div className="bank-chart-header">
-                            <h2>Evolução da banca</h2>
+                            <div className="bank-chart-title">
+                                <h2>Evolução da banca</h2>
+                                <span>{chartMode === "Banca" ? "Saldo acumulado no período" : "Desempenho realizado no período"}</span>
+                            </div>
 
                             <select
                                 value={chartMode}
@@ -3245,7 +3734,7 @@ export default function DashboardPage() {
                         }}
                     >
                         <span>Novo bilhete</span>
-                        <strong>{activeBottomPanel === "ticket" ? "−" : "+"}</strong>
+                        <strong>{activeBottomPanel === "ticket" ? "-" : "+"}</strong>
                     </button>
 
                     <button
@@ -3266,7 +3755,7 @@ export default function DashboardPage() {
                         }}
                     >
                         <span>Bilhetes do dia</span>
-                        <strong>{activeBottomPanel === "ticketsDay" ? "−" : "+"}</strong>
+                        <strong>{activeBottomPanel === "ticketsDay" ? "-" : "+"}</strong>
                     </button>
 
                     <button
@@ -3288,10 +3777,10 @@ export default function DashboardPage() {
                     >
                         <span>
                             {window.innerWidth <= 375
-                                ? "Movimentação"
-                                : "Nova movimentação"}
+                                ? "Movimentacao"
+                                : "Nova movimentacao"}
                         </span>
-                        <strong>{activeBottomPanel === "movement" ? "−" : "+"}</strong>
+                        <strong>{activeBottomPanel === "movement" ? "-" : "+"}</strong>
                     </button>
 
                     <button
@@ -3320,7 +3809,7 @@ export default function DashboardPage() {
                         }}
                     >
                         <span>Extrato</span>
-                        <strong>{activeBottomPanel === "extract" ? "−" : "+"}</strong>
+                        <strong>{activeBottomPanel === "extract" ? "-" : "+"}</strong>
                     </button>
                 </div>
 
@@ -3718,7 +4207,8 @@ export default function DashboardPage() {
                         <div className="collapsed-ticket-list">
                             {ticketsOfDay.length === 0 ? (
                                 <div className="empty-state">
-                                    Nenhum bilhete encontrado para este período.
+                                    <strong>Nenhum bilhete neste periodo.</strong>
+                                    <span className="empty-state-hint">Adicione um bilhete para comecar.</span>
                                 </div>
                             ) : (
                                 ticketsOfDay.map((ticket) => {
@@ -4157,11 +4647,11 @@ export default function DashboardPage() {
                                 <div className="movement-summary-card-header">
                                     <span>Depósitos</span>
                                     <span className="card-action-icon">
-                                        {activeMovementExtractTab === "deposits" ? "−" : "+"}
+                                        {activeMovementExtractTab === "deposits" ? "-" : "+"}
                                     </span>
                                 </div>
                                 <strong className="movement-positive">
-                                    {movementExtractHouseScope ? formatMoney(totalDeposits) : "—"}
+                                    {movementExtractHouseScope ? formatMoney(totalDeposits) : "-"}
                                 </strong>
                             </button>
 
@@ -4185,11 +4675,11 @@ export default function DashboardPage() {
                                 <div className="movement-summary-card-header">
                                     <span>Saques</span>
                                     <span className="card-action-icon">
-                                        {activeMovementExtractTab === "withdrawals" ? "−" : "+"}
+                                        {activeMovementExtractTab === "withdrawals" ? "-" : "+"}
                                     </span>
                                 </div>
                                 <strong className="movement-negative">
-                                    {movementExtractHouseScope ? formatMoney(totalWithdrawals) : "—"}
+                                    {movementExtractHouseScope ? formatMoney(totalWithdrawals) : "-"}
                                 </strong>
                             </button>
                         </div>
@@ -4197,7 +4687,10 @@ export default function DashboardPage() {
                         {activeMovementExtractTab === "deposits" && (
                             <div className="movement-extract-list" ref={movementExtractListRef}>
                                 {depositMovements.length === 0 ? (
-                                    <div className="empty-state">Nenhum depósito encontrado.</div>
+                                    <div className="empty-state">
+                                        <strong>Nenhum deposito encontrado.</strong>
+                                        <span className="empty-state-hint">Registre uma movimentacao para acompanhar entradas.</span>
+                                    </div>
                                 ) : (
                                     depositMovements.map((movement) => {
                                         const house = houses.find(
@@ -4250,7 +4743,10 @@ export default function DashboardPage() {
                         {activeMovementExtractTab === "withdrawals" && (
                             <div className="movement-extract-list" ref={movementExtractListRef}>
                                 {withdrawalMovements.length === 0 ? (
-                                    <div className="empty-state">Nenhum saque encontrado.</div>
+                                    <div className="empty-state">
+                                        <strong>Nenhum saque encontrado.</strong>
+                                        <span className="empty-state-hint">Registre uma movimentacao para acompanhar saidas.</span>
+                                    </div>
                                 ) : (
                                     withdrawalMovements.map((movement) => {
                                         const house = houses.find(
@@ -4309,8 +4805,10 @@ export default function DashboardPage() {
                             className={`panel ticket-panel ${!isTicketPanelOpen ? "panel-closed-compact" : ""}`}
                             ref={ticketPanelRef}
                         >
-                            <div
-                                className="section-header"
+                            <button
+                                type="button"
+                                className="section-header dashboard-collapse-trigger"
+                                aria-expanded={isTicketPanelOpen}
                                 onClick={() => {
                                     const nextOpen = !isTicketPanelOpen;
                                     setIsTicketPanelOpen(nextOpen);
@@ -4322,18 +4820,12 @@ export default function DashboardPage() {
                                         });
                                     });
                                 }}
-                                style={{ cursor: "pointer" }}
                             >
-                                <h2 className="movement-header">
-                                    <span>
-                                        {editingTicketId ? "Editar bilhete" : "Novo bilhete"}
-                                    </span>
-
-                                    <span style={{ fontWeight: "bold", fontSize: "18px" }}>
-                                        {isTicketPanelOpen ? "−" : "+"}
-                                    </span>
-                                </h2>
-                            </div>
+                                <span className="dashboard-collapse-title">
+                                    {editingTicketId ? "Editar bilhete" : "Novo bilhete"}
+                                </span>
+                                <span className="dashboard-collapse-caret" aria-hidden="true" />
+                            </button>
 
                             {isTicketPanelOpen && (
                                 <>
@@ -4553,8 +5045,10 @@ export default function DashboardPage() {
                         >
                             {isMobileLive ? (
                                 <>
-                                    <div
-                                        className="section-header"
+                                    <button
+                                        type="button"
+                                        className="section-header dashboard-collapse-trigger"
+                                        aria-expanded={isTicketsDayPanelOpen}
                                         onClick={() => {
                                             const nextOpen = !isTicketsDayPanelOpen;
                                             setIsTicketsDayPanelOpen(nextOpen);
@@ -4566,28 +5060,18 @@ export default function DashboardPage() {
                                                 });
                                             });
                                         }}
-                                        style={{ cursor: "pointer", marginBottom: 0 }}
                                     >
-                                        <h2
-                                            style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                margin: 0,
-                                            }}
-                                        >
-                                            <span>Bilhetes do dia</span>
-                                            <span className="toggle-icon">
-                                                {isTicketsDayPanelOpen ? "−" : "+"}
-                                            </span>
-                                        </h2>
-                                    </div>
+                                        <span className="dashboard-collapse-title">Bilhetes do dia</span>
+                                        <span className="dashboard-collapse-caret" aria-hidden="true" />
+                                    </button>
 
                                 </>
                             ) : (
                                 <>
-                                    <div
-                                        className="movement-extract-title-row"
+                                    <button
+                                        type="button"
+                                        className="movement-extract-title-row dashboard-collapse-trigger"
+                                        aria-expanded={isTicketsDayPanelOpen}
                                         onClick={() => {
                                             setActiveBottomPanel((prev) =>
                                                 prev === "ticketsDay" ? null : "ticketsDay"
@@ -4601,12 +5085,9 @@ export default function DashboardPage() {
                                             }, 120);
                                         }}
                                     >
-                                        <h2>Bilhetes do dia</h2>
-
-                                        <span className="extract-toggle-icon">
-                                            {isTicketsDayPanelOpen ? "−" : "+"}
-                                        </span>
-                                    </div>
+                                        <span className="dashboard-collapse-title">Bilhetes do dia</span>
+                                        <span className="dashboard-collapse-caret" aria-hidden="true" />
+                                    </button>
 
                                     <div className="movement-extract-filter">
 
@@ -4749,7 +5230,8 @@ export default function DashboardPage() {
                                     <div className="collapsed-ticket-list">
                                         {ticketsOfDay.length === 0 ? (
                                             <div className="empty-state">
-                                                Nenhum bilhete encontrado para este dia.
+                                                <strong>Nenhum bilhete neste dia.</strong>
+                                                <span className="empty-state-hint">Adicione um bilhete para comecar.</span>
                                             </div>
                                         ) : (
                                             ticketsOfDay.map((ticket) => {
@@ -4870,8 +5352,10 @@ export default function DashboardPage() {
                     <div className="right-column">
 
                         <section className="panel movement-panel" ref={movementPanelRef}>
-                            <div
-                                className="section-header"
+                            <button
+                                type="button"
+                                className="section-header dashboard-collapse-trigger"
+                                aria-expanded={isMovementPanelOpen}
                                 onClick={() => {
                                     const nextOpen = !isMovementPanelOpen;
                                     setIsMovementPanelOpen(nextOpen);
@@ -4883,18 +5367,12 @@ export default function DashboardPage() {
                                         });
                                     });
                                 }}
-                                style={{ cursor: "pointer" }}
                             >
-                                <h2 style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <span>
-                                        {editingMovementId ? "Editar movimentação" : "Nova movimentação"}
-                                    </span>
-
-                                    <span style={{ fontWeight: "bold", fontSize: "18px" }}>
-                                        {isMovementPanelOpen ? "−" : "+"}
-                                    </span>
-                                </h2>
-                            </div>
+                                <span className="dashboard-collapse-title">
+                                    {editingMovementId ? "Editar movimentacao" : "Nova movimentacao"}
+                                </span>
+                                <span className="dashboard-collapse-caret" aria-hidden="true" />
+                            </button>
 
                             {isMovementPanelOpen && (
                                 <>
@@ -4997,8 +5475,10 @@ export default function DashboardPage() {
                         </section>
 
                         <section className="panel movement-day-panel" ref={movementDayPanelRef}>
-                            <div
-                                className="section-header"
+                            <button
+                                type="button"
+                                className="section-header dashboard-collapse-trigger"
+                                aria-expanded={isMovementDayPanelOpen}
                                 onClick={() => {
                                     const nextOpen = !isMovementDayPanelOpen;
 
@@ -5019,16 +5499,10 @@ export default function DashboardPage() {
                                         });
                                     });
                                 }}
-                                style={{ cursor: "pointer" }}
                             >
-                                <h2 className="movement-extract-title-row">
-                                    <span>Extrato de movimentações</span>
-
-                                    <span className="extract-toggle-icon">
-                                        {isMovementDayPanelOpen ? "−" : "+"}
-                                    </span>
-                                </h2>
-                            </div>
+                                <span className="dashboard-collapse-title">Extrato de movimentacoes</span>
+                                <span className="dashboard-collapse-caret" aria-hidden="true" />
+                            </button>
 
                             {isMovementDayPanelOpen && (
                                 <>
@@ -5190,7 +5664,7 @@ export default function DashboardPage() {
                                                     <span>Total depositado</span>
 
                                                     <span className="card-action-icon">
-                                                        {activeMovementExtractTab === "depositos" ? "−" : "+"}
+                                                        {activeMovementExtractTab === "depositos" ? "-" : "+"}
                                                     </span>
                                                 </div>
 
@@ -5212,7 +5686,7 @@ export default function DashboardPage() {
                                                     <span>Total sacado</span>
 
                                                     <span className="card-action-icon">
-                                                        {activeMovementExtractTab === "saques" ? "−" : "+"}
+                                                        {activeMovementExtractTab === "saques" ? "-" : "+"}
                                                     </span>
                                                 </div>
 
@@ -5230,7 +5704,8 @@ export default function DashboardPage() {
                                                 : withdrawalMovements
                                             ).length === 0 && (
                                                     <div className="empty-state">
-                                                        Nenhuma movimentação encontrada.
+                                                        <strong>Nenhuma movimentacao encontrada.</strong>
+                                                        <span className="empty-state-hint">Registre depositos ou saques para preencher este extrato.</span>
                                                     </div>
                                                 )}
 
