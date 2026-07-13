@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import logo from "../assets/logo.png";
 import { supabase } from "../supabase";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/AuthContext";
 
 const passwordRequirements = [
     {

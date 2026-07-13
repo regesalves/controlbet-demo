@@ -1,66 +1,143 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabase";
-
-const AuthContext = createContext(null);
+import { AuthContext } from "./AuthContext";
+import { devSession, devUser, isDevAuthBypassEnabled } from "./devAuth";
 
 export function AuthProvider({ children }) {
-    const [session, setSession] = useState(null);
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [session, setSession] = useState(() => (isDevAuthBypassEnabled ? devSession : null));
+    const [user, setUser] = useState(() => (isDevAuthBypassEnabled ? devUser : null));
+    const [loading, setLoading] = useState(() => !isDevAuthBypassEnabled);
+
+    const applySession = useCallback((currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+    }, []);
+
+    const clearSession = useCallback(() => {
+        if (isDevAuthBypassEnabled) {
+            applySession(devSession);
+            setLoading(false);
+            return;
+        }
+
+        applySession(null);
+        setLoading(false);
+    }, [applySession]);
+
+    const refreshSession = useCallback(async () => {
+        if (isDevAuthBypassEnabled) {
+            applySession(devSession);
+            setLoading(false);
+            return { session: devSession, error: null };
+        }
+
+        try {
+            setLoading(true);
+
+            const { data, error } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error("Erro ao carregar sessao:", error);
+                applySession(null);
+                return { session: null, error };
+            }
+
+            const currentSession = data?.session ?? null;
+            applySession(currentSession);
+            return { session: currentSession, error: null };
+        } catch (error) {
+            console.error("Erro ao carregar sessao:", error);
+            applySession(null);
+            return { session: null, error };
+        } finally {
+            setLoading(false);
+        }
+    }, [applySession]);
+
+    const signOut = useCallback(async () => {
+        if (isDevAuthBypassEnabled) {
+            applySession(devSession);
+            setLoading(false);
+            return { error: null };
+        }
+
+        try {
+            const { error } = await supabase.auth.signOut();
+
+            if (error) {
+                return { error };
+            }
+
+            applySession(null);
+            return { error: null };
+        } catch (error) {
+            return { error };
+        }
+    }, [applySession]);
 
     useEffect(() => {
+        if (isDevAuthBypassEnabled) {
+            // DEV-only auth bypass for local screenshots; real auth remains active otherwise.
+            applySession(devSession);
+            setLoading(false);
+            return undefined;
+        }
+
         let mounted = true;
 
         async function loadSession() {
-            const { data, error } = await supabase.auth.getSession();
+            setLoading(true);
 
-            if (!mounted) return;
+            try {
+                const { data, error } = await supabase.auth.getSession();
 
-            if (error) {
-                console.error("Erro ao carregar sessão:", error);
-                setSession(null);
-                setUser(null);
-            } else {
-                setSession(data.session);
-                setUser(data.session?.user ?? null);
+                if (!mounted) return;
+
+                if (error) {
+                    console.error("Erro ao carregar sessao:", error);
+                    applySession(null);
+                } else {
+                    applySession(data?.session ?? null);
+                }
+            } catch (error) {
+                if (!mounted) return;
+
+                console.error("Erro ao carregar sessao:", error);
+                applySession(null);
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                }
             }
-
-            setLoading(false);
         }
 
         loadSession();
 
         const { data: listener } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-            setSession(currentSession);
-            setUser(currentSession?.user ?? null);
+            if (!mounted) return;
+
+            applySession(currentSession);
             setLoading(false);
         });
 
         return () => {
             mounted = false;
-            listener.subscription.unsubscribe();
+            listener?.subscription?.unsubscribe?.();
         };
-    }, []);
+    }, [applySession]);
 
     const value = useMemo(() => ({
+        clearSession,
         loading,
+        refreshSession,
         session,
+        signOut,
         user,
-    }), [loading, session, user]);
+    }), [clearSession, loading, refreshSession, session, signOut, user]);
 
     return (
         <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
-}
-
-export function useAuth() {
-    const context = useContext(AuthContext);
-
-    if (!context) {
-        throw new Error("useAuth deve ser usado dentro de AuthProvider");
-    }
-
-    return context;
 }

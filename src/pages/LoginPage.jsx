@@ -2,15 +2,20 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 import { supabase } from "../supabase";
+import { useAuth } from "../auth/AuthContext";
 
 export default function LoginPage({ landingTheme }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const { refreshSession } = useAuth();
+    const initialFeedback = location.state?.message
+        ? { type: "success", message: location.state.message }
+        : { type: "", message: "" };
     const [loginIdentifier, setLoginIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isRecoveryLoading, setIsRecoveryLoading] = useState(false);
-    const [feedback, setFeedback] = useState({ type: "", message: "" });
+    const [feedback, setFeedback] = useState(initialFeedback);
     const [isAccessRecoveryOpen, setIsAccessRecoveryOpen] = useState(false);
     const [recoveryEmail, setRecoveryEmail] = useState("");
     const [supportIdentifier, setSupportIdentifier] = useState("");
@@ -18,11 +23,6 @@ export default function LoginPage({ landingTheme }) {
 
     useEffect(() => {
         if (!location.state?.message) return;
-
-        setFeedback({
-            type: "success",
-            message: location.state.message,
-        });
 
         window.history.replaceState({}, document.title);
     }, [location.state]);
@@ -68,10 +68,20 @@ export default function LoginPage({ landingTheme }) {
             password,
         });
 
+        if (error) {
+            setIsLoading(false);
+            setFeedback({ type: "error", message: getLoginErrorMessage(error.message) });
+            return;
+        }
+
+        const { error: sessionError } = await refreshSession();
         setIsLoading(false);
 
-        if (error) {
-            setFeedback({ type: "error", message: getLoginErrorMessage(error.message) });
+        if (sessionError) {
+            setFeedback({
+                type: "error",
+                message: "Não foi possível confirmar sua sessão. Tente entrar novamente.",
+            });
             return;
         }
 
@@ -167,7 +177,7 @@ export default function LoginPage({ landingTheme }) {
                             E-mail ou usuário
                             <input
                                 type="text"
-                                placeholder="voce@email.com"
+                                placeholder="seu@email.com"
                                 autoComplete="username"
                                 value={loginIdentifier}
                                 onChange={(event) => setLoginIdentifier(event.target.value)}
@@ -241,7 +251,7 @@ export default function LoginPage({ landingTheme }) {
                                         E-mail
                                         <input
                                             type="email"
-                                            placeholder="voce@email.com"
+                                            placeholder="seu@email.com"
                                             autoComplete="email"
                                             value={recoveryEmail}
                                             onChange={(event) => setRecoveryEmail(event.target.value)}

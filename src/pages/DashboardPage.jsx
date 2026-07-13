@@ -4,6 +4,8 @@ import { createPortal } from "react-dom";
 import logo from "../assets/logo.png";
 import { supabase } from "../supabase";
 import { useAuth } from "../auth/AuthContext";
+import { exportTicketsToPdf } from "../utils/ticketPdfExport";
+import { exportTicketsToExcel } from "../utils/ticketExcelExport";
 import {
     AppShell as DesignAppShell,
     MetricCard as DesignMetricCard,
@@ -518,23 +520,24 @@ function Sidebar({
     ];
 
     useEffect(() => {
-        if (activeItem !== "tickets" && activeItem !== "movements" && activeItem !== "settings") return;
-
-        setExpandedGroups((current) => ({
-            ...current,
-            [activeItem]: true,
-        }));
+        setExpandedGroups({
+            movements: activeItem === "movements",
+            settings: activeItem === "settings",
+            tickets: activeItem === "tickets",
+        });
     }, [activeItem]);
 
     function handleNavigationClick(item) {
         if (item.children) {
             setExpandedGroups((current) => ({
-                ...current,
-                [item.id]: !current[item.id],
+                movements: item.id === "movements" ? !current.movements : false,
+                settings: item.id === "settings" ? !current.settings : false,
+                tickets: item.id === "tickets" ? !current.tickets : false,
             }));
             return;
         }
 
+        setExpandedGroups({ movements: false, settings: false, tickets: false });
         onNavigate(item.id, null);
     }
 
@@ -2111,7 +2114,6 @@ function BettingHouseCarousel({
 
     function handleHouseDragStart(event) {
         if (event.target.closest(".dashboard-house-menu") || event.target.closest(".dashboard-house-menu-button")) return;
-        if (event.target.closest(".dashboard-house-card")) return;
         if (event.pointerType === "mouse" && event.button !== 0) return;
 
         const scrollElement = houseScrollRef.current;
@@ -2125,7 +2127,6 @@ function BettingHouseCarousel({
             startX: event.clientX,
         };
 
-        scrollElement.setPointerCapture?.(event.pointerId);
     }
 
     function handleHouseDragMove(event) {
@@ -2135,8 +2136,11 @@ function BettingHouseCarousel({
 
         const distanceX = event.clientX - dragState.startX;
         if (Math.abs(distanceX) > 4) {
-            dragState.hasDragged = true;
-            setIsHouseDragActive(true);
+            if (!dragState.hasDragged) {
+                dragState.hasDragged = true;
+                setIsHouseDragActive(true);
+                scrollElement.setPointerCapture?.(dragState.pointerId);
+            }
             scrollElement.scrollLeft = dragState.scrollLeft - distanceX;
             event.preventDefault();
         }
@@ -2154,7 +2158,10 @@ function BettingHouseCarousel({
             }, 0);
         }
 
-        scrollElement?.releasePointerCapture?.(dragState.pointerId ?? event.pointerId);
+        const pointerId = dragState.pointerId ?? event.pointerId;
+        if (scrollElement?.hasPointerCapture?.(pointerId)) {
+            scrollElement.releasePointerCapture(pointerId);
+        }
         houseDragRef.current = {
             hasDragged: false,
             isPointerDown: false,
@@ -2943,7 +2950,7 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
     const origemStake = normalizeStakeOrigin(ticketForm.origemStake);
     const showStakeSplitFields = origemStake === STAKE_ORIGINS.BALANCE_BONUS;
     const stakeValue = parseCurrencyTyping(ticketForm.stake);
-    const returnValue = parseCurrencyTyping(ticketForm.retorno);
+    const returnValue = parseSignedCurrencyTyping(ticketForm.retorno);
     const safeStake = Number.isFinite(stakeValue) ? stakeValue : 0;
     const safeReturn = Number.isFinite(returnValue) ? returnValue : 0;
     const expectedResult = safeReturn - safeStake;
@@ -2959,7 +2966,7 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
             <ReferencePageHeader
                 icon="ticket"
                 title={editingTicketId ? "Editar bilhete" : "Novo bilhete"}
-                subtitle="Registre uma aposta para acompanhar seu desempenho."
+                subtitle={editingTicketId ? "Atualize as informações do bilhete." : "Registre uma aposta para acompanhar seu desempenho."}
             />
             {feedback.message && (
                 <div className={`reference-operation-feedback ${feedback.type}`} role="status">
@@ -2968,60 +2975,33 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
             )}
             <form className="reference-form-page" onSubmit={onSubmit}>
                 <section className="reference-form-card reference-ticket-main-card">
-                    <header className="reference-form-card-header">
-                        <span aria-hidden="true"><SidebarIcon type="ticket" /></span>
-                        <div>
-                            <h2>Informações da aposta</h2>
-                            <p>Preencha os dados principais do bilhete.</p>
+                    <div className={`reference-form-grid ticket-edit-form-grid${showStakeSplitFields ? " has-stake-split" : ""}`}>
+                        <div className="ticket-edit-form-row ticket-edit-primary-row">
+                            <ReferenceDatePicker value={ticketForm.data} onChange={(date) => setTicketForm((prev) => ({ ...prev, data: date }))} />
+                            <label className="ticket-edit-house-field">Casa de aposta<select value={ticketForm.casaId} onChange={(e) => setTicketForm((prev) => ({ ...prev, casaId: e.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
+                            <label className="ticket-edit-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, odd: e.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                         </div>
-                    </header>
-                    <div className="reference-form-grid">
-                        <ReferenceDatePicker value={ticketForm.data} onChange={(date) => setTicketForm((prev) => ({ ...prev, data: date }))} />
-                        <label>Casa de aposta<select value={ticketForm.casaId} onChange={(e) => setTicketForm((prev) => ({ ...prev, casaId: e.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
-                        <label>Categoria<input value={ticketForm.categoria} onChange={(e) => setTicketForm((prev) => ({ ...prev, categoria: e.target.value }))} placeholder="Ex.: Ambas marcam" /></label>
-                        <label>Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, odd: e.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
-                        <label>Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stake: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
-                        <label>Retorno esperado<input value={ticketForm.retorno} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, retorno: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
-                        <label>Origem<select value={origemStake} onChange={(e) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(e.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
-                        <label>Resultado<select value={ticketForm.resultado} onChange={(e) => setTicketForm((prev) => ({ ...prev, resultado: e.target.value }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
-                        {showStakeSplitFields && (
-                            <>
-                                <label>Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stakeSaldo: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
-                                <label>Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stakeBonus: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
-                            </>
-                        )}
-                        <label className="wide reference-textarea-field">Observações (opcional)<textarea rows="4" value={ticketForm.observacoes} onChange={(e) => setTicketForm((prev) => ({ ...prev, observacoes: e.target.value }))} placeholder="Ex.: jogo válido pelo Brasileirão." /></label>
-                        <aside className="reference-ticket-summary-box">
-                            <strong>Resumo do bilhete</strong>
-                            <div>
-                                <span>Valor apostado<b>{formatMoney(safeStake)}</b></span>
-                                <em aria-hidden="true">â†’</em>
-                                <span>Odd<b>{Number(ticketForm.odd || 0).toFixed(2)}</b></span>
-                                <em aria-hidden="true">â†’</em>
-                                <span>Retorno esperado<b className="positive">{formatMoney(safeReturn)}</b></span>
-                            </div>
-                        </aside>
-                    </div>
-                </section>
-
-                <section className="reference-form-card">
-                    <header className="reference-form-card-header">
-                        <span aria-hidden="true"><SidebarIcon type="target" /></span>
-                        <div>
-                            <h2>Informações do jogo</h2>
-                            <p>Campos opcionais para organizar melhor seus registros.</p>
+                        <div className="ticket-edit-form-row ticket-edit-finance-row">
+                            <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stake: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
+                            <label className="ticket-edit-return-field">Retorno esperado<input value={ticketForm.retorno} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, retorno: formatSignedCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
+                            <label className="ticket-edit-origin-field">Origem<select value={origemStake} onChange={(e) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(e.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                         </div>
-                    </header>
-                    <div className="reference-form-grid four">
-                        <label>Competição (opcional)<input placeholder="Ex.: Premier League" /></label>
-                        <label>Jogo (opcional)<input placeholder="Ex.: City x Arsenal" /></label>
-                        <label>Data do jogo (opcional)<input type="date" /></label>
-                        <label>Horário do jogo (opcional)<input placeholder="Ex.: 16:00" /></label>
+                        <div className="ticket-edit-form-row ticket-edit-result-row">
+                            <label className="ticket-edit-result-field">Resultado<select value={ticketForm.resultado} onChange={(e) => setTicketForm((prev) => ({ ...prev, resultado: e.target.value }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
+                            {showStakeSplitFields && (
+                                <>
+                                <label className="ticket-edit-split-field">Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stakeSaldo: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
+                                <label className="ticket-edit-split-field">Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stakeBonus: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
+                                </>
+                            )}
+                            {!showStakeSplitFields && <label className="reference-textarea-field ticket-edit-notes-field">Observações (opcional)<textarea rows="4" value={ticketForm.observacoes} onChange={(e) => setTicketForm((prev) => ({ ...prev, observacoes: e.target.value }))} placeholder="Ex.: jogo válido pelo Brasileirão." /></label>}
+                        </div>
+                        {showStakeSplitFields && <div className="ticket-edit-form-row ticket-edit-notes-row"><label className="reference-textarea-field ticket-edit-notes-field">Observações (opcional)<textarea rows="4" value={ticketForm.observacoes} onChange={(e) => setTicketForm((prev) => ({ ...prev, observacoes: e.target.value }))} placeholder="Ex.: jogo válido pelo Brasileirão." /></label></div>}
                     </div>
                 </section>
 
                 <div className="reference-form-actions">
-                    <button type="reset" className="submenu-secondary-button">Limpar campos</button>
+                    <button type="button" className="submenu-secondary-button" onClick={() => setTicketForm({ ...initialTicketForm, data: hojeISO() })}>Limpar campos</button>
                     <button type="submit" className="submenu-primary-button" disabled={isSaving}>{isSaving ? "Salvando..." : editingTicketId ? "Salvar bilhete" : "Adicionar bilhete"}</button>
                 </div>
             </form>
@@ -3029,12 +3009,14 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
     );
 }
 
-function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm, onSubmit, editingTicketId }) {
+function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm, onSubmit, onDismissFeedback, editingTicketId }) {
     const origemStake = normalizeStakeOrigin(ticketForm.origemStake);
     const showStakeSplitFields = origemStake === STAKE_ORIGINS.BALANCE_BONUS;
     const stakeValue = parseCurrencyTyping(ticketForm.stake);
-    const returnValue = parseCurrencyTyping(ticketForm.retorno);
     const safeStake = Number.isFinite(stakeValue) ? stakeValue : 0;
+    const oddValue = Number(String(ticketForm.odd || "0").replace(",", "."));
+    const safeOdd = Number.isFinite(oddValue) ? oddValue : 0;
+    const returnValue = parseSignedCurrencyTyping(ticketForm.retorno);
     const safeReturn = Number.isFinite(returnValue) ? returnValue : 0;
     const expectedResult = safeReturn - safeStake;
     const expectedResultTone = expectedResult > 0 ? "positive" : expectedResult < 0 ? "negative" : "neutral";
@@ -3054,96 +3036,57 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                 </div>
             )}
 
-            <form className="reference-form-page reference-ticket-guided-form" onSubmit={onSubmit}>
+            <form className="reference-form-page reference-ticket-guided-form ticket-reference-form" onSubmit={onSubmit} onFocusCapture={onDismissFeedback}>
                 <div className="reference-ticket-flow-layout">
-                    <div className="reference-ticket-flow-main">
-                        <section className="reference-form-card reference-ticket-section">
-                            <header className="reference-form-card-header">
-                                <span aria-hidden="true"><SidebarIcon type="ticket" /></span>
-                                <div>
-                                    <h2>Informações da aposta</h2>
-                                    <p>Defina os valores e o status inicial do bilhete.</p>
+                    <section className="reference-form-card reference-ticket-entry-card">
+                        <div className="reference-ticket-fields-grid ticket-reference-fields">
+                                <div className="ticket-primary-row">
+                                    <ReferenceDatePicker value={ticketForm.data} onChange={(date) => setTicketForm((prev) => ({ ...prev, data: date }))} />
+                                    <label className="ticket-house-field">Casa<select value={ticketForm.casaId} onChange={(event) => setTicketForm((prev) => ({ ...prev, casaId: event.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
+                                    <label className="ticket-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, odd: event.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                                 </div>
-                            </header>
-                            <div className="reference-form-grid reference-ticket-fields-grid">
-                                <ReferenceDatePicker value={ticketForm.data} onChange={(date) => setTicketForm((prev) => ({ ...prev, data: date }))} />
-                                <label>Casa<select value={ticketForm.casaId} onChange={(event) => setTicketForm((prev) => ({ ...prev, casaId: event.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
-                                <label>Categoria/Mercado<input value={ticketForm.categoria} onChange={(event) => setTicketForm((prev) => ({ ...prev, categoria: event.target.value }))} placeholder="Ex.: Ambas marcam" /></label>
-                                <label>Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, odd: event.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
-                                <label>Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stake: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
-                                <label>Retorno esperado<input value={ticketForm.retorno} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, retorno: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
-                                <label>Origem<select value={origemStake} onChange={(event) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(event.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
-                                <label>Resultado<select value={ticketForm.resultado} onChange={(event) => setTicketForm((prev) => ({ ...prev, resultado: event.target.value }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
-                                {showStakeSplitFields && (
-                                    <>
-                                        <label>Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stakeSaldo: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
-                                        <label>Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stakeBonus: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
-                                    </>
-                                )}
-                            </div>
-                        </section>
-
-                        <section className="reference-form-card reference-ticket-section">
-                            <header className="reference-form-card-header">
-                                <span aria-hidden="true"><SidebarIcon type="target" /></span>
-                                <div>
-                                    <h2>Informações do jogo</h2>
-                                    <p>Contexto para identificar a aposta depois.</p>
+                                <div className="ticket-financial-row">
+                                    <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stake: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
+                                    <label className="ticket-return-field">Retorno esperado<input value={ticketForm.retorno} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, retorno: formatSignedCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
+                                    <label className="ticket-origin-field">Origem<select value={origemStake} onChange={(event) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(event.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                                 </div>
-                            </header>
-                            <div className="reference-form-grid reference-ticket-fields-grid">
-                                <label>Competição<input placeholder="Ex.: Premier League" /></label>
-                                <label>Jogo<input placeholder="Ex.: City x Arsenal" /></label>
-                                <label>Data do jogo<input type="date" /></label>
-                                <label>Horário<input placeholder="Ex.: 16:00" /></label>
-                            </div>
-                        </section>
-
-                        <section className="reference-form-card reference-ticket-section">
-                            <header className="reference-form-card-header">
-                                <span aria-hidden="true"><SidebarIcon type="chart" /></span>
-                                <div>
-                                    <h2>Observações</h2>
-                                    <p>Inclua leitura, estratégia ou qualquer detalhe útil.</p>
+                                <div className={`ticket-result-description-layout ${showStakeSplitFields ? "has-stake-split" : "result-description-inline"}`}>
+                                    <div className="ticket-result-row">
+                                        {showStakeSplitFields && (
+                                            <>
+                                                <label className="ticket-balance-value-field">Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stakeSaldo: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
+                                                <label className="ticket-bonus-value-field">Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stakeBonus: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
+                                            </>
+                                        )}
+                                        <label className="ticket-result-field">Resultado<select value={ticketForm.resultado} onChange={(event) => setTicketForm((prev) => ({ ...prev, resultado: event.target.value }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
+                                    </div>
+                                    <label className="reference-textarea-field ticket-description-field"><span className="ticket-description-label">Descrição do bilhete <small>(opcional)</small></span><textarea maxLength="200" rows="5" value={ticketForm.categoria} onChange={(event) => setTicketForm((prev) => ({ ...prev, categoria: event.target.value }))} placeholder={"Ex.: Flamengo x Palmeiras\nInter x Milan\nMúltipla de gols."} /><em>{ticketForm.categoria.length}/200</em></label>
                                 </div>
-                            </header>
-                            <label className="reference-textarea-field reference-ticket-notes-field">Observações<textarea rows="5" value={ticketForm.observacoes} onChange={(event) => setTicketForm((prev) => ({ ...prev, observacoes: event.target.value }))} placeholder="Ex.: jogo válido pelo Brasileirão." /></label>
-                        </section>
-                    </div>
+                        </div>
+                        <div className="ticket-reference-actions">
+                            <button type="submit" className="submenu-primary-button" disabled={isSaving}>{isSaving ? "Salvando..." : editingTicketId ? "Salvar bilhete" : "Salvar bilhete"}</button>
+                            <button type="button" className="submenu-secondary-button" onClick={() => setTicketForm({ ...initialTicketForm, data: hojeISO() })}>Limpar campos</button>
+                        </div>
+                    </section>
 
                     <aside className="reference-ticket-summary-box reference-ticket-sticky-summary">
-                        <span className="reference-ticket-summary-kicker">Resumo do bilhete</span>
-                        <strong>Confira antes de adicionar</strong>
-                        <div className="reference-ticket-summary-flow">
-                            <span>Valor apostado<b>{formatMoney(safeStake)}</b></span>
-                            <em aria-hidden="true">â†’</em>
-                            <span>Odd<b>{Number(ticketForm.odd || 0).toFixed(2)}</b></span>
-                            <em aria-hidden="true">â†’</em>
-                            <span>Retorno esperado<b>{formatMoney(safeReturn)}</b></span>
-                        </div>
-                        <dl className="reference-ticket-summary-results">
-                            <div>
-                                <dt>Resultado esperado</dt>
-                                <dd className={expectedResultTone}>{formatSignedMoney(expectedResult)}</dd>
-                            </div>
-                            <div>
-                                <dt>Impacto na banca</dt>
-                                <dd className={bankImpactTone}>{formatSignedMoney(bankImpact)}</dd>
-                            </div>
+                        <header><span aria-hidden="true"><SidebarIcon type="ticket" /></span><strong>Resumo do bilhete</strong></header>
+                        <dl className="ticket-reference-summary-list">
+                            <div><dt>Valor apostado</dt><dd>{formatMoney(safeStake)}</dd><span aria-hidden="true">$</span></div>
+                            <div><dt>Odd</dt><dd>{safeOdd.toFixed(2)}</dd><span aria-hidden="true"><SidebarIcon type="chart" /></span></div>
+                            <div><dt>Retorno esperado</dt><dd>{formatMoney(safeReturn)}</dd><span aria-hidden="true">$</span></div>
+                            <div><dt>Origem</dt><dd>{origemStake}</dd><span aria-hidden="true">▣</span></div>
+                            <div className="profit"><dt>Possível lucro</dt><dd>{formatMoney(expectedResult)}</dd><span aria-hidden="true">↗</span></div>
+                            <div><dt>Resultado</dt><dd>{ticketForm.resultado}</dd><span aria-hidden="true">⌛</span></div>
                         </dl>
                     </aside>
-                </div>
-
-                <div className="reference-form-actions reference-ticket-form-actions">
-                    <button type="button" className="submenu-secondary-button" onClick={() => setTicketForm(initialTicketForm)}>Limpar campos</button>
-                    <button type="submit" className="submenu-primary-button" disabled={isSaving}>{isSaving ? "Salvando..." : editingTicketId ? "Salvar bilhete" : "Adicionar bilhete"}</button>
                 </div>
             </form>
         </section>
     );
 }
 
-function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit, onDelete, onNewTicket = () => { } }) {
+function TicketsTablePanel({ deletingTicketId, editingTicketId, feedback, isSaving, tickets, houses, onCancelEdit, onEdit, onDelete, onSubmitEdit, ticketForm, setTicketForm }) {
     const ticketsSafe = Array.isArray(tickets) ? tickets : [];
     const housesSafe = Array.isArray(houses) ? houses : [];
     const [ticketCategoryFilter, setTicketCategoryFilter] = useState("all");
@@ -3163,7 +3106,8 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
     const [ticketHouseFilter, setTicketHouseFilter] = useState("all");
     const [openTicketMenuId, setOpenTicketMenuId] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(8);
+    const pageSize = 7;
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const ticketCategoryOptions = useMemo(() => {
         return [...new Set(ticketsSafe.map((ticket) => String(ticket?.categoria || "").trim()).filter(Boolean))]
             .sort((a, b) => a.localeCompare(b));
@@ -3178,10 +3122,14 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
             : ticketReferences.includes(ticketPeriodReference)
                 ? ticketPeriodReference
                 : ticketReferences[0] || "";
-    const ticketInterval = useMemo(
-        () => getPeriodInterval(ticketPeriodType, effectiveTicketPeriodReference),
-        [ticketPeriodType, effectiveTicketPeriodReference]
-    );
+    const ticketInterval = useMemo(() => {
+        const reference = ticketPeriodType === "Semanal"
+            ? getWeekRef(ticketReference)
+            : ticketPeriodType === "Mensal"
+                ? getMonthRef(ticketReference)
+                : ticketReference;
+        return getPeriodInterval(ticketPeriodType, reference);
+    }, [ticketPeriodType, ticketReference]);
     const filteredTickets = ticketsSafe.filter((ticket) => {
         const matchesCategory = ticketCategoryFilter === "all" || ticket.categoria === ticketCategoryFilter;
         const matchesType =
@@ -3189,23 +3137,43 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
             (ticketTypeFilter === "Ganho" && ticket.resultado === "Green") ||
             (ticketTypeFilter === "Perda" && ticket.resultado === "Red") ||
             (ticketTypeFilter === "Aposta encerrada" && ticket.resultado === "Cash Out");
-        const matchesPeriod = !ticketReference || ticket.data === ticketReference;
+        const matchesPeriod = ticketPeriodType === "Geral" || !ticketReference || (
+            ticket.data >= ticketInterval.start && ticket.data <= ticketInterval.end
+        );
         const matchesHouse = ticketHouseFilter === "all" || Number(ticket.casaId) === Number(ticketHouseFilter);
         const matchesPending = ticketResultFilter !== "Pendente" || ticket.resultado === "Pendente";
         return matchesType && matchesPeriod && matchesHouse && matchesCategory && matchesPending;
     });
+    const orderedTickets = [...filteredTickets].sort((a, b) => {
+        const dateComparison = String(a.data || "").localeCompare(String(b.data || ""));
+        if (dateComparison !== 0) return dateComparison;
+        return Number(a.id || 0) - Number(b.id || 0);
+    });
     const totalPages = Math.max(1, Math.ceil(filteredTickets.length / pageSize));
-    const visibleTickets = filteredTickets.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const visibleTickets = orderedTickets.slice((currentPage - 1) * pageSize, currentPage * pageSize);
     const firstVisibleItem = filteredTickets.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
     const lastVisibleItem = Math.min(filteredTickets.length, currentPage * pageSize);
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [ticketCategoryFilter, ticketHouseFilter, ticketReference, ticketResultFilter, pageSize]);
+    }, [ticketCategoryFilter, ticketHouseFilter, ticketReference, ticketResultFilter, ticketPeriodType, pageSize]);
 
     useEffect(() => {
         setCurrentPage((page) => Math.min(page, totalPages));
     }, [totalPages]);
+
+    useEffect(() => {
+        if (editingTicketId === null) setIsEditModalOpen(false);
+    }, [editingTicketId]);
+
+    function handleTicketPeriodTypeChange(nextPeriodType) {
+        setTicketPeriodType(nextPeriodType);
+        if (nextPeriodType === "Geral") setTicketReference("");
+        else if (nextPeriodType === "Mensal") setTicketReference(getMonthRef(hojeISO()));
+        else if (nextPeriodType === "Anual") setTicketReference(getYearRef(hojeISO()));
+        else if (nextPeriodType === "Semanal") setTicketReference(getWeekRef(hojeISO()));
+        else setTicketReference(hojeISO());
+    }
 
     useEffect(() => {
         if (openTicketMenuId === null) return undefined;
@@ -3238,6 +3206,41 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
         if (ticket.resultado === "Pendente") acc.pending += 1;
         return acc;
     }, { total: 0, won: 0, lost: 0, pending: 0, result: 0 });
+    const ticketTotalStake = filteredTickets.reduce((total, ticket) => total + Number(ticket.stakeReal ?? ticket.stake ?? 0), 0);
+    const ticketTotalReturn = filteredTickets.reduce((total, ticket) => total + Number(ticket.retorno || 0), 0);
+    const ticketCashOut = filteredTickets.filter((ticket) => ticket.resultado === "Cash Out").length;
+    const ticketRoi = ticketTotalStake > 0 ? (ticketStats.result / ticketTotalStake) * 100 : 0;
+    const ticketOutcomeTotal = Math.max(1, ticketStats.total);
+    const wonPercent = (ticketStats.won / ticketOutcomeTotal) * 100;
+    const lostPercent = (ticketStats.lost / ticketOutcomeTotal) * 100;
+    const pendingPercent = (ticketStats.pending / ticketOutcomeTotal) * 100;
+    const selectedTicketHouseLabel = ticketHouseFilter === "all"
+        ? "Todas as casas"
+        : housesSafe.find((house) => Number(house.id) === Number(ticketHouseFilter))?.nome || "Casa selecionada";
+    const selectedTicketResultLabel = ticketResultFilter === "all"
+        ? "Todos"
+        : ticketResultFilter === "Green"
+            ? "Ganhos"
+            : ticketResultFilter === "Red"
+                ? "Perdas"
+                : ticketResultFilter === "Cash Out"
+                    ? "Encerrados"
+                    : ticketResultFilter;
+    const housePerformance = filteredTickets.reduce((map, ticket) => {
+        const houseId = Number(ticket.casaId);
+        const current = map.get(houseId) || { houseId, result: 0, stake: 0 };
+        current.result += Number(getTicketResultView(ticket).value || 0);
+        current.stake += Number(ticket.stakeReal ?? ticket.stake ?? 0);
+        map.set(houseId, current);
+        return map;
+    }, new Map());
+    const bestHousePerformance = [...housePerformance.values()].sort((a, b) => b.result - a.result)[0] || null;
+    const bestHouse = bestHousePerformance
+        ? housesSafe.find((house) => Number(house.id) === bestHousePerformance.houseId)
+        : null;
+    const bestHouseRoi = bestHousePerformance?.stake > 0
+        ? (bestHousePerformance.result / bestHousePerformance.stake) * 100
+        : 0;
 
     return (
         <section className="submenu-page submenu-tickets-page cb-tickets-day-page">
@@ -3251,6 +3254,8 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
                     {feedback.message}
                 </div>
             )}
+            <div className="cb-tickets-day-layout">
+              <div className="cb-tickets-day-main">
             <div className="cb-tickets-toolbar" aria-label="Filtros dos bilhetes do dia">
                 <label className="cb-ticket-filter-field">
                     <span>Casa</span>
@@ -3259,16 +3264,7 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
                         {housesSafe.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}
                     </select>
                 </label>
-                <label className="cb-ticket-filter-field">
-                    <span>Tipo/Categoria</span>
-                    <select value={ticketCategoryFilter} onChange={(event) => setTicketCategoryFilter(event.target.value)}>
-                        <option value="all">Todas</option>
-                        {ticketCategoryOptions.map((category) => (
-                            <option key={category} value={category}>{category}</option>
-                        ))}
-                    </select>
-                </label>
-                <label className="cb-ticket-filter-field">
+                <label className="cb-ticket-filter-field cb-ticket-result-filter-field">
                     <span>Resultado</span>
                     <select value={ticketResultFilter} onChange={(event) => setTicketResultFilter(event.target.value)}>
                         <option value="all">Todos</option>
@@ -3278,46 +3274,36 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
                         <option value="Cash Out">Cash out</option>
                     </select>
                 </label>
-                <ReferenceDatePicker
-                    label="Referência"
-                    value={ticketReference}
-                    onChange={setTicketReference}
+                <PeriodFields
                     dayMarkers={buildDayMarkers(ticketsSafe, [])}
+                    onPeriodReferenceChange={setTicketReference}
+                    onPeriodTypeChange={handleTicketPeriodTypeChange}
+                    periodReference={ticketReference}
+                    periodType={ticketPeriodType}
                 />
-                <button type="button" className="cb-ticket-new-button" onClick={onNewTicket}>Novo bilhete</button>
             </div>
-            <div className="cb-ticket-metrics-grid">
-                <ReferenceMetricCard icon="ticket" label="Total de bilhetes" value={ticketStats.total} />
-                <ReferenceMetricCard icon="target" label="Ganhos" value={ticketStats.won} detail={ticketStats.total ? `${((ticketStats.won / ticketStats.total) * 100).toFixed(2)}%` : "0,00%"} tone="positive" />
-                <ReferenceMetricCard icon="sync" label="Perdidos" value={ticketStats.lost} detail={ticketStats.total ? `${((ticketStats.lost / ticketStats.total) * 100).toFixed(2)}%` : "0,00%"} tone="negative" />
-                <ReferenceMetricCard icon="bank" label="Pendentes" value={ticketStats.pending} detail={ticketStats.total ? `${((ticketStats.pending / ticketStats.total) * 100).toFixed(2)}%` : "0,00%"} tone="warning" />
-                <ReferenceMetricCard icon="chart" label="Resultado do dia" value={formatSignedMoney(ticketStats.result)} tone={ticketStats.result > 0 ? "positive" : ticketStats.result < 0 ? "negative" : "neutral"} />
-            </div>
-            <div className="cb-ticket-table-card">
+              <div className="cb-ticket-table-card">
                 <div className="cb-ticket-table-head">
-                    <span>Horário</span>
+                    <span>Data</span>
                     <span>Casa</span>
-                    <span>Competição/Jogo</span>
-                    <span>Mercado</span>
-                    <span>Odd</span>
                     <span>Valor</span>
                     <span>Retorno</span>
                     <span>Resultado</span>
-                    <span>Ações</span>
+                    <span>Status</span>
+                    <span aria-hidden="true" />
                 </div>
                 {visibleTickets.length === 0 ? (
                     <p className="cb-ticket-empty-row">Nenhum bilhete encontrado.</p>
                 ) : visibleTickets.map((ticket) => {
                     const house = housesSafe.find((item) => Number(item.id) === Number(ticket.casaId));
+                    const resultView = getTicketResultView(ticket);
                     return (
                         <div className="cb-ticket-table-row" key={ticket.id}>
-                            <span>--</span>
+                            <span>{ticket.data ? ticket.data.split("-").slice(1).reverse().join("/") : "--/--"}</span>
                             <span className="cb-ticket-house-cell"><HouseLogoMark house={house} />{house?.nome || "Casa"}</span>
-                            <span>{ticket.nomeBilhete || ticket.observacoes || "-"}</span>
-                            <span>{ticket.categoria || "-"}</span>
-                            <span>{Number(ticket.odd || 0).toFixed(2)}</span>
                             <span>{formatMoney(ticket.stakeReal ?? ticket.stake ?? 0)}</span>
-                            <span>{formatMoney(ticket.retorno)}</span>
+                            <span className="positive">{formatMoney(ticket.retorno)}</span>
+                            <span className={resultView.tone}>{ticket.resultado === "Pendente" ? "-" : formatSignedMoney(resultView.value)}</span>
                             <ReferenceStatusBadge result={ticket.resultado === "Red" ? "Perda" : ticket.resultado === "Green" ? "Ganho" : ticket.resultado} />
                             <span className="reference-ticket-menu-wrap">
                                 <button
@@ -3335,7 +3321,7 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
                                 </button>
                                 {openTicketMenuId === ticket.id && (
                                     <div className="reference-house-menu reference-ticket-menu">
-                                        <button type="button" onClick={() => { setOpenTicketMenuId(null); onEdit(ticket.id); }}>Editar</button>
+                                        <button type="button" onClick={() => { setOpenTicketMenuId(null); onEdit(ticket.id); setIsEditModalOpen(true); }}>Editar</button>
                                         <button type="button" className="danger" onClick={() => { setOpenTicketMenuId(null); onDelete(ticket.id); }}>
                                             {deletingTicketId === ticket.id ? "Excluindo..." : "Excluir"}
                                         </button>
@@ -3348,19 +3334,89 @@ function TicketsTablePanel({ deletingTicketId, feedback, tickets, houses, onEdit
                 <footer className="cb-ticket-pagination">
                     <span>Mostrando {firstVisibleItem}-{lastVisibleItem} de {filteredTickets.length} bilhetes</span>
                     <div className="cb-ticket-page-controls">
+                        <button type="button" aria-label="Ir para a primeira página" onClick={() => setCurrentPage(1)} disabled={currentPage <= 1}>«</button>
                         <button type="button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={currentPage <= 1}>‹</button>
                         <strong>{currentPage} / {totalPages}</strong>
                         <button type="button" onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} disabled={currentPage >= totalPages}>›</button>
+                        <button type="button" aria-label="Ir para a última página" onClick={() => setCurrentPage(totalPages)} disabled={currentPage >= totalPages}>»</button>
                     </div>
-                    <select className="cb-ticket-page-size" value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
-                        <option value="8">8 por página</option>
-                        <option value="10">10 por página</option>
-                        <option value="15">15 por página</option>
-                    </select>
-                    <div><button type="button">‹</button><strong>1</strong><button type="button">›</button></div>
-                    <select defaultValue="8"><option value="8">8 por página</option><option value="10">10 por página</option></select>
                 </footer>
+              </div>
+              </div>
+              <aside className="cb-ticket-day-sidebar">
+                <section className="cb-ticket-side-card cb-ticket-quick-actions">
+                  <h3><span aria-hidden="true">ϟ</span>Ações rápidas</h3>
+                  <div>
+                    <button type="button" onClick={() => exportTicketsToPdf({
+                      tickets: orderedTickets,
+                      houses: housesSafe,
+                      filters: {
+                        houseLabel: selectedTicketHouseLabel,
+                        periodType: ticketPeriodType,
+                        reference: ticketReference,
+                        resultLabel: selectedTicketResultLabel,
+                      },
+                    })}>Exportar PDF</button>
+                    <button type="button" onClick={async () => {
+                      if (orderedTickets.length === 0) {
+                        window.alert("Não existem bilhetes para exportar no período selecionado.");
+                        return;
+                      }
+                      await exportTicketsToExcel({
+                        tickets: orderedTickets,
+                        houses: housesSafe,
+                        filters: {
+                          houseLabel: selectedTicketHouseLabel,
+                          periodType: ticketPeriodType,
+                          reference: ticketReference,
+                        },
+                      });
+                    }}>Exportar Excel</button>
+                  </div>
+                </section>
+                <section className="cb-ticket-side-card cb-ticket-metrics-card">
+                  <div className="cb-ticket-metrics-header">
+                    <h3><span aria-hidden="true">▥</span>Resumo do período</h3>
+                  </div>
+                  <dl className="cb-ticket-day-summary cb-ticket-icon-summary">
+                    <div><dt><span className="neutral" aria-hidden="true">▣</span>Total de bilhetes</dt><dd>{ticketStats.total}</dd></div>
+                    <div><dt><span className="neutral" aria-hidden="true">▤</span>Valor apostado</dt><dd>{formatMoney(ticketTotalStake)}</dd></div>
+                    <div><dt><span className={ticketTotalReturn > 0 ? "green" : ticketTotalReturn < 0 ? "red" : "neutral"} aria-hidden="true">{ticketTotalReturn > 0 ? "↑" : ticketTotalReturn < 0 ? "↓" : "↔"}</span>Retorno total</dt><dd className={ticketTotalReturn > 0 ? "positive" : ticketTotalReturn < 0 ? "negative" : "neutral"}>{formatMoney(ticketTotalReturn)}</dd></div>
+                    <div><dt><span className={ticketStats.result > 0 ? "green" : ticketStats.result < 0 ? "red" : "neutral"} aria-hidden="true">{ticketStats.result > 0 ? "↑" : ticketStats.result < 0 ? "↓" : "↔"}</span>Resultado</dt><dd className={ticketStats.result > 0 ? "positive" : ticketStats.result < 0 ? "negative" : "neutral"}>{formatSignedMoney(ticketStats.result)}</dd></div>
+                    <div><dt><span className="blue" aria-hidden="true">%</span>ROI do período</dt><dd className="roi">{ticketRoi.toFixed(2).replace(".", ",")}%</dd></div>
+                  </dl>
+                </section>
+                <section className="cb-ticket-side-card cb-ticket-metrics-card">
+                  <div className="cb-ticket-metrics-header">
+                    <h3><span aria-hidden="true">◔</span>Desempenho do período</h3>
+                  </div>
+                  <dl className="cb-ticket-day-summary cb-ticket-performance-list">
+                    <div><dt><span className="won" />Ganhos</dt><dd className="positive">{ticketStats.won} ({wonPercent.toFixed(2).replace(".", ",")}%)</dd></div>
+                    <div><dt><span className="lost" />Perdas</dt><dd className="negative">{ticketStats.lost} ({lostPercent.toFixed(2).replace(".", ",")}%)</dd></div>
+                    <div><dt><span className="pending" />Pendentes</dt><dd>{ticketStats.pending} ({pendingPercent.toFixed(2).replace(".", ",")}%)</dd></div>
+                    <div><dt><span className="closed" />Encerrados</dt><dd>{ticketCashOut} ({((ticketCashOut / ticketOutcomeTotal) * 100).toFixed(2).replace(".", ",")}%)</dd></div>
+                  </dl>
+                </section>
+              </aside>
             </div>
+            {isEditModalOpen && editingTicketId !== null && (
+                <div className="cb-ticket-edit-modal-backdrop" role="presentation" onMouseDown={(event) => {
+                    if (event.target === event.currentTarget) onCancelEdit();
+                }}>
+                    <div className="cb-ticket-edit-modal" role="dialog" aria-modal="true" aria-label="Editar bilhete">
+                        <button type="button" className="cb-ticket-edit-modal-close" aria-label="Fechar edição" onClick={onCancelEdit}>×</button>
+                        <TicketFormPanel
+                            feedback={feedback}
+                            houses={houses}
+                            isSaving={isSaving}
+                            ticketForm={ticketForm}
+                            setTicketForm={setTicketForm}
+                            onSubmit={onSubmitEdit}
+                            editingTicketId={editingTicketId}
+                        />
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
@@ -4673,24 +4729,22 @@ function VisualDashboardHome({
                         <div className="cb-dashboard-latest-head" aria-hidden="true">
                             <span>Data</span>
                             <span>Casa</span>
-                            <span>Categoria</span>
-                            <span>Odd</span>
                             <span>Valor</span>
                             <span>Retorno</span>
                             <span>Resultado</span>
+                            <span>Status</span>
                         </div>
                         {recentTickets.length > 0 ? recentTickets.map((ticket) => {
                             const house = housesSafe.find((item) => Number(item.id) === Number(ticket.casaId));
                             const resultView = getTicketResultView(ticket);
                             return (
                                 <div className="cb-dashboard-latest-row" key={ticket.id}>
-                                    <span>{getTicketTimeLabel(ticket)}</span>
+                                    <span>{ticket.data ? ticket.data.split("-").slice(1).reverse().join("/") : "--/--"}</span>
                                     <strong><HouseLogoMark house={house || { nome: "Casa" }} />{house?.nome || "Casa"}</strong>
-                                    <span>{ticket.categoria || ticket.jogo || "Bilhete"}</span>
-                                    <span>{Number(ticket.odd || 0).toFixed(2)}</span>
                                     <span>{formatMoney(ticket.stakeReal ?? ticket.stake ?? 0)}</span>
-                                    <span>{formatMoney(ticket.retorno || 0)}</span>
-                                    <em className={resultView.tone}>{resultView.label}</em>
+                                    <span className="positive">{formatMoney(ticket.retorno || 0)}</span>
+                                    <span className={resultView.tone}>{ticket.resultado === "Pendente" ? "-" : formatSignedMoney(resultView.value)}</span>
+                                    <ReferenceStatusBadge result={ticket.resultado === "Red" ? "Perda" : ticket.resultado === "Green" ? "Ganho" : ticket.resultado} />
                                 </div>
                             );
                         }) : (
@@ -5049,10 +5103,30 @@ function formatCurrencyTyping(rawValue) {
     });
 }
 
+function formatSignedCurrencyTyping(rawValue) {
+    const raw = String(rawValue || "").trim();
+    const isNegative = raw.startsWith("-");
+    const digits = raw.replace(/\D/g, "");
+    if (!digits) return isNegative ? "-" : "";
+    const formatted = (Number(digits) / 100).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    });
+    return isNegative ? `-${formatted}` : formatted;
+}
+
 function parseCurrencyTyping(maskedValue) {
     const digits = String(maskedValue || "").replace(/\D/g, "");
     if (!digits) return NaN;
     return Number(digits) / 100;
+}
+
+function parseSignedCurrencyTyping(maskedValue) {
+    const raw = String(maskedValue || "").trim();
+    const digits = raw.replace(/\D/g, "");
+    if (!digits) return NaN;
+    const value = Number(digits) / 100;
+    return raw.startsWith("-") ? -value : value;
 }
 
 function movementSignal(type) {
@@ -5303,25 +5377,34 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         type: "",
         message: "",
     });
+
+    useEffect(() => {
+        if (!ticketFeedback.message) return undefined;
+        const timeoutId = window.setTimeout(() => {
+            setTicketFeedback({ type: "", message: "" });
+        }, 7000);
+        return () => window.clearTimeout(timeoutId);
+    }, [ticketFeedback.message]);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
     const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
 
-    const shouldUseNavigationState = location.key !== "default";
+    const shouldUseInitialNavigationState = location.state?.navigationIntent === true;
     const [activeBottomPanel, setActiveBottomPanel] = useState(
-        shouldUseNavigationState ? location.state?.activeBottomPanel || null : null
+        shouldUseInitialNavigationState ? location.state?.activeBottomPanel || null : null
     );
     const [activeNavItem, setActiveNavItem] = useState(
-        shouldUseNavigationState ? location.state?.activeNavItem || "dashboard" : "dashboard"
+        shouldUseInitialNavigationState ? location.state?.activeNavItem || "dashboard" : "dashboard"
     );
 
     useEffect(() => {
-        if (!shouldUseNavigationState) return;
+        if (location.state?.navigationIntent !== true) return;
         if (!location.state?.activeNavItem) return;
 
         setActiveNavItem(location.state.activeNavItem);
         setActiveBottomPanel(location.state.activeBottomPanel || null);
-    }, [location.state?.activeBottomPanel, location.state?.activeNavItem, shouldUseNavigationState]);
+        navigate(location.pathname, { replace: true, state: null });
+    }, [location.pathname, location.state?.activeBottomPanel, location.state?.activeNavItem, location.state?.navigationIntent, navigate]);
 
     function scrollToSection(ref) {
         ref.current?.scrollIntoView({
@@ -6560,8 +6643,8 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
-        if (!ticketForm.casaId || !ticketForm.categoria || !ticketForm.odd || !ticketForm.stake) {
-            setTicketFeedback({ type: "error", message: "Preencha casa, categoria, odd e valor apostado." });
+        if (!ticketForm.casaId || !ticketForm.odd || !ticketForm.stake) {
+            setTicketFeedback({ type: "error", message: "Preencha casa, odd e valor apostado." });
             return;
         }
 
@@ -6577,26 +6660,18 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
-        let returned = parseCurrencyTyping(ticketForm.retorno);
-
-        if (ticketForm.resultado === "Red") {
-            returned = 0;
-        }
-
-        if (ticketForm.resultado === "Green" && !ticketForm.retorno) {
-            returned = stake * odd;
-        }
+        let returned = parseSignedCurrencyTyping(ticketForm.retorno);
 
         if (
             ticketForm.resultado !== "Red" &&
             ticketForm.resultado !== "Pendente" &&
-            (Number.isNaN(returned) || returned < 0)
+            Number.isNaN(returned)
         ) {
             setTicketFeedback({ type: "error", message: "Informe um retorno válido." });
             return;
         }
 
-        if (ticketForm.resultado === "Pendente") {
+        if (ticketForm.resultado === "Pendente" || (ticketForm.resultado === "Red" && Number.isNaN(returned))) {
             returned = 0;
         }
 
@@ -6669,6 +6744,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         if (editingTicketId) {
             const updatedTicket = {
                 ...ticketForm,
+                categoria: ticketForm.categoria.trim() || "Bilhete",
                 casaId: Number(ticketForm.casaId),
                 origemStake: normalizeStakeOrigin(ticketForm.origemStake),
                 odd,
@@ -6740,6 +6816,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         const newTicket = {
             id: createPersistentId(tickets.map((ticket) => ticket.id)),
             ...ticketForm,
+            categoria: ticketForm.categoria.trim() || "Bilhete",
             casaId: Number(ticketForm.casaId),
             origemStake: normalizeStakeOrigin(ticketForm.origemStake),
             odd,
@@ -6957,8 +7034,12 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         });
 
         setEditingTicketId(ticketId);
-        setActiveBottomPanel("ticket");
+    }
 
+    function handleCancelTicketEdit() {
+        setEditingTicketId(null);
+        resetTicketForm();
+        setTicketFeedback({ type: "", message: "" });
     }
 
     async function handleDeleteTicket(ticketId) {
@@ -7408,17 +7489,17 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return (
                 <TicketsTablePanel
                     deletingTicketId={deletingTicketId}
+                    editingTicketId={editingTicketId}
                     feedback={ticketFeedback}
+                    isSaving={isSavingTicket}
                     tickets={tickets}
                     houses={houses}
+                    onCancelEdit={handleCancelTicketEdit}
                     onEdit={handleStartEditTicket}
                     onDelete={handleDeleteTicket}
-                    onNewTicket={() => {
-                        clearOperationFeedback();
-                        resetTicketForm();
-                        setActiveNavItem("tickets");
-                        setActiveBottomPanel("ticket");
-                    }}
+                    onSubmitEdit={handleSaveTicket}
+                    ticketForm={ticketForm}
+                    setTicketForm={setTicketForm}
                 />
             );
         }
@@ -7432,6 +7513,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                     ticketForm={ticketForm}
                     setTicketForm={setTicketForm}
                     onSubmit={handleSaveTicket}
+                    onDismissFeedback={() => setTicketFeedback({ type: "", message: "" })}
                     editingTicketId={editingTicketId}
                 />
             );

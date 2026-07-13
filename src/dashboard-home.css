@@ -3631,6 +3631,27 @@ body:has(.light-dashboard-shell),
 }
 
 /* Final page-title normalization. Keep all main page titles aligned with "Novo bilhete". */
+.app .light-dashboard-shell .light-dashboard-main .submenu-page,
+.app .light-dashboard-shell .light-dashboard-main .reports-page {
+    gap: 16px !important;
+}
+
+.app .light-dashboard-shell .light-dashboard-main .submenu-page-header,
+.app .light-dashboard-shell .light-dashboard-main .reports-page-heading {
+    min-height: 64px !important;
+    margin-bottom: 0 !important;
+}
+
+.app .light-dashboard-shell .light-dashboard-main .submenu-page-header .cb-page-header__copy {
+    display: grid !important;
+    gap: 6px !important;
+}
+
+.app .light-dashboard-shell .light-dashboard-main .submenu-page-header .cb-page-header__copy h1,
+.app .light-dashboard-shell .light-dashboard-main .submenu-page-header .cb-page-header__copy p {
+    margin: 0 !important;
+}
+
 .light-dashboard-main .submenu-page-header h1,
 .submenu-page-header h1,
 .reports-section[aria-labelledby="reports-page-title"] .reports-page-heading h2,
@@ -4062,13 +4083,13 @@ body:has(.light-dashboard-shell),
 .app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-head,
 .app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row {
     display: grid !important;
-    grid-template-columns: 1.05fr 1.45fr 1.15fr 0.7fr 1fr 1fr 0.9fr !important;
+    grid-template-columns: 66px minmax(130px, 1fr) 96px 106px 112px 92px !important;
     align-items: center !important;
     gap: 12px !important;
 }
 
 .app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-head {
-    min-height: 38px !important;
+    min-height: 50px !important;
     border-bottom: 1px solid #dfe7f2 !important;
     color: #405173 !important;
     font-size: 0.74rem !important;
@@ -4076,7 +4097,7 @@ body:has(.light-dashboard-shell),
 }
 
 .app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row {
-    min-height: 58px !important;
+    min-height: 68px !important;
     border-bottom: 1px solid #dfe7f2 !important;
     color: #071345 !important;
     font-size: 0.78rem !important;
@@ -4088,6 +4109,16 @@ body:has(.light-dashboard-shell),
     align-items: center !important;
     gap: 10px !important;
     color: #071345 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row > .positive {
+    color: #08a64f !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row > .negative {
+    color: #ef1734 !important;
+    font-weight: 900 !important;
 }
 
 .app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row .house-logo-mark {
@@ -4273,6 +4304,961 @@ body:has(.light-dashboard-shell),
 
 .dashboard-house-menu.dashboard-house-menu-portal button.danger {
     color: #e11d2e !important;
+}
+
+/* Bilhetes do dia: reference composition. */
+.app .light-dashboard-shell .cb-tickets-day-page { gap: 16px !important; }
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar {
+    grid-template-columns: minmax(180px, 1fr) 155px 140px 155px !important;
+    gap: 16px !important;
+    padding: 24px !important;
+}
+.app .light-dashboard-shell .cb-ticket-result-filter-field {
+    width: 155px !important;
+    min-width: 155px !important;
+    max-width: 155px !important;
+}
+.app .light-dashboard-shell .cb-ticket-period-field {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    display: grid !important;
+    gap: 7px !important;
+    margin: 0 !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period:last-child {
+    width: 155px !important;
+    min-width: 155px !important;
+    max-width: 155px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period:last-child .reference-selector-surface {
+    width: 155px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period > span {
+    margin: 0 !important;
+    color: #172746 !important;
+    font-size: 0.78rem !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period select,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period .reference-selector-surface {
+    width: 140px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-ticket-period-field select {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar .reference-date-field {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar .reference-date-field > span {
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar .reference-date-field .reference-selector-surface {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 280px !important;
+    gap: 16px !important;
+    align-items: start !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-main {
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 16px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-filter-field select,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar .reference-selector-surface,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-new-button {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-head,
+.app .light-dashboard-shell .cb-ticket-table-row {
+    grid-template-columns: 66px minmax(140px, 1fr) 96px 106px 112px 92px 42px !important;
+    gap: 8px !important;
+    padding-right: 22px !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-head { min-height: 50px !important; }
+.app .light-dashboard-shell .cb-ticket-table-row { min-height: 68px !important; }
+.app .light-dashboard-shell .cb-ticket-table-row .reference-house-menu-button {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #071332 !important;
+    font-size: 1.35rem !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+    opacity: 1 !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-house-menu-button:hover {
+    background: #eef3fa !important;
+    color: #ef1734 !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row > .reference-ticket-menu-wrap {
+    position: relative !important;
+    align-self: center !important;
+    overflow: visible !important;
+    padding: 0 !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu {
+    position: absolute !important;
+    top: calc(100% + 6px) !important;
+    right: 0 !important;
+    z-index: 500 !important;
+    min-width: 128px !important;
+    display: grid !important;
+    gap: 4px !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 10px !important;
+    padding: 6px !important;
+    background: #ffffff !important;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16) !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu button {
+    min-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    border: 0 !important;
+    border-radius: 7px !important;
+    padding: 0 10px !important;
+    background: transparent !important;
+    color: #172746 !important;
+    font-size: 0.76rem !important;
+    font-weight: 850 !important;
+    text-align: left !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu button:hover {
+    background: #f1f5fa !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu button.danger {
+    color: #e11d2e !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu button.danger:hover {
+    background: #fff0f2 !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 10000 !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 24px !important;
+    background: rgba(7, 19, 50, 0.5) !important;
+    backdrop-filter: blur(3px) !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal {
+    position: relative !important;
+    width: min(580px, calc(100vw - 32px)) !important;
+    max-height: calc(100vh - 48px) !important;
+    overflow-y: auto !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 16px !important;
+    padding: 22px !important;
+    background: #f8fafc !important;
+    box-shadow: 0 28px 70px rgba(7, 19, 50, 0.28) !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal-close {
+    position: absolute !important;
+    top: 14px !important;
+    right: 14px !important;
+    z-index: 5 !important;
+    width: 34px !important;
+    height: 34px !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 9px !important;
+    background: #ffffff !important;
+    color: #172746 !important;
+    font-size: 1.4rem !important;
+    line-height: 1 !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .submenu-page {
+    gap: 16px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .submenu-page-header {
+    min-height: 54px !important;
+    padding-right: 48px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .reference-form-page {
+    margin: 0 !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-flow: row !important;
+    align-items: stretch !important;
+    gap: 18px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-row {
+    grid-column: 1 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    gap: 18px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid label {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 9px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid .reference-date-field { width: 160px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-house-field { width: 165px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-odd-field { width: 105px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-stake-field,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-return-field { width: 140px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-origin-field { width: 150px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-split-field {
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-result-field { width: 180px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-notes-field {
+    width: 270px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid.has-stake-split .ticket-edit-notes-field {
+    width: 100% !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-result-field,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-notes-field {
+    align-self: flex-start !important;
+    display: grid !important;
+    gap: 9px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-result-field select,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-notes-field textarea {
+    margin: 0 !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid input,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid select,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid .reference-selector-surface {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-notes-field textarea {
+    min-height: 44px !important;
+    height: 44px !important;
+}
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+    .app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid label {
+        width: 100% !important;
+    }
+}
+.app .light-dashboard-shell .cb-ticket-table-row > .positive,
+.app .light-dashboard-shell .cb-ticket-day-sidebar .positive { color: #08a64f !important; font-weight: 900 !important; }
+.app .light-dashboard-shell .cb-ticket-table-row > .negative,
+.app .light-dashboard-shell .cb-ticket-day-sidebar .negative { color: #ef1734 !important; font-weight: 900 !important; }
+.app .light-dashboard-shell .cb-ticket-day-sidebar { display: grid !important; gap: 14px !important; }
+.app .light-dashboard-shell .cb-ticket-side-card {
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 14px !important;
+    padding: 16px 18px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045) !important;
+}
+.app .light-dashboard-shell .cb-ticket-side-card h3 {
+    display: flex !important; align-items: center !important; gap: 10px !important;
+    margin: 0 0 14px !important; color: #071332 !important; font-size: .88rem !important; font-weight: 950 !important;
+}
+.app .light-dashboard-shell .cb-ticket-side-card h3 > span { color: #ef1734 !important; font-size: 1.05rem !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary { display: grid !important; gap: 0 !important; margin: 0 !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary > div {
+    min-height: 34px !important; display: flex !important; align-items: center !important;
+    justify-content: space-between !important; gap: 12px !important; border-bottom: 1px solid #edf1f6 !important;
+}
+.app .light-dashboard-shell .cb-ticket-day-summary > div:last-child { border-bottom: 0 !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary dt,
+.app .light-dashboard-shell .cb-ticket-day-summary dd { margin: 0 !important; color: #52627d !important; font-size: .75rem !important; font-weight: 800 !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary dd { color: #071332 !important; font-weight: 950 !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary dd.roi { border-radius: 7px !important; padding: 4px 7px !important; background: #eaf3ff !important; color: #1769e8 !important; }
+.app .light-dashboard-shell .cb-ticket-metrics-card { padding: 18px !important; }
+.app .light-dashboard-shell .cb-ticket-metrics-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+}
+.app .light-dashboard-shell .cb-ticket-metrics-header h3 { margin: 0 !important; }
+.app .light-dashboard-shell .cb-ticket-metrics-header h3 > span {
+    display: grid !important;
+    place-items: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+    background: #fff0f3 !important;
+    color: #ef1734 !important;
+}
+.app .light-dashboard-shell .cb-ticket-metrics-header time {
+    flex: 0 0 auto !important;
+    padding: 8px 9px !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 9px !important;
+    color: #52627d !important;
+    font-size: .67rem !important;
+    font-weight: 850 !important;
+}
+.app .light-dashboard-shell .cb-ticket-metrics-card .cb-ticket-day-summary > div { min-height: 45px !important; }
+.app .light-dashboard-shell .cb-ticket-icon-summary dt,
+.app .light-dashboard-shell .cb-ticket-performance-list dt {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span {
+    display: grid !important;
+    place-items: center !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 9px !important;
+    font-size: .8rem !important;
+}
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span.blue { background: #edf4ff !important; color: #1769e8 !important; }
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span.green { background: #eaf8f0 !important; color: #08a64f !important; }
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span.red { background: #fff0f3 !important; color: #ef1734 !important; }
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span.neutral { background: #f1f4f8 !important; color: #66758e !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary dd.neutral { color: #071332 !important; }
+.app .light-dashboard-shell .cb-ticket-performance-list dt > span {
+    width: 9px !important;
+    height: 9px !important;
+    border-radius: 999px !important;
+    background: #9aa8bd !important;
+}
+.app .light-dashboard-shell .cb-ticket-performance-list dt > span.won { background: #08a64f !important; }
+.app .light-dashboard-shell .cb-ticket-performance-list dt > span.lost { background: #ef1734 !important; }
+.app .light-dashboard-shell .cb-ticket-performance-list dt > span.pending { background: #ffad17 !important; }
+.app .light-dashboard-shell .cb-ticket-performance { display: grid !important; grid-template-columns: 104px minmax(0, 1fr) !important; align-items: center !important; gap: 16px !important; }
+.app .light-dashboard-shell .cb-ticket-donut {
+    width: 96px !important; height: 96px !important; border-radius: 999px !important; position: relative !important;
+    background: conic-gradient(#08a64f 0 var(--won), #ef1734 var(--won) var(--lost), #ffad17 var(--lost) var(--pending), #9aa8bd var(--pending) 100%) !important;
+}
+.app .light-dashboard-shell .cb-ticket-donut::after { content: "" !important; position: absolute !important; inset: 20px !important; border-radius: inherit !important; background: #fff !important; }
+.app .light-dashboard-shell .cb-ticket-performance ul { display: grid !important; gap: 8px !important; margin: 0 !important; padding: 0 !important; list-style: none !important; }
+.app .light-dashboard-shell .cb-ticket-performance li { display: grid !important; grid-template-columns: 8px 1fr !important; gap: 2px 7px !important; color: #52627d !important; font-size: .68rem !important; font-weight: 800 !important; }
+.app .light-dashboard-shell .cb-ticket-performance li > span { width: 8px !important; height: 8px !important; margin-top: 2px !important; border-radius: 999px !important; background: #9aa8bd !important; }
+.app .light-dashboard-shell .cb-ticket-performance li.won > span { background: #08a64f !important; }
+.app .light-dashboard-shell .cb-ticket-performance li.lost > span { background: #ef1734 !important; }
+.app .light-dashboard-shell .cb-ticket-performance li.pending > span { background: #ffad17 !important; }
+.app .light-dashboard-shell .cb-ticket-performance li strong { grid-column: 2 !important; color: #071332 !important; font-size: .66rem !important; }
+.app .light-dashboard-shell .cb-ticket-best-house { display: grid !important; grid-template-columns: 40px minmax(0, 1fr) auto auto !important; align-items: center !important; gap: 10px !important; }
+.app .light-dashboard-shell .cb-ticket-best-house > span { color: #52627d !important; font-size: .7rem !important; font-weight: 850 !important; }
+.app .light-dashboard-shell .cb-ticket-best-house > div { display: grid !important; gap: 3px !important; }
+.app .light-dashboard-shell .cb-ticket-best-house small { color: #60708a !important; font-size: .65rem !important; font-weight: 800 !important; }
+.app .light-dashboard-shell .cb-ticket-best-house strong { color: #08a64f !important; font-size: .82rem !important; font-weight: 950 !important; }
+.app .light-dashboard-shell .cb-ticket-quick-actions { height: 113.48px !important; box-sizing: border-box !important; }
+.app .light-dashboard-shell .cb-ticket-quick-actions > div { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+.app .light-dashboard-shell .cb-ticket-quick-actions button { min-height: 36px !important; border: 1px solid #dfe6f0 !important; border-radius: 9px !important; background: #fff !important; color: #172746 !important; font-size: .68rem !important; font-weight: 850 !important; }
+.app .light-dashboard-shell .cb-ticket-quick-actions button:last-child { grid-column: auto !important; justify-self: stretch !important; padding: 0 !important; }
+@media (max-width: 1180px) {
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .app .light-dashboard-shell .cb-tickets-day-layout { grid-template-columns: 1fr !important; }
+    .app .light-dashboard-shell .cb-ticket-day-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar,
+    .app .light-dashboard-shell .cb-ticket-day-sidebar { grid-template-columns: 1fr !important; }
+}
+
+/* Novo bilhete: two-column reference composition. */
+.app .light-dashboard-shell .submenu-ticket-form-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: grid !important;
+    gap: 16px !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-header {
+    min-height: 64px !important;
+    margin: 0 !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-icon {
+    width: 64px !important;
+    height: 64px !important;
+    border-radius: 16px !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-header h1 {
+    font-size: 2rem !important;
+    line-height: 1.05 !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-header p {
+    margin-top: 8px !important;
+    font-size: 0.98rem !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form,
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-flow-layout {
+    margin: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-flow-layout {
+    display: grid !important;
+    grid-template-columns: 546px minmax(330px, 1fr) !important;
+    gap: 20px !important;
+    align-items: start !important;
+}
+
+.app .light-dashboard-shell .reference-ticket-entry-card {
+    width: 546px !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    align-content: start !important;
+    border: 1px solid #dde5ef !important;
+    border-radius: 14px !important;
+    padding: 22px 30px 28px !important;
+    background: #ffffff !important;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.045) !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 22px 28px !important;
+    align-content: start !important;
+    align-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > label,
+.app .light-dashboard-shell .ticket-reference-fields > .ticket-form-calendar-field {
+    grid-column: span 2 !important;
+    min-width: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > .ticket-form-calendar-field {
+    width: calc(100% - 6px) !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > .reference-date-field {
+    width: 138px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > .reference-date-field .reference-calendar-picker,
+.app .light-dashboard-shell .ticket-reference-fields > .reference-date-field .reference-date-trigger {
+    width: 100% !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > .reference-date-field .reference-date-trigger {
+    height: 38px !important;
+    min-height: 38px !important;
+    margin-top: 7px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-stake-field,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-return-field {
+    grid-column: span 3 !important;
+    width: 50% !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-stake-field {
+    justify-self: end !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-return-field {
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > label:nth-of-type(5),
+.app .light-dashboard-shell .ticket-reference-fields > label:nth-of-type(6) {
+    grid-column: span 3 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields label,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-form-calendar-field > label {
+    gap: 0 !important;
+    color: #253a5b !important;
+    font-size: 0.84rem !important;
+    font-weight: 850 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields input,
+.app .light-dashboard-shell .ticket-reference-fields select,
+.app .light-dashboard-shell .ticket-reference-fields .reference-selector-surface {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    margin-top: 7px !important;
+    border: 1px solid #ccd8e8 !important;
+    border-radius: 9px !important;
+    padding: 0 16px !important;
+    background: #ffffff !important;
+    color: #12213e !important;
+    font-size: 0.94rem !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields input[readonly] {
+    background: #fbfcfe !important;
+    color: #60708a !important;
+}
+
+.app .light-dashboard-shell .ticket-description-field {
+    position: relative !important;
+    grid-column: 1 / -1 !important;
+}
+
+.app .light-dashboard-shell .ticket-description-field small {
+    color: #64748b !important;
+    font-weight: 650 !important;
+}
+
+.app .light-dashboard-shell .ticket-description-label {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+}
+
+.app .light-dashboard-shell .ticket-description-field textarea {
+    width: 100% !important;
+    height: 120px !important;
+    min-height: 120px !important;
+    margin-top: 7px !important;
+    border: 1px solid #ccd8e8 !important;
+    border-radius: 9px !important;
+    padding: 18px 16px 32px !important;
+    color: #253a5b !important;
+    font: inherit !important;
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+    resize: vertical !important;
+}
+
+.app .light-dashboard-shell .ticket-description-field > em {
+    position: absolute !important;
+    right: 14px !important;
+    bottom: 12px !important;
+    color: #60708a !important;
+    font-size: 0.74rem !important;
+    font-style: normal !important;
+    font-weight: 700 !important;
+}
+
+.app .light-dashboard-shell .ticket-calculation-note {
+    grid-column: 1 / -1 !important;
+    min-height: 66px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    border: 1px solid #bdd8ff !important;
+    border-radius: 9px !important;
+    padding: 12px 16px !important;
+    background: #f7fbff !important;
+    color: #405678 !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+}
+
+.app .light-dashboard-shell .ticket-calculation-note > span {
+    width: 18px !important;
+    height: 18px !important;
+    display: grid !important;
+    flex: 0 0 18px !important;
+    place-items: center !important;
+    border: 2px solid #357cf5 !important;
+    border-radius: 999px !important;
+    color: #357cf5 !important;
+    font-size: 0.68rem !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary {
+    position: sticky !important;
+    top: 22px !important;
+    min-height: 0 !important;
+    align-content: start !important;
+    border: 1px solid #ffcbd2 !important;
+    border-radius: 14px !important;
+    padding: 0 20px 20px !important;
+    background: linear-gradient(180deg, #fff8f9 0%, #ffffff 68%) !important;
+    overflow: hidden !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary > header {
+    min-height: 70px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 0 -20px 16px !important;
+    border-bottom: 1px solid #ffd8de !important;
+    padding: 0 20px !important;
+    color: #ef1734 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary > header > span {
+    width: 36px !important;
+    height: 36px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 9px !important;
+    background: #ffe9ed !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary > header svg {
+    width: 19px !important;
+    height: 19px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary > header strong {
+    color: #ef1734 !important;
+    font-size: 0.94rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 0 12px !important;
+    margin: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list > div {
+    position: relative !important;
+    min-height: 70px !important;
+    display: grid !important;
+    align-content: center !important;
+    gap: 5px !important;
+    border: 1px solid #e0e7f0 !important;
+    border-radius: 10px !important;
+    padding: 12px 58px 12px 16px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list dt {
+    color: #52627d !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list dd {
+    margin: 0 !important;
+    color: #081634 !important;
+    font-size: 1rem !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list > div > span {
+    position: absolute !important;
+    top: 50% !important;
+    right: 14px !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    background: #f7f9fc !important;
+    color: #667791 !important;
+    font-size: 1rem !important;
+    font-weight: 900 !important;
+    transform: translateY(-50%) !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list .profit dt,
+.app .light-dashboard-shell .ticket-reference-summary-list .profit dd,
+.app .light-dashboard-shell .ticket-reference-summary-list .profit > span {
+    color: #0aad60 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list .profit > span {
+    background: #edf9f3 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin-top: 18px !important;
+}
+
+.app .light-dashboard-shell .reference-ticket-entry-card > .ticket-reference-actions {
+    margin-top: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-actions button {
+    width: 100% !important;
+    min-height: 54px !important;
+    border-radius: 9px !important;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-actions .submenu-primary-button {
+    border-color: #ef0b32 !important;
+    background: #ef0b32 !important;
+    color: #ffffff !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-actions .submenu-secondary-button {
+    border: 1px solid #e0e5ec !important;
+    background: #f7f8fa !important;
+    color: #52627d !important;
+}
+
+@media (max-width: 1180px) {
+    .app .light-dashboard-shell .ticket-reference-form .reference-ticket-flow-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary {
+        position: static !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .ticket-reference-actions {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-summary-list {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields > label,
+    .app .light-dashboard-shell .ticket-reference-fields > .ticket-form-calendar-field {
+        grid-column: auto !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields > .ticket-form-calendar-field {
+        width: 100% !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields > .reference-date-field {
+        width: 100% !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-stake-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-return-field {
+        width: 100% !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-house-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-house-field {
+    width: 169px !important;
+    min-width: 169px !important;
+    max-width: 169px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-odd-field {
+    width: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-origin-field {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-balance-value-field,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-bonus-value-field {
+    width: 122px !important;
+    min-width: 122px !important;
+    max-width: 122px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    gap: 22px 28px !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout.result-description-inline {
+    grid-template-columns: 185px minmax(0, 1fr) !important;
+    align-items: start !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-result-row {
+    grid-column: 1 !important;
+    width: 185px !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-description-field {
+    grid-column: 2 !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout.has-stake-split {
+    grid-template-columns: 1fr !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-result-row {
+    grid-column: 1 / -1 !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: end !important;
+    gap: 28px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-result-field {
+    width: 185px !important;
+    min-width: 185px !important;
+    max-width: 185px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    align-items: end !important;
+    gap: 28px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    align-items: end !important;
+    gap: 28px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row .reference-date-field {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    margin: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row .reference-calendar-picker,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row .reference-date-trigger {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row .ticket-stake-field,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row .ticket-return-field {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+}
+
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-house-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-odd-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-origin-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-balance-value-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-bonus-value-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-result-row {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-result-row,
+    .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-description-field {
+        grid-column: 1 !important;
+        width: 100% !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-result-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row .ticket-stake-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row .ticket-return-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+}
+
+/* Exact shared date-card size: Dashboard and Novo bilhete. */
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-calendar-picker,
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-date-trigger {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    box-sizing: border-box !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-date-trigger {
+    padding: 0 16px !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-selector-value {
+    font-size: 0.94rem !important;
+    line-height: 1.1 !important;
+    font-weight: 850 !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-calendar-icon {
+    width: 17px !important;
+    height: 17px !important;
+    flex: 0 0 17px !important;
 }
 
 /* Keep the house actions menu inside the carousel's visible scroll area. */

@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 import { supabase } from "../supabase";
+import { useAuth } from "../auth/AuthContext";
 
 const passwordRequirements = [
     {
@@ -74,6 +75,7 @@ function getProfileAvailabilityErrorMessage(error) {
 
 export default function RegisterPage({ landingTheme }) {
     const navigate = useNavigate();
+    const { refreshSession } = useAuth();
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [username, setUsername] = useState("");
@@ -339,6 +341,16 @@ export default function RegisterPage({ landingTheme }) {
         }
 
         if (data.session) {
+            const { error: sessionError } = await refreshSession();
+
+            if (sessionError) {
+                setFeedback({
+                    type: "error",
+                    message: "Não foi possível confirmar sua sessão. Tente entrar novamente.",
+                });
+                return;
+            }
+
             navigate("/dashboard");
             return;
         }
@@ -454,7 +466,7 @@ export default function RegisterPage({ landingTheme }) {
                                 E-mail
                                 <input
                                     type="email"
-                                    placeholder="voce@email.com"
+                                    placeholder="seu@email.com"
                                     autoComplete="email"
                                     value={email}
                                     onChange={(event) => setEmail(event.target.value)}
