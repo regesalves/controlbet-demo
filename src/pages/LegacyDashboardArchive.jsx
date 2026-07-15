@@ -1518,7 +1518,7 @@ const LEGACY_DASHBOARD_ARCHIVE = String.raw`            {SHOW_LEGACY && (
                         <span className="bottom-action-icon" aria-hidden="true">NB</span>
                         <span className="bottom-action-copy">
                             <span className="bottom-action-label">Novo bilhete</span>
-                            <small>Registre uma aposta com stake, odd e retorno.</small>
+                            <small>Registre uma aposta com valor, odd e retorno.</small>
                         </span>
                         <strong className="bottom-action-indicator">{activeBottomPanel === "ticket" ? "-" : "+"}</strong>
                     </button>
@@ -2732,7 +2732,7 @@ const LEGACY_DASHBOARD_ARCHIVE = String.raw`            {SHOW_LEGACY && (
                                         </div>
                                         {selectedStakeFields.length > 0 && (
                                             <>
-                                                <div className="split-title">Divisão da stake</div>
+                                                <div className="split-title">Divisão do valor</div>
 
                                                 <div className="form-row">
                                                     {selectedStakeFields.map((field) => (
@@ -2761,7 +2761,7 @@ const LEGACY_DASHBOARD_ARCHIVE = String.raw`            {SHOW_LEGACY && (
                                         )}
                                         <div className="form-row">
                                             <div className="field-group">
-                                                <label>Origem da stake</label>
+                                                <label>Origem do valor apostado</label>
                                                 <select
                                                     value={ticketForm.origemStake}
                                                     onChange={(e) =>

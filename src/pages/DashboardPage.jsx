@@ -6,6 +6,7 @@ import { supabase } from "../supabase";
 import { useAuth } from "../auth/AuthContext";
 import { exportTicketsToPdf } from "../utils/ticketPdfExport";
 import { exportTicketsToExcel } from "../utils/ticketExcelExport";
+import { exportMovementsToExcel, exportMovementsToPdf } from "../utils/movementExport";
 import {
     AppShell as DesignAppShell,
     MetricCard as DesignMetricCard,
@@ -190,7 +191,7 @@ function getAnalyticsDateLabel(dateISO, periodType) {
     return getShortDateLabel(dateISO);
 }
 
-function getCompactResultLabel(dateISO, periodType) {
+export function getCompactResultLabel(dateISO, periodType) {
     if (!dateISO) return "";
     if (periodType === "Anual") return getAnalyticsDateLabel(dateISO, periodType);
 
@@ -639,7 +640,10 @@ function getInitialCalendarView(periodType) {
 
 function ReferenceDatePicker({ label = "Data", value, onChange, dayMarkers = {} }) {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [calendarPosition, setCalendarPosition] = useState(null);
     const pickerRef = useRef(null);
+    const triggerRef = useRef(null);
+    const popoverRef = useRef(null);
     const selectedDate = isoToDate(value);
     const hasMarkers = Object.keys(dayMarkers).length > 0;
 
@@ -648,11 +652,64 @@ function ReferenceDatePicker({ label = "Data", value, onChange, dayMarkers = {} 
 
         function handleOutsideClick(event) {
             if (pickerRef.current?.contains(event.target)) return;
+            if (popoverRef.current?.contains(event.target)) return;
             setIsCalendarOpen(false);
         }
 
         document.addEventListener("mousedown", handleOutsideClick);
         return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }, [isCalendarOpen]);
+
+    useEffect(() => {
+        if (!isCalendarOpen) return undefined;
+
+        let animationFrameId = null;
+
+        function updateCalendarPosition() {
+            if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(() => {
+                const trigger = triggerRef.current;
+                const popover = popoverRef.current;
+                if (!trigger || !popover) return;
+
+                const triggerRect = trigger.getBoundingClientRect();
+                const popoverWidth = popover.offsetWidth;
+                const popoverHeight = popover.offsetHeight;
+                const availableBelow = window.innerHeight - triggerRect.bottom;
+                const availableAbove = triggerRect.top;
+                const openBelow = popoverHeight <= availableBelow || availableBelow >= availableAbove;
+                const preferredTop = openBelow
+                    ? triggerRect.bottom
+                    : triggerRect.top - popoverHeight;
+                const maximumLeft = Math.max(0, window.innerWidth - popoverWidth);
+                const maximumTop = Math.max(0, window.innerHeight - popoverHeight);
+                const nextPosition = {
+                    top: Math.max(0, Math.min(preferredTop, maximumTop)),
+                    left: Math.max(0, Math.min(triggerRect.left, maximumLeft)),
+                };
+
+                setCalendarPosition((current) =>
+                    current?.top === nextPosition.top && current?.left === nextPosition.left
+                        ? current
+                        : nextPosition
+                );
+            });
+        }
+
+        const resizeObserver = new ResizeObserver(updateCalendarPosition);
+        if (triggerRef.current) resizeObserver.observe(triggerRef.current);
+        if (popoverRef.current) resizeObserver.observe(popoverRef.current);
+
+        updateCalendarPosition();
+        window.addEventListener("resize", updateCalendarPosition);
+        window.addEventListener("scroll", updateCalendarPosition, true);
+
+        return () => {
+            if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+            resizeObserver.disconnect();
+            window.removeEventListener("resize", updateCalendarPosition);
+            window.removeEventListener("scroll", updateCalendarPosition, true);
+        };
     }, [isCalendarOpen]);
 
     function handleDaySelect(date) {
@@ -667,17 +724,29 @@ function ReferenceDatePicker({ label = "Data", value, onChange, dayMarkers = {} 
             <span>{label}</span>
             <div className="reference-calendar-picker" ref={pickerRef}>
                 <button
+                    ref={triggerRef}
                     type="button"
                     className="reference-selector-surface reference-date-trigger"
-                    onClick={() => setIsCalendarOpen((current) => !current)}
+                    onClick={() => {
+                        if (!isCalendarOpen) setCalendarPosition(null);
+                        setIsCalendarOpen((current) => !current);
+                    }}
                     aria-expanded={isCalendarOpen}
                 >
                     <strong className="reference-selector-value">{value ? formatDateBR(value) : "Selecionar"}</strong>
                     <CalendarIcon />
                 </button>
 
-                {isCalendarOpen && (
-                    <div className="reference-calendar-popover reference-form-calendar-popover">
+                {isCalendarOpen && createPortal(
+                    <div
+                        ref={popoverRef}
+                        className="reference-calendar-popover reference-form-calendar-popover reference-calendar-popover-portal"
+                        style={{
+                            "--calendar-anchor-top": `${calendarPosition?.top ?? 0}px`,
+                            "--calendar-anchor-left": `${calendarPosition?.left ?? 0}px`,
+                            visibility: calendarPosition ? "visible" : "hidden",
+                        }}
+                    >
                         <DayPicker
                             mode="single"
                             selected={selectedDate}
@@ -700,7 +769,8 @@ function ReferenceDatePicker({ label = "Data", value, onChange, dayMarkers = {} 
                                 <span><i className="both" /> Ambos</span>
                             </div>
                         )}
-                    </div>
+                    </div>,
+                    document.body
                 )}
             </div>
         </label>
@@ -711,7 +781,10 @@ export function PeriodFields({ dayMarkers = {}, onPeriodReferenceChange, onPerio
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [calendarView, setCalendarView] = useState("day");
     const [drillDate, setDrillDate] = useState(() => isoToDate(periodReference) || isoToDate(hojeISO()));
+    const [calendarPosition, setCalendarPosition] = useState(null);
     const pickerRef = useRef(null);
+    const triggerRef = useRef(null);
+    const popoverRef = useRef(null);
     const selectedDate = isoToDate(periodReference);
     const todayISO = hojeISO();
     const currentDrillDate = drillDate || selectedDate || isoToDate(hojeISO());
@@ -723,11 +796,55 @@ export function PeriodFields({ dayMarkers = {}, onPeriodReferenceChange, onPerio
 
         function handleOutsideClick(event) {
             if (pickerRef.current?.contains(event.target)) return;
+            if (popoverRef.current?.contains(event.target)) return;
             setIsCalendarOpen(false);
         }
 
         document.addEventListener("mousedown", handleOutsideClick);
         return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }, [isCalendarOpen]);
+
+    useEffect(() => {
+        if (!isCalendarOpen) return undefined;
+
+        let animationFrameId = null;
+
+        function updateCalendarPosition() {
+            if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(() => {
+                const trigger = triggerRef.current;
+                const popover = popoverRef.current;
+                if (!trigger || !popover) return;
+
+                const triggerRect = trigger.getBoundingClientRect();
+                const maximumLeft = Math.max(0, window.innerWidth - popover.offsetWidth);
+                const nextPosition = {
+                    top: triggerRect.bottom,
+                    left: Math.max(0, Math.min(triggerRect.left, maximumLeft)),
+                };
+
+                setCalendarPosition((current) =>
+                    current?.top === nextPosition.top && current?.left === nextPosition.left
+                        ? current
+                        : nextPosition
+                );
+            });
+        }
+
+        const resizeObserver = new ResizeObserver(updateCalendarPosition);
+        if (triggerRef.current) resizeObserver.observe(triggerRef.current);
+        if (popoverRef.current) resizeObserver.observe(popoverRef.current);
+
+        updateCalendarPosition();
+        window.addEventListener("resize", updateCalendarPosition);
+        window.addEventListener("scroll", updateCalendarPosition, true);
+
+        return () => {
+            if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+            resizeObserver.disconnect();
+            window.removeEventListener("resize", updateCalendarPosition);
+            window.removeEventListener("scroll", updateCalendarPosition, true);
+        };
     }, [isCalendarOpen]);
 
     function getReferenceDisplayValue() {
@@ -758,6 +875,7 @@ export function PeriodFields({ dayMarkers = {}, onPeriodReferenceChange, onPerio
 
     function handleCalendarTriggerClick() {
         if (!isCalendarOpen) {
+            setCalendarPosition(null);
             setCalendarView(getInitialCalendarView(periodType));
             setDrillDate(isoToDate(periodReference) || isoToDate(hojeISO()));
         }
@@ -872,6 +990,7 @@ export function PeriodFields({ dayMarkers = {}, onPeriodReferenceChange, onPerio
                 <span>Referência</span>
                 <div className="reference-calendar-picker" ref={pickerRef}>
                     <button
+                        ref={triggerRef}
                         type="button"
                         className="reference-selector-surface"
                         disabled={periodType === "Geral"}
@@ -882,8 +1001,16 @@ export function PeriodFields({ dayMarkers = {}, onPeriodReferenceChange, onPerio
                         <CalendarIcon />
                     </button>
 
-                    {isCalendarOpen && (
-                        <div className="reference-calendar-popover">
+                    {isCalendarOpen && createPortal(
+                        <div
+                            ref={popoverRef}
+                            className="reference-calendar-popover reference-calendar-popover-portal"
+                            style={{
+                                "--calendar-anchor-top": `${calendarPosition?.top ?? 0}px`,
+                                "--calendar-anchor-left": `${calendarPosition?.left ?? 0}px`,
+                                visibility: calendarPosition ? "visible" : "hidden",
+                            }}
+                        >
                             {calendarView === "year" && renderYearView()}
                             {calendarView === "month" && renderMonthView()}
                             {calendarView === "day" && renderDayView()}
@@ -894,7 +1021,8 @@ export function PeriodFields({ dayMarkers = {}, onPeriodReferenceChange, onPerio
                                     <span><i className="both" /> Ambos</span>
                                 </div>
                             )}
-                        </div>
+                        </div>,
+                        document.body
                     )}
                 </div>
             </label>
@@ -3669,10 +3797,19 @@ function RefinedMovementPanel({ feedback, houses, isSaving, movementForm, setMov
     const impact = selectedType === "Saque" ? -safeMovementValue : safeMovementValue;
     const impactTone = selectedType === "Saque" ? "negative" : selectedType === "Ajuste" ? "adjustment" : "positive";
     const selectedHouse = houses.find((house) => Number(house.id) === Number(movementForm.casaId));
+    const currentHouseBalance = Number(selectedHouse?.bancaAtual ?? selectedHouse?.bancaInicial ?? 0);
+    const balanceAfterMovement = currentHouseBalance + impact;
+    const isMovementFormComplete = Boolean(
+        movementForm.casaId &&
+        movementForm.tipo &&
+        Number.isFinite(movementValue)
+    );
+    const descriptionPlaceholder = selectedType === "Saque"
+        ? "Ex.: Saque para conta bancária."
+        : "Ex.: Depósito realizado via PIX.";
     const movementTypes = [
         { type: "Depósito", icon: "bank", title: "Depósito", text: "Entrada na banca.", tone: "deposit" },
         { type: "Saque", icon: "sync", title: "Saque", text: "Saída da banca.", tone: "withdraw" },
-        { type: "Ajuste", icon: "chart", title: "Ajuste", text: "Correção manual.", tone: "adjustment" },
     ];
 
     return (
@@ -3680,7 +3817,7 @@ function RefinedMovementPanel({ feedback, houses, isSaving, movementForm, setMov
             <ReferencePageHeader
                 icon="sync"
                 title={editingMovementId ? "Editar movimentação" : "Nova movimentação"}
-                subtitle="Registre depósitos, saques e ajustes da sua banca."
+                subtitle={editingMovementId ? "Atualize as informações da movimentação." : "Registre depósitos e saques da sua banca."}
             />
             {feedback.message && (
                 <div className={`reference-operation-feedback ${feedback.type}`} role="status">
@@ -3688,80 +3825,95 @@ function RefinedMovementPanel({ feedback, houses, isSaving, movementForm, setMov
                 </div>
             )}
             <form className="reference-form-page refined-movement-form" onSubmit={onSubmit}>
-                <section className="reference-form-card refined-movement-type-card">
-                    <header>
-                        <h2>Tipo de movimentação</h2>
-                        <p>Escolha como essa movimentação impacta seu saldo.</p>
-                    </header>
-                    <div className="reference-choice-grid refined-movement-choice-grid">
-                        {movementTypes.map((item) => (
-                            <button
-                                type="button"
-                                key={item.type}
-                                className={`reference-choice-card refined-movement-choice ${item.tone} ${selectedType === item.type ? "active" : ""}`}
-                                onClick={() => setMovementForm((prev) => ({ ...prev, tipo: item.type }))}
-                            >
-                                <span aria-hidden="true"><SidebarIcon type={item.icon} /></span>
-                                <strong>{item.title}</strong>
-                                <small>{item.text}</small>
-                            </button>
-                        ))}
-                    </div>
-                </section>
-
                 <div className="refined-movement-layout">
+                    <section className="reference-form-card refined-movement-type-card">
+                        <header>
+                            <h2>Tipo de movimentação</h2>
+                        </header>
+                        <div className="reference-choice-grid refined-movement-choice-grid">
+                            {movementTypes.map((item) => (
+                                <button
+                                    type="button"
+                                    key={item.type}
+                                    className={`reference-choice-card refined-movement-choice ${item.tone} ${selectedType === item.type ? "active" : ""}`}
+                                    onClick={() => setMovementForm((prev) => ({ ...prev, tipo: item.type }))}
+                                >
+                                    <span aria-hidden="true"><SidebarIcon type={item.icon} /></span>
+                                    <strong>{item.title}</strong>
+                                    <small>{item.text}</small>
+                                </button>
+                            ))}
+                        </div>
+                    </section>
+
                     <section className="reference-form-card refined-movement-fields-card">
                         <header>
                             <h2>Dados da movimentação</h2>
-                            <p>Preencha as informações essenciais do lançamento.</p>
                         </header>
                         <div className="reference-form-grid refined-movement-fields-grid">
                             <ReferenceDatePicker value={movementForm.data} onChange={(date) => setMovementForm((prev) => ({ ...prev, data: date }))} />
                             <label>Casa<select value={movementForm.casaId} onChange={(event) => setMovementForm((prev) => ({ ...prev, casaId: event.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
                             <label>Valor<input value={movementForm.valor} inputMode="numeric" onChange={(event) => setMovementForm((prev) => ({ ...prev, valor: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
-                            <label>Método<select value={movementForm.metodo || "PIX"} onChange={(event) => setMovementForm((prev) => ({ ...prev, metodo: event.target.value }))}><option>PIX</option><option>Cartão</option><option>Transferência</option><option>Boleto</option><option>Outro</option></select></label>
-                            <label className="wide reference-textarea-field">Descrição<textarea rows="4" value={movementForm.observacoes} onChange={(event) => setMovementForm((prev) => ({ ...prev, observacoes: event.target.value }))} placeholder="Ex.: Depósito via PIX" /></label>
+                            <div className="wide movement-description-actions">
+                                <label className="reference-textarea-field">Descrição<textarea rows="4" value={movementForm.observacoes} onChange={(event) => setMovementForm((prev) => ({ ...prev, observacoes: event.target.value }))} placeholder={descriptionPlaceholder} /></label>
+                                <div className="reference-form-actions refined-movement-actions movement-inline-actions">
+                                    <button type="submit" className="submenu-primary-button" disabled={isSaving || !isMovementFormComplete}>{isSaving ? "Salvando..." : editingMovementId ? "Salvar movimentação" : "Adicionar movimentação"}</button>
+                                    <button type="button" className="submenu-secondary-button" onClick={() => setMovementForm(initialMovementForm)}>Limpar campos</button>
+                                </div>
+                            </div>
                         </div>
                     </section>
 
-                    <aside className={`reference-movement-summary-box refined-movement-summary ${impactTone}`}>
-                        <strong>Resumo do impacto</strong>
-                        <dl>
-                            <div>
-                                <dt>Tipo</dt>
-                                <dd><span className={`movement-type-badge ${impactTone}`}>{selectedType === "Depósito" ? "Depósito" : selectedType}</span></dd>
-                            </div>
-                            <div>
-                                <dt>Casa</dt>
-                                <dd>{selectedHouse?.nome || "Selecione"}</dd>
-                            </div>
-                            <div>
-                                <dt>Valor</dt>
-                                <dd>{formatMoney(safeMovementValue)}</dd>
-                            </div>
-                            <div>
-                                <dt>Impacto no saldo</dt>
-                                <dd className={impact >= 0 ? "positive" : "negative"}>{formatSignedMoney(impact)}</dd>
-                            </div>
-                        </dl>
-                    </aside>
-                </div>
+                    {!editingMovementId && (
+                        <aside className={`reference-movement-summary-box refined-movement-summary ${impactTone}`}>
+                            <strong>Resumo da movimentação</strong>
+                            <dl>
+                                <div className="movement-summary-item">
+                                    <span className="movement-summary-icon" aria-hidden="true"><SidebarIcon type="sync" /></span>
+                                    <dt>Tipo</dt>
+                                    <dd><span className={`movement-type-badge ${impactTone}`}>{selectedType === "Depósito" ? "Depósito" : selectedType}</span></dd>
+                                </div>
+                                <div className="movement-summary-item">
+                                    <span className="movement-summary-icon" aria-hidden="true"><SidebarIcon type="bank" /></span>
+                                    <dt>Casa</dt>
+                                    <dd>{selectedHouse?.nome || "Selecione"}</dd>
+                                </div>
+                                <div className="movement-summary-item">
+                                    <span className="movement-summary-icon" aria-hidden="true"><SidebarIcon type="bank" /></span>
+                                    <dt>Saldo atual</dt>
+                                    <dd>{selectedHouse ? formatMoney(currentHouseBalance) : "—"}</dd>
+                                </div>
+                                <div className="movement-summary-item">
+                                    <span className="movement-summary-icon" aria-hidden="true"><SidebarIcon type="sync" /></span>
+                                    <dt>Movimentação</dt>
+                                    <dd className={impact >= 0 ? "positive" : "negative"}>{formatSignedMoney(impact)}</dd>
+                                </div>
+                                <div className="movement-summary-item">
+                                    <span className="movement-summary-icon" aria-hidden="true"><SidebarIcon type="chart" /></span>
+                                    <dt>Saldo após movimentação</dt>
+                                    <dd className={balanceAfterMovement >= 0 ? "positive" : "negative"}>
+                                        {selectedHouse ? formatMoney(balanceAfterMovement) : "Selecione uma casa"}
+                                    </dd>
+                                </div>
+                            </dl>
+                        </aside>
+                    )}
 
-                <div className="reference-form-actions refined-movement-actions">
-                    <button type="button" className="submenu-secondary-button" onClick={() => setMovementForm(initialMovementForm)}>Limpar campos</button>
-                    <button type="submit" className="submenu-primary-button" disabled={isSaving}>{isSaving ? "Salvando..." : editingMovementId ? "Salvar movimentação" : "Adicionar movimentação"}</button>
                 </div>
             </form>
         </section>
     );
 }
 
-function RefinedStatementPanel({ deletingMovementId, feedback, movements, houses, onEdit, onDelete }) {
+function RefinedStatementPanel({ deletingMovementId, editingMovementId, feedback, isSaving, movements, houses, onCancelEdit, onEdit, onDelete, onSubmitEdit, movementForm, setMovementForm }) {
     const [movementTypeFilter, setMovementTypeFilter] = useState("all");
     const [movementPeriodType, setMovementPeriodType] = useState("Diário");
     const [movementPeriodReference, setMovementPeriodReference] = useState(hojeISO());
     const [movementHouseFilter, setMovementHouseFilter] = useState("all");
     const [openMovementMenuId, setOpenMovementMenuId] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 7;
     const movementReferences = useMemo(
         () => getAvailablePeriodReferencesForDates(movementPeriodType, movements.map((movement) => movement.data)),
         [movementPeriodType, movements]
@@ -3785,10 +3937,15 @@ function RefinedStatementPanel({ deletingMovementId, feedback, movements, houses
             (movement.data >= movementInterval.start && movement.data <= movementInterval.end);
         return matchesType && matchesPeriod && movementMatchesHouse(movement);
     });
-    const visibleMovements = [...filteredMovements].sort((a, b) => {
+    const orderedMovements = [...filteredMovements].sort((a, b) => {
         if (a.data !== b.data) return String(b.data || "").localeCompare(String(a.data || ""));
         return Number(b.id || 0) - Number(a.id || 0);
     });
+    const totalPages = Math.max(1, Math.ceil(orderedMovements.length / pageSize));
+    const effectiveCurrentPage = Math.min(currentPage, totalPages);
+    const visibleMovements = orderedMovements.slice((effectiveCurrentPage - 1) * pageSize, effectiveCurrentPage * pageSize);
+    const firstVisibleItem = orderedMovements.length === 0 ? 0 : (effectiveCurrentPage - 1) * pageSize + 1;
+    const lastVisibleItem = Math.min(orderedMovements.length, effectiveCurrentPage * pageSize);
     const scopeHouses = movementHouseFilter === "all"
         ? houses
         : houses.filter((house) => Number(house.id) === Number(movementHouseFilter));
@@ -3821,6 +3978,25 @@ function RefinedStatementPanel({ deletingMovementId, feedback, movements, houses
             })
             .reduce((sum, item) => sum + Number(item.valor || 0) * movementSignal(item.tipo), 0);
     };
+    const selectedMovementHouseLabel = movementHouseFilter === "all"
+        ? "Todas as casas"
+        : houses.find((house) => Number(house.id) === Number(movementHouseFilter))?.nome || "Casa selecionada";
+    const selectedMovementTypeLabel = movementTypeFilter === "all" ? "Todos os tipos" : movementTypeFilter;
+    const movementExportFilters = {
+        houseLabel: selectedMovementHouseLabel,
+        typeLabel: selectedMovementTypeLabel,
+        periodType: movementPeriodType,
+        reference: effectiveMovementPeriodReference,
+    };
+    const exportableMovements = orderedMovements.map((movement) => ({
+        ...movement,
+        balanceAfter: getBalanceAfterMovement(movement),
+    }));
+    const ensureMovementsToExport = () => {
+        if (exportableMovements.length > 0) return true;
+        window.alert("Não existem movimentações para exportar no período selecionado.");
+        return false;
+    };
     const getMovementTone = (type) => type === "Saque" ? "withdraw" : type === "Ajuste" ? "adjustment" : "deposit";
     const getMovementLabel = (type) => type === "Depósito" ? "Depósito" : type;
 
@@ -3836,103 +4012,160 @@ function RefinedStatementPanel({ deletingMovementId, feedback, movements, houses
         return () => document.removeEventListener("mousedown", handleOutsideClick);
     }, [openMovementMenuId]);
 
+    useEffect(() => {
+        if (editingMovementId === null) setIsEditModalOpen(false);
+    }, [editingMovementId]);
+
     return (
-        <section className="submenu-page submenu-statement-page refined-statement-page">
+        <section className="submenu-page submenu-statement-page refined-statement-page cb-tickets-day-page cb-movement-statement-page">
             <ReferencePageHeader
                 icon="sync"
-                title="Extrato"
-                subtitle="Acompanhe entradas, saídas e ajustes da sua banca."
+                title="Extrato de movimentações"
+                subtitle="Acompanhe as movimentações registradas no período selecionado."
             />
             {feedback.message && (
                 <div className={`reference-operation-feedback ${feedback.type}`} role="status">
                     {feedback.message}
                 </div>
             )}
-            <div className="reference-local-filters reference-filter-bar refined-statement-toolbar">
-                <label className="reference-period">
-                    <span>Casa</span>
-                    <select value={movementHouseFilter} onChange={(event) => setMovementHouseFilter(event.target.value)}>
-                        <option value="all">Todas as casas</option>
-                        {houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}
-                    </select>
-                </label>
-                <label className="reference-period">
-                    <span>Tipo</span>
-                    <select value={movementTypeFilter} onChange={(event) => setMovementTypeFilter(event.target.value)}>
-                        <option value="all">Todos os tipos</option>
-                        <option value="Depósito">Depósito</option>
-                        <option value="Saque">Saque</option>
-                        <option value="Ajuste">Ajuste</option>
-                    </select>
-                </label>
-                <PeriodFields
-                    dayMarkers={buildDayMarkers([], movements)}
-                    onPeriodReferenceChange={setMovementPeriodReference}
-                    onPeriodTypeChange={(nextType) => {
-                        setMovementPeriodType(nextType);
-                        setMovementPeriodReference(nextType === "Geral" ? "" : getAvailablePeriodReferencesForDates(nextType, movements.map((movement) => movement.data))[0] || "");
-                    }}
-                    periodReference={effectiveMovementPeriodReference}
-                    periodType={movementPeriodType}
-                />
-            </div>
-            <div className="submenu-metric-grid four refined-statement-metrics">
-                <ReferenceMetricCard icon="bank" label="Total de entradas" value={formatMoney(statementTotals.entries)} detail={`${statementTotals.entryCount} movimentações`} tone="positive" />
-                <ReferenceMetricCard icon="sync" label="Total de saídas" value={formatMoney(statementTotals.exits)} detail={`${statementTotals.exitCount} movimentações`} tone="negative" />
-                <ReferenceMetricCard icon="chart" label="Saldo líquido" value={formatSignedMoney(statementTotals.balance)} detail="Resultado filtrado" tone={statementTotals.balance > 0 ? "positive" : statementTotals.balance < 0 ? "negative" : "neutral"} />
-                <ReferenceMetricCard icon="bank" label="Saldo atual" value={formatMoney(currentBalance)} detail={movementHouseFilter === "all" ? "Todas as casas" : "Casa selecionada"} />
-            </div>
-            <div className="reference-data-table reference-movement-table refined-statement-table">
-                <div className="reference-table-head">
-                    <span>Data/Hora</span>
-                    <span>Tipo</span>
-                    <span>Casa</span>
-                    <span>Descrição</span>
-                    <span>Valor</span>
-                    <span>Saldo após</span>
-                    <span>Ações</span>
-                </div>
-                {visibleMovements.length === 0 ? (
-                    <p className="reference-empty-row">Nenhuma movimentação encontrada.</p>
-                ) : visibleMovements.map((movement) => {
-                    const house = houses.find((item) => Number(item.id) === Number(movement.casaId));
-                    const signedValue = Number(movement.valor || 0) * movementSignal(movement.tipo);
-                    const tone = getMovementTone(movement.tipo);
-                    return (
-                        <div className="reference-table-row" key={movement.id}>
-                            <span className="statement-date-cell"><strong>{formatDateBR(movement.data)}</strong><small>Registrado</small></span>
-                            <span><i className={`movement-type-badge ${tone}`}>{getMovementLabel(movement.tipo)}</i></span>
-                            <span className="reference-house-cell"><HouseLogoMark house={house} />{house?.nome || "Casa"}</span>
-                            <span>{movement.observacoes || movement.metodo || getMovementLabel(movement.tipo)}</span>
-                            <strong className={signedValue >= 0 ? "positive" : "negative"}>{formatSignedMoney(signedValue)}</strong>
-                            <span>{formatMoney(getBalanceAfterMovement(movement))}</span>
-                            <span className="reference-ticket-menu-wrap">
-                                <button
-                                    type="button"
-                                    className="reference-house-menu-button"
-                                    aria-label={`Ações da movimentação ${getMovementLabel(movement.tipo)}`}
-                                    aria-expanded={openMovementMenuId === movement.id}
-                                    onClick={(event) => {
-                                        event.stopPropagation();
-                                        setOpenMovementMenuId((current) => current === movement.id ? null : movement.id);
-                                    }}
-                                    disabled={deletingMovementId === movement.id}
-                                >
-                                    &#8942;
-                                </button>
-                                {openMovementMenuId === movement.id && (
-                                    <div className="reference-house-menu reference-ticket-menu">
-                                        <button type="button" onClick={() => { setOpenMovementMenuId(null); onEdit(movement.id); }}>Editar</button>
-                                        <button type="button" className="danger" onClick={() => { setOpenMovementMenuId(null); onDelete(movement.id); }}>
-                                            {deletingMovementId === movement.id ? "Excluindo..." : "Excluir"}
-                                        </button>
-                                    </div>
-                                )}
-                            </span>
+            <div className="cb-tickets-day-layout cb-movement-statement-layout">
+                <div className="cb-tickets-day-main cb-movement-statement-main">
+                    <div className="cb-tickets-toolbar cb-movement-statement-toolbar" aria-label="Filtros do extrato de movimentações">
+                        <label className="cb-ticket-filter-field">
+                            <span>Casa</span>
+                            <select value={movementHouseFilter} onChange={(event) => { setMovementHouseFilter(event.target.value); setCurrentPage(1); }}>
+                                <option value="all">Todas as casas</option>
+                                {houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}
+                            </select>
+                        </label>
+                        <label className="cb-ticket-filter-field cb-movement-type-filter-field">
+                            <span>Tipo</span>
+                            <select value={movementTypeFilter} onChange={(event) => { setMovementTypeFilter(event.target.value); setCurrentPage(1); }}>
+                                <option value="all">Todos os tipos</option>
+                                <option value="Depósito">Depósito</option>
+                                <option value="Saque">Saque</option>
+                                <option value="Ajuste">Ajuste</option>
+                            </select>
+                        </label>
+                        <PeriodFields
+                            dayMarkers={buildDayMarkers([], movements)}
+                            onPeriodReferenceChange={(nextReference) => { setMovementPeriodReference(nextReference); setCurrentPage(1); }}
+                            onPeriodTypeChange={(nextType) => {
+                                setMovementPeriodType(nextType);
+                                setMovementPeriodReference(nextType === "Geral" ? "" : getAvailablePeriodReferencesForDates(nextType, movements.map((movement) => movement.data))[0] || "");
+                                setCurrentPage(1);
+                            }}
+                            periodReference={effectiveMovementPeriodReference}
+                            periodType={movementPeriodType}
+                        />
+                    </div>
+
+                    <div className="cb-ticket-table-card cb-movement-table-card">
+                        <div className="cb-ticket-table-head cb-movement-table-head">
+                            <span>Data</span>
+                            <span>Tipo</span>
+                            <span>Casa</span>
+                            <span>Valor</span>
+                            <span>Saldo após</span>
+                            <span aria-hidden="true" />
                         </div>
-                    );
-                })}
+                        {visibleMovements.length === 0 ? (
+                            <p className="cb-ticket-empty-row">Nenhuma movimentação encontrada.</p>
+                        ) : visibleMovements.map((movement) => {
+                            const house = houses.find((item) => Number(item.id) === Number(movement.casaId));
+                            const signedValue = Number(movement.valor || 0) * movementSignal(movement.tipo);
+                            const tone = getMovementTone(movement.tipo);
+                            return (
+                                <div className="cb-ticket-table-row cb-movement-table-row" key={movement.id}>
+                                    <span>{formatDateBR(movement.data).slice(0, 5)}</span>
+                                    <span><i className={`movement-type-badge ${tone}`}>{getMovementLabel(movement.tipo)}</i></span>
+                                    <span className="cb-ticket-house-cell"><HouseLogoMark house={house} />{house?.nome || "Casa"}</span>
+                                    <span className={signedValue >= 0 ? "positive" : "negative"}>{formatSignedMoney(signedValue)}</span>
+                                    <span>{formatMoney(getBalanceAfterMovement(movement))}</span>
+                                    <span className="reference-ticket-menu-wrap">
+                                        <button
+                                            type="button"
+                                            className="reference-house-menu-button"
+                                            aria-label={`Ações da movimentação ${getMovementLabel(movement.tipo)}`}
+                                            aria-expanded={openMovementMenuId === movement.id}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                setOpenMovementMenuId((current) => current === movement.id ? null : movement.id);
+                                            }}
+                                            disabled={deletingMovementId === movement.id}
+                                        >
+                                            &#8942;
+                                        </button>
+                                        {openMovementMenuId === movement.id && (
+                                            <div className="reference-house-menu reference-ticket-menu">
+                                                <button type="button" onClick={() => { setOpenMovementMenuId(null); onEdit(movement.id); setIsEditModalOpen(true); }}>Editar</button>
+                                                <button type="button" className="danger" onClick={() => { setOpenMovementMenuId(null); onDelete(movement.id); }}>
+                                                    {deletingMovementId === movement.id ? "Excluindo..." : "Excluir"}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                        <footer className="cb-ticket-pagination">
+                            <span>Mostrando {firstVisibleItem}-{lastVisibleItem} de {orderedMovements.length} movimentações</span>
+                            <div className="cb-ticket-page-controls">
+                                <button type="button" aria-label="Ir para a primeira página" onClick={() => setCurrentPage(1)} disabled={effectiveCurrentPage <= 1}>«</button>
+                                <button type="button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={effectiveCurrentPage <= 1}>‹</button>
+                                <strong>{effectiveCurrentPage} / {totalPages}</strong>
+                                <button type="button" onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} disabled={effectiveCurrentPage >= totalPages}>›</button>
+                                <button type="button" aria-label="Ir para a última página" onClick={() => setCurrentPage(totalPages)} disabled={effectiveCurrentPage >= totalPages}>»</button>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+
+                <aside className="cb-ticket-day-sidebar cb-movement-period-sidebar">
+                    <section className="cb-ticket-side-card cb-ticket-quick-actions">
+                        <h3><span aria-hidden="true">ϟ</span>Ações rápidas</h3>
+                        <div>
+                            <button type="button" onClick={async () => {
+                                if (!ensureMovementsToExport()) return;
+                                await exportMovementsToPdf({ movements: exportableMovements, houses, filters: movementExportFilters });
+                            }}>Exportar PDF</button>
+                            <button type="button" onClick={async () => {
+                                if (!ensureMovementsToExport()) return;
+                                await exportMovementsToExcel({ movements: exportableMovements, houses, filters: movementExportFilters });
+                            }}>Exportar Excel</button>
+                        </div>
+                    </section>
+                    <section className="cb-ticket-side-card cb-ticket-metrics-card">
+                        <div className="cb-ticket-metrics-header">
+                            <h3><span aria-hidden="true">▥</span>Resumo do período</h3>
+                        </div>
+                        <dl className="cb-ticket-day-summary cb-ticket-icon-summary cb-movement-period-summary">
+                            <div><dt><span className="green" aria-hidden="true">↑</span>Total de entradas</dt><dd className="positive">{formatMoney(statementTotals.entries)}</dd></div>
+                            <div><dt><span className="red" aria-hidden="true">↓</span>Total de saídas</dt><dd className="negative">{formatMoney(statementTotals.exits)}</dd></div>
+                            <div><dt><span className={statementTotals.balance > 0 ? "green" : statementTotals.balance < 0 ? "red" : "neutral"} aria-hidden="true">↔</span>Saldo líquido</dt><dd className={statementTotals.balance > 0 ? "positive" : statementTotals.balance < 0 ? "negative" : "neutral"}>{formatSignedMoney(statementTotals.balance)}</dd></div>
+                            <div><dt><span className="blue" aria-hidden="true">$</span>Saldo atual</dt><dd>{formatMoney(currentBalance)}</dd></div>
+                        </dl>
+                    </section>
+                </aside>
             </div>
+            {isEditModalOpen && editingMovementId !== null && (
+                <div className="cb-ticket-edit-modal-backdrop" role="presentation" onMouseDown={(event) => {
+                    if (event.target === event.currentTarget) onCancelEdit();
+                }}>
+                    <div className="cb-ticket-edit-modal cb-movement-edit-modal" role="dialog" aria-modal="true" aria-label="Editar movimentação">
+                        <button type="button" className="cb-ticket-edit-modal-close" aria-label="Fechar edição" onClick={onCancelEdit}>×</button>
+                        <RefinedMovementPanel
+                            feedback={feedback}
+                            houses={houses}
+                            isSaving={isSaving}
+                            movementForm={movementForm}
+                            setMovementForm={setMovementForm}
+                            onSubmit={onSubmitEdit}
+                            editingMovementId={editingMovementId}
+                        />
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
@@ -4296,7 +4529,7 @@ function DashboardActionPanels(props) {
         return <RefinedMovementPanel feedback={props.movementFeedback} houses={props.houses} isSaving={props.isSavingMovement} movementForm={props.movementForm} setMovementForm={props.setMovementForm} onSubmit={props.handleSaveMovement} editingMovementId={props.editingMovementId} />;
     }
     if (props.activeBottomPanel === "extract") {
-        return <RefinedStatementPanel deletingMovementId={props.deletingMovementId} feedback={props.movementFeedback} movements={props.statementMovements} houses={props.houses} onEdit={props.handleStartEditMovement} onDelete={props.handleDeleteMovement} />;
+        return <RefinedStatementPanel deletingMovementId={props.deletingMovementId} editingMovementId={props.editingMovementId} feedback={props.movementFeedback} isSaving={props.isSavingMovement} movements={props.statementMovements} houses={props.houses} onCancelEdit={props.handleCancelMovementEdit} onEdit={props.handleStartEditMovement} onDelete={props.handleDeleteMovement} onSubmitEdit={props.handleSaveMovement} movementForm={props.movementForm} setMovementForm={props.setMovementForm} />;
     }
     if (props.activeBottomPanel === "settings") {
         return <SettingsPanel accountEmail={props.accountEmail} accountName={props.accountName} isLoggingOut={props.isLoggingOut} onLogout={props.handleLogout} session={props.session} />;
@@ -5160,7 +5393,7 @@ function normalizeStakeBreakdown(form, stake) {
     } else {
         return {
             valid: false,
-            message: "Origem da stake inválida.",
+            message: "Origem do valor apostado inválida.",
         };
     }
 
@@ -7122,7 +7355,10 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         });
 
         setEditingMovementId(movementId);
-        setActiveBottomPanel("movementForm");
+    }
+
+    function handleCancelMovementEdit() {
+        resetMovementForm();
     }
 
     async function handleDeleteMovement(movementId) {
@@ -7523,11 +7759,17 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return (
                 <RefinedStatementPanel
                     deletingMovementId={deletingMovementId}
+                    editingMovementId={editingMovementId}
                     feedback={movementFeedback}
+                    isSaving={isSavingMovement}
                     movements={movements}
-                    houses={houses}
+                    houses={housesWithCurrentBank}
+                    onCancelEdit={handleCancelMovementEdit}
                     onEdit={handleStartEditMovement}
                     onDelete={handleDeleteMovement}
+                    onSubmitEdit={handleSaveMovement}
+                    movementForm={movementForm}
+                    setMovementForm={setMovementForm}
                 />
             );
         }
@@ -7552,7 +7794,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return (
                 <RefinedMovementPanel
                     feedback={movementFeedback}
-                    houses={houses}
+                    houses={housesWithCurrentBank}
                     isSaving={isSavingMovement}
                     movementForm={movementForm}
                     setMovementForm={setMovementForm}

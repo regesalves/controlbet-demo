@@ -66,7 +66,7 @@ export default function LandingPage({ landingTheme, onToggleTheme }) {
 
                                 <article>
                                     <strong>Bilhetes</strong>
-                                    <p>Registre apostas, odds, stakes, retornos e resultados.</p>
+                                    <p>Registre apostas, odds, valores, retornos e resultados.</p>
                                 </article>
 
                                 <article>
