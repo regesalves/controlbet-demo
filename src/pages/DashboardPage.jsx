@@ -4610,44 +4610,30 @@ function PremiumSettingsPanel({
                             <span aria-hidden="true"><SidebarIcon type="bank" /></span>
                             <h2>Segurança</h2>
                         </header>
-                        <div className="premium-account-action">
-                            <strong>Alterar senha</strong>
-                            <button type="button" className="premium-outline-button">Alterar senha</button>
-                        </div>
-                        <div className="premium-account-action danger-zone">
-                            <strong>Excluir conta</strong>
-                            <button type="button" className="premium-danger-button">Excluir conta</button>
+                        <div className="premium-security-actions-grid">
+                            <div className="premium-account-action">
+                                <strong>Alterar senha</strong>
+                                <button type="button" className="premium-outline-button">Alterar senha</button>
+                            </div>
+                            <div className="premium-account-action danger-zone">
+                                <strong>Excluir conta</strong>
+                                <button type="button" className="premium-danger-button">Excluir conta</button>
+                            </div>
                         </div>
                     </section>
 
                     <section className="reference-account-card premium-account-card premium-account-preferences-card">
                         <header>
-                            <span aria-hidden="true"><ThemeToggleIcon theme={theme} /></span>
-                            <h2>Preferências</h2>
+                            <span aria-hidden="true"><SidebarIcon type="target" /></span>
+                            <h2>Sobre o aplicativo</h2>
                         </header>
-                        <fieldset className="premium-theme-options">
-                            <legend>Tema</legend>
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="account-theme"
-                                    value="light"
-                                    checked={theme === "light"}
-                                    onChange={() => theme !== "light" && onToggleTheme()}
-                                />
-                                <span>Claro</span>
-                            </label>
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="account-theme"
-                                    value="dark"
-                                    checked={theme === "dark"}
-                                    onChange={() => theme !== "dark" && onToggleTheme()}
-                                />
-                                <span>Escuro</span>
-                            </label>
-                        </fieldset>
+                        <dl className="premium-app-info-grid">
+                            <div><dt>Produto</dt><dd>ControlBet</dd></div>
+                            <div><dt>Versão</dt><dd>1.0.0 Beta</dd></div>
+                            <div><dt>Status</dt><dd>🟢 Online</dd></div>
+                            <div><dt>Desenvolvido por</dt><dd>Alves Tech</dd></div>
+                            <div className="premium-app-copyright"><dt>Copyright</dt><dd>© 2026 Alves Tech</dd></div>
+                        </dl>
                     </section>
                 </div>
             </div>

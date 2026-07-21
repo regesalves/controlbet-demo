@@ -50750,6 +50750,20 @@ textarea:focus,
   }
 }
 
+/* Relatórios: keep the four filter controls on one row at the target desktop width. */
+@media (min-width: 1280px) {
+  .app .light-dashboard-shell .reports-top-row > .reports-analytics-toolbar {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    min-width: 0 !important;
+  }
+
+  .app .light-dashboard-shell .reports-top-row > .reports-analytics-toolbar > .reference-period {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+}
+
 /* Final page-header lock: requested screens match the Dashboard title scale. */
 .app .light-dashboard-shell .submenu-ticket-form-page > .submenu-page-header h1,
 .app .light-dashboard-shell .submenu-tickets-page > .submenu-page-header h1,
@@ -50823,6 +50837,22 @@ textarea:focus,
 
 .premium-account-page .premium-account-personal-card > .premium-outline-button {
   align-self: end !important;
+}
+
+.premium-account-page .premium-account-personal-card > .premium-outline-button {
+  border-color: #1769e8 !important;
+  background: #1769e8 !important;
+  color: #ffffff !important;
+}
+
+.premium-account-page .premium-account-personal-card > .premium-outline-button:hover {
+  border-color: #1258c7 !important;
+  background: #1258c7 !important;
+  color: #ffffff !important;
+}
+
+.premium-account-page .premium-account-hero > .premium-outline-button {
+  border: 1px solid #cbd8e8 !important;
 }
 
 .premium-account-avatar,
@@ -51062,6 +51092,50 @@ textarea:focus,
   height: 15px !important;
   margin: 0 !important;
   accent-color: #1769e8 !important;
+}
+
+.premium-account-page .premium-account-preferences-card .premium-app-info-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.premium-account-page .premium-account-preferences-card .premium-app-info-grid .premium-app-copyright {
+  grid-column: 1 / -1 !important;
+}
+
+.premium-account-page .premium-account-security-card .premium-security-actions-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+
+.premium-account-page .premium-account-security-card .premium-account-action {
+  min-height: 32px !important;
+  border-radius: 10px !important;
+  padding: 7px 11px !important;
+}
+
+.premium-account-page .premium-account-security-card .premium-account-action strong {
+  font-size: 0.84rem !important;
+}
+
+.premium-account-page .premium-account-security-card .premium-account-action button {
+  min-height: 32px !important;
+}
+
+.premium-account-page .premium-account-security-card .premium-account-action .premium-outline-button {
+  border: 1px solid #cbd8e8 !important;
+}
+
+@media (max-width: 720px) {
+  .premium-account-page .premium-account-preferences-card .premium-app-info-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .premium-account-page .premium-account-preferences-card .premium-app-info-grid .premium-app-copyright {
+    grid-column: auto !important;
+  }
+
 }
 
 @media (max-width: 980px) {

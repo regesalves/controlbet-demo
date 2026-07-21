@@ -4828,6 +4828,128 @@ body:has(.light-dashboard-shell),
     white-space: nowrap !important;
 }
 
+/* Give the filter panel a clear surface against the page background. */
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar {
+    border-color: #cbd8e8 !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-table-card {
+    border-color: #dfe6f0 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045) !important;
+}
+
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-table-card .cb-ticket-table-head,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-table-card .cb-ticket-table-row,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-table-card .cb-ticket-empty-row,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-table-card .cb-ticket-pagination {
+    background-color: #ffffff !important;
+}
+
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .cb-ticket-filter-field select,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period select,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period .reference-selector-surface {
+    border: 1px solid #cbd8e8 !important;
+    border-radius: 9px !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+}
+
+/* Extrato: keep the filters inside the toolbar and balance the sidebar at 1360px. */
+@media (min-width: 1181px) and (max-width: 1400px) {
+    .app .light-dashboard-shell .cb-movement-statement-layout {
+        grid-template-columns: minmax(0, 1fr) 300px !important;
+        gap: 14px !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-toolbar {
+        grid-template-columns: minmax(170px, 1fr) 145px 122px 145px !important;
+        column-gap: 12px !important;
+        padding: 14px !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-type-filter-field {
+        width: 145px !important;
+        min-width: 145px !important;
+        max-width: 145px !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period:not(:last-child),
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period:not(:last-child) select {
+        width: 122px !important;
+        min-width: 122px !important;
+        max-width: 122px !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period:last-child,
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period:last-child .reference-selector-surface {
+        width: 145px !important;
+        min-width: 145px !important;
+        max-width: 145px !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-period-sidebar {
+        width: 300px !important;
+        min-width: 0 !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-period-sidebar .cb-ticket-side-card {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Bilhetes do dia uses the same balanced desktop composition. */
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-tickets-day-layout {
+        grid-template-columns: minmax(0, 1fr) 300px !important;
+        gap: 14px !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-tickets-toolbar {
+        grid-template-columns: minmax(170px, 1fr) 145px 122px 145px !important;
+        column-gap: 12px !important;
+        padding: 14px !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-ticket-result-filter-field,
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-ticket-period-field {
+        width: 145px !important;
+        min-width: 145px !important;
+        max-width: 145px !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-ticket-period-field,
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-tickets-toolbar > .reference-period:not(:last-child),
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-tickets-toolbar > .reference-period:not(:last-child) select {
+        width: 122px !important;
+        min-width: 122px !important;
+        max-width: 122px !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-tickets-toolbar > .reference-period:last-child,
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-tickets-toolbar > .reference-period:last-child .reference-selector-surface {
+        width: 145px !important;
+        min-width: 145px !important;
+        max-width: 145px !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-ticket-day-sidebar {
+        width: 300px !important;
+        min-width: 0 !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-ticket-day-sidebar .cb-ticket-side-card {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-tickets-toolbar > .cb-ticket-filter-field,
+    .app .light-dashboard-shell .cb-tickets-day-page:not(.cb-movement-statement-page) .cb-tickets-toolbar > .reference-period {
+        transform: translateY(-8px) !important;
+    }
+}
+
 @media (max-width: 1180px) {
     .app .light-dashboard-shell .cb-movement-statement-layout {
         grid-template-columns: 1fr !important;
@@ -5475,4 +5597,199 @@ body:has(.light-dashboard-shell),
 .app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .cb-dashboard-secondary-grid,
 .app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .cb-dashboard-insights-grid {
     z-index: 1 !important;
+}
+
+/* v1 desktop consistency pass: only the 1366px desktop band. */
+@media (min-width: 1280px) and (max-width: 1400px) {
+    /* Shared filter-field rhythm for Bilhetes do dia and Extrato. */
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .cb-ticket-filter-field,
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period {
+        display: grid !important;
+        grid-template-rows: 14px 44px !important;
+        align-content: start !important;
+        gap: 7px !important;
+        transform: translateY(-8px) !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .cb-ticket-filter-field > span,
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period > span {
+        margin: 0 !important;
+        line-height: 14px !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .cb-ticket-filter-field select,
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period select,
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period .reference-selector-surface {
+        margin-top: 0 !important;
+    }
+
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-tickets-toolbar > .cb-ticket-filter-field > span,
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-tickets-toolbar > .reference-period > span {
+        color: #253a5b !important;
+        font-size: 0.84rem !important;
+        font-weight: 850 !important;
+        line-height: 14px !important;
+        position: relative !important;
+        top: -2px !important;
+    }
+
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-tickets-toolbar > .cb-ticket-filter-field select,
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-tickets-toolbar > .reference-period select,
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-tickets-toolbar > .reference-period .reference-selector-surface {
+        transform: translateY(2px) !important;
+    }
+
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-ticket-day-sidebar .cb-ticket-quick-actions > h3,
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-ticket-day-sidebar .cb-ticket-quick-actions > div {
+        transform: translateY(-4px) !important;
+    }
+
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-tickets-toolbar > .cb-ticket-filter-field:first-child {
+        width: 100% !important;
+        justify-self: stretch !important;
+    }
+
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-tickets-toolbar {
+        grid-template-columns: minmax(0, 1fr) 145px 122px 145px !important;
+        column-gap: 27px !important;
+    }
+
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-tickets-toolbar {
+        border: 1px solid #dfe6f0 !important;
+        border-radius: 14px !important;
+        background: #ffffff !important;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045) !important;
+    }
+
+    .app .light-dashboard-shell .submenu-tickets-page.cb-tickets-day-page .cb-ticket-table-card {
+        border: 1px solid #dfe6f0 !important;
+        border-radius: 14px !important;
+        background: #ffffff !important;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045) !important;
+        overflow: hidden !important;
+    }
+
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar,
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-table-card {
+        background: var(--color-surface) !important;
+    }
+
+    /* Novo Bilhete: keep the date card aligned; move only its title to the shared baseline. */
+    .app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields .ticket-primary-row > .reference-date-field {
+        transform: none !important;
+    }
+
+    .app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields .ticket-primary-row > .reference-date-field > span {
+        position: relative !important;
+        top: 3px !important;
+        line-height: 14px !important;
+    }
+
+    .app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields .ticket-description-field {
+        width: calc(100% + 8px) !important;
+    }
+
+    /* Nova movimentação: use the same compact card rhythm without changing widths. */
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-card {
+        gap: 16px !important;
+        padding-top: 20px !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > .reference-date-field,
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > label:not(.reference-textarea-field) {
+        display: grid !important;
+        grid-template-rows: 14px 44px !important;
+        align-content: start !important;
+        gap: 7px !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > .reference-date-field > span {
+        margin: 0 !important;
+        line-height: 14px !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > .reference-date-field .reference-date-trigger,
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > label:not(.reference-textarea-field) input,
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > label:not(.reference-textarea-field) select {
+        margin-top: 0 !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > .reference-date-field,
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > label:not(.reference-textarea-field) {
+        row-gap: 11px !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > label:nth-of-type(2),
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > label:nth-of-type(3) {
+        transform: translateY(-1px) !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > label:nth-of-type(2) select,
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid > label:nth-of-type(3) input {
+        transform: translateY(1px) !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .movement-description-actions .reference-textarea-field textarea {
+        margin-top: 9px !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .refined-movement-fields-grid {
+        transform: translateY(4px) !important;
+    }
+
+    .app .light-dashboard-shell .refined-movement-page .movement-inline-actions .submenu-secondary-button {
+        border: 1px solid #e0e5ec !important;
+    }
+}
+
+/* Extrato de Movimentações: mirror the Bilhetes do dia desktop polish. */
+@media (min-width: 1280px) and (max-width: 1400px) {
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-statement-toolbar {
+        grid-template-columns: minmax(0, 1fr) 165px 122px 145px !important;
+        column-gap: 27px !important;
+        background: #ffffff !important;
+        border: 1px solid #dfe6f0 !important;
+        border-radius: 14px !important;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045) !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-statement-toolbar > .cb-ticket-filter-field:first-child {
+        width: 100% !important;
+        justify-self: stretch !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-type-filter-field {
+        width: 165px !important;
+        min-width: 165px !important;
+        max-width: 165px !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-statement-toolbar > .cb-ticket-filter-field > span,
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-statement-toolbar > .reference-period > span {
+        color: #253a5b !important;
+        font-size: 0.84rem !important;
+        font-weight: 850 !important;
+        line-height: 14px !important;
+        position: relative !important;
+        top: -2px !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-statement-toolbar > .cb-ticket-filter-field select,
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-statement-toolbar > .reference-period select,
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-statement-toolbar > .reference-period .reference-selector-surface {
+        transform: translateY(2px) !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-table-card {
+        border: 1px solid #dfe6f0 !important;
+        border-radius: 14px !important;
+        background: #ffffff !important;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045) !important;
+        overflow: hidden !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-period-sidebar .cb-ticket-quick-actions > h3,
+    .app .light-dashboard-shell .cb-movement-statement-page .cb-movement-period-sidebar .cb-ticket-quick-actions > div {
+        transform: translateY(-6px) !important;
+    }
 }
