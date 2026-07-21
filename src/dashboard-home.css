@@ -1,0 +1,5478 @@
+html:has(.light-dashboard-shell),
+body:has(.light-dashboard-shell),
+#root:has(.light-dashboard-shell),
+.app:has(.light-dashboard-shell) {
+    min-height: 100%;
+    overflow-x: hidden;
+    background: var(--cb-background);
+    color: var(--cb-text-primary);
+}
+
+.light-dashboard-shell {
+    width: 100%;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    background: var(--cb-background);
+    overflow-x: hidden;
+}
+
+.light-dashboard-sidebar {
+    position: sticky;
+    top: 0;
+    width: 220px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    border-right: 1px solid var(--cb-border);
+    padding: 24px 12px 22px;
+    background: var(--cb-surface);
+}
+
+.light-sidebar-brand {
+    display: flex;
+    align-items: center;
+    min-height: 60px;
+    padding: 0 14px;
+}
+
+.light-sidebar-brand img {
+    width: 230px !important;
+    max-width: none !important;
+    height: auto;
+    display: block;
+}
+
+.light-sidebar-nav {
+    display: grid;
+    gap: 8px;
+}
+
+.light-sidebar-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--cb-text-secondary);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+}
+
+.light-sidebar-link span {
+    width: 28px;
+    height: 28px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--cb-surface-secondary);
+    color: var(--cb-text-muted);
+    font-size: 0.82rem;
+}
+
+.light-sidebar-link.active {
+    border-color: var(--cb-primary-border);
+    background: var(--cb-primary-soft);
+    color: var(--cb-primary);
+}
+
+.light-sidebar-link.active span {
+    background: color-mix(in srgb, var(--cb-primary) 14%, transparent);
+    color: var(--cb-primary);
+}
+
+.light-sidebar-footer {
+    margin-top: auto;
+    display: grid;
+    gap: 12px;
+    border-top: 1px solid var(--cb-border);
+    padding-top: 18px;
+}
+
+.light-sidebar-user {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--cb-border);
+    border-radius: 12px;
+    padding: 10px;
+    background: var(--cb-surface-secondary);
+}
+
+.light-sidebar-user i {
+    width: 36px;
+    height: 36px;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--cb-primary);
+    color: #ffffff;
+    font-style: normal;
+    font-size: 0.74rem;
+    font-weight: 900;
+}
+
+.light-sidebar-user span {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.light-sidebar-user strong,
+.light-sidebar-user small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.light-sidebar-user strong {
+    color: #071032;
+    font-size: 0.8rem;
+    font-weight: 900;
+}
+
+.light-sidebar-user small {
+    color: #526789;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.light-sidebar-logout {
+    min-height: 38px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #40577a;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.light-dashboard-main {
+    min-width: 0;
+    width: 100%;
+    padding: 22px 28px 28px 18px;
+    overflow-x: hidden;
+}
+
+.dashboard-content {
+    width: 100%;
+    max-width: 1680px;
+    margin: 0 auto;
+}
+
+.dashboard-home-light {
+    width: 100%;
+    display: grid;
+    gap: 16px;
+}
+
+.dashboard-home-header {
+    min-height: 54px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.dashboard-home-header h1 {
+    margin: 0;
+    color: #071032;
+    font-size: 1.72rem;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.dashboard-home-header p {
+    margin: 6px 0 0;
+    color: #334a72;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.dashboard-home-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.dashboard-home-actions button {
+    width: 44px;
+    height: 44px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #173055;
+    font: inherit;
+    font-weight: 900;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+}
+
+.dashboard-home-actions button:last-child {
+    border-radius: 14px;
+    background: #ecf8ff;
+    color: #0797c9;
+}
+
+.dashboard-section,
+.dashboard-filter-row {
+    min-width: 0;
+}
+
+.dashboard-house-carousel {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(250px, 28%, 330px);
+    gap: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 2px 8px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+}
+
+.dashboard-house-carousel::-webkit-scrollbar {
+    height: 6px;
+}
+
+.dashboard-house-carousel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dashboard-house-carousel::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #c7d3e3;
+}
+
+.dashboard-house-card,
+.dashboard-house-empty {
+    min-width: 0;
+    min-height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid #e1e8f2;
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #ffffff;
+    color: #071032;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.055);
+    scroll-snap-align: start;
+}
+
+.dashboard-house-card.selected {
+    border-color: #ff5269;
+    box-shadow: 0 10px 24px rgba(225, 29, 46, 0.08);
+}
+
+.dashboard-house-card-main,
+.dashboard-house-card-add {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dashboard-house-card-add {
+    justify-content: center;
+    border-style: dashed;
+    border-color: #d3deed;
+}
+
+.dashboard-house-avatar {
+    width: 42px;
+    height: 42px;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 42px;
+    border-radius: 999px;
+    background: #147cff;
+    color: #ffffff;
+    font-size: 0.84rem;
+    font-weight: 900;
+}
+
+.dashboard-house-avatar.green { background: #09b86f; }
+.dashboard-house-avatar.orange { background: #ff8a00; }
+.dashboard-house-avatar.purple { background: #9b22d4; }
+.dashboard-house-avatar.blue { background: #147cff; }
+.dashboard-house-avatar.cyan { background: #12bdd4; }
+.dashboard-house-avatar.add {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    background: transparent;
+    color: #071032;
+    font-size: 1.15rem;
+}
+
+.dashboard-house-card-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.dashboard-house-card-copy strong,
+.dashboard-house-empty strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #071032;
+    font-size: 0.84rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-house-card-copy small,
+.dashboard-house-empty span {
+    min-width: 0;
+    overflow: hidden;
+    color: #385174;
+    font-size: 0.72rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-house-menu-button,
+.dashboard-house-next-button,
+.dashboard-house-menu {
+    display: none;
+}
+
+.dashboard-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.dashboard-filter-row .period-filter-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 0;
+}
+
+.dashboard-filter-row .reference-period {
+    width: 220px;
+    min-width: 0;
+    min-height: 58px;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 12px;
+    border: 1px solid #e1e8f2;
+    border-radius: 12px;
+    padding: 9px 12px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.dashboard-filter-row .reference-period::before {
+    content: "";
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #ffe3ea;
+}
+
+.dashboard-filter-row .reference-period:nth-child(2)::before {
+    background: #e7f1ff;
+}
+
+.dashboard-filter-row .reference-period > span {
+    grid-column: 2 / -1;
+    grid-row: 1;
+    margin: 0;
+    color: #607394;
+    font-size: 0.68rem;
+    font-weight: 900;
+}
+
+.dashboard-filter-row select,
+.dashboard-filter-row .reference-selector-surface {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    width: 100%;
+    height: 24px;
+    min-height: 24px;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+    color: #071032;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 900;
+    box-shadow: none;
+}
+
+.dashboard-filter-row .reference-calendar-icon,
+.dashboard-filter-row .stats-calendar-icon {
+    display: none;
+}
+
+.dashboard-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.dashboard-kpi-card {
+    min-width: 0;
+    min-height: 96px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    border: 1px solid #e1e8f2;
+    border-radius: 12px;
+    padding: 16px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.055);
+}
+
+.dashboard-kpi-icon {
+    width: 42px;
+    height: 42px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #147cff;
+    color: #ffffff;
+}
+
+.dashboard-kpi-card.kpi-wagered .dashboard-kpi-icon { background: #ff8a00; }
+.dashboard-kpi-card.kpi-result .dashboard-kpi-icon { background: #9b22d4; }
+.dashboard-kpi-card.kpi-final-bank .dashboard-kpi-icon { background: #09b86f; }
+.dashboard-kpi-card.kpi-roi .dashboard-kpi-icon { background: #147cff; }
+
+.dashboard-kpi-copy {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.dashboard-kpi-copy small,
+.dashboard-kpi-copy em {
+    min-width: 0;
+    overflow: hidden;
+    color: #526789;
+    font-size: 0.7rem;
+    font-style: normal;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-kpi-copy strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #071032;
+    font-size: clamp(0.92rem, 1.05vw, 1.1rem);
+    font-weight: 950;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-kpi-card.positive .dashboard-kpi-copy strong,
+.positive {
+    color: #02a868 !important;
+}
+
+.dashboard-kpi-card.negative .dashboard-kpi-copy strong,
+.negative {
+    color: #f0142f !important;
+}
+
+.dashboard-kpi-sparkline {
+    display: none;
+}
+
+.dashboard-home-light .cb-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.58fr) minmax(320px, 0.9fr);
+    gap: 16px;
+    min-width: 0;
+}
+
+.dashboard-home-light .cb-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 16px;
+    min-width: 0;
+}
+
+.dashboard-home-light .cb-panel {
+    min-width: 0;
+    border: 1px solid #e1e8f2;
+    border-radius: 14px;
+    padding: 18px 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.055);
+}
+
+.dashboard-home-light .cb-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.dashboard-home-light .cb-panel-header h2 {
+    margin: 0;
+    color: #071032;
+    font-size: 1rem;
+    font-weight: 950;
+}
+
+.dashboard-home-light .cb-panel-header p {
+    margin: 5px 0 0;
+    color: #385174;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.cb-chart-mode-button,
+.cb-small-select,
+.cb-latest-top-action,
+.cb-outline-button {
+    min-height: 34px;
+    border: 1px solid #dbe3ef;
+    border-radius: 9px;
+    padding: 0 12px;
+    background: #ffffff;
+    color: #071032;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.cb-bankroll-panel,
+.cb-daily-results-card {
+    min-height: 322px;
+}
+
+.cb-area-chart {
+    height: 248px;
+}
+
+.cb-chart-empty,
+.cb-daily-empty {
+    height: 100%;
+    min-height: 180px;
+    display: grid;
+    place-items: center;
+    border: 1px dashed #d7e0ec;
+    border-radius: 14px;
+    color: #607291;
+    font-size: 0.84rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.cb-chart-axis-value,
+.cb-chart-axis-label,
+.recharts-cartesian-axis-tick-value {
+    fill: #526789;
+    color: #526789;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.chart-tooltip {
+    border: 1px solid #e1e8f2;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #ffffff;
+    color: #071032;
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+    font-size: 0.74rem;
+}
+
+.chart-tooltip span,
+.chart-tooltip strong {
+    display: block;
+}
+
+.cb-daily-list {
+    display: grid;
+    gap: 0;
+}
+
+.cb-daily-row {
+    min-height: 38px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 24px;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #e8eef6;
+    color: #071032;
+}
+
+.cb-daily-row span,
+.cb-daily-row strong {
+    overflow: hidden;
+    font-size: 0.82rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cb-daily-row i {
+    width: 22px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #dff8ed;
+    font-style: normal;
+}
+
+.cb-daily-row i.negative {
+    background: #ffe4e9;
+}
+
+.cb-outline-button {
+    width: 100%;
+    margin-top: 14px;
+    border-color: #ff5269;
+    color: #f0142f;
+}
+
+.cb-quick-summary-grid,
+.cb-financial-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.cb-quick-summary-grid div,
+.cb-financial-list div {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.cb-quick-summary-grid i,
+.cb-financial-list i {
+    grid-row: 1 / span 2;
+    width: 38px;
+    height: 38px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    color: #ffffff;
+    font-style: normal;
+}
+
+.cb-quick-summary-grid i.blue,
+.cb-financial-list i.blue { background: #147cff; }
+.cb-quick-summary-grid i.orange,
+.cb-financial-list i.orange { background: #ff8a00; }
+.cb-quick-summary-grid i.purple,
+.cb-financial-list i.purple { background: #9b22d4; }
+.cb-quick-summary-grid i.green,
+.cb-financial-list i.green { background: #09b86f; }
+
+.cb-quick-summary-grid span,
+.cb-financial-list span {
+    overflow: hidden;
+    color: #526789;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cb-quick-summary-grid strong,
+.cb-financial-list strong {
+    overflow: hidden;
+    color: #071032;
+    font-size: 0.94rem;
+    font-weight: 950;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cb-latest-tickets-card {
+    overflow: hidden;
+}
+
+.cb-latest-table {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.cb-latest-head,
+.cb-latest-row {
+    min-width: 1040px;
+    display: grid;
+    grid-template-columns: 72px 130px minmax(150px, 1fr) minmax(140px, 1fr) 70px 100px 116px 130px 110px 24px;
+    gap: 10px;
+    align-items: center;
+    min-height: 42px;
+}
+
+.cb-latest-head {
+    border-bottom: 1px solid #e8eef6;
+    color: #526789;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.cb-latest-row {
+    color: #274263;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.cb-latest-row span,
+.cb-latest-row strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cb-latest-row span:nth-child(2) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cb-latest-row i {
+    width: 22px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: #09b86f;
+    color: #ffffff;
+    font-style: normal;
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.cb-latest-row strong:first-of-type {
+    width: max-content;
+    border-radius: 999px;
+    padding: 5px 10px;
+    background: #dff8ed;
+    font-size: 0.72rem;
+}
+
+.cb-latest-empty {
+    min-height: 56px;
+    display: grid;
+    place-items: center;
+    color: #526789;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.reference-modal-backdrop,
+.light-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.reference-confirm-dialog,
+.light-house-modal {
+    width: min(430px, 100%);
+    display: grid;
+    gap: 14px;
+    border: 1px solid #e1e8f2;
+    border-radius: 16px;
+    padding: 20px;
+    background: #ffffff;
+    color: #071032;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.light-house-modal header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.light-house-modal h2,
+.reference-confirm-dialog h2 {
+    margin: 0;
+    color: #071032;
+    font-size: 1.05rem;
+}
+
+.light-house-modal label {
+    display: grid;
+    gap: 6px;
+    color: #385174;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.light-house-modal input {
+    min-height: 40px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    padding: 0 12px;
+    background: #ffffff;
+    color: #071032;
+    font: inherit;
+}
+
+.light-house-modal footer,
+.reference-confirm-dialog div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.light-house-modal button,
+.reference-confirm-dialog button {
+    min-height: 38px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    padding: 0 14px;
+    background: #ffffff;
+    color: #071032;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.light-house-modal button[type="submit"],
+.reference-confirm-dialog button.danger {
+    border-color: #f0142f;
+    background: #f0142f;
+    color: #ffffff;
+}
+
+@media (max-width: 1180px) {
+    .light-dashboard-main {
+        padding-right: 18px;
+    }
+
+    .dashboard-kpi-grid {
+        gap: 10px;
+    }
+
+    .dashboard-kpi-card {
+        padding: 14px 12px;
+        gap: 10px;
+    }
+
+    .dashboard-home-light .cb-main-grid {
+        grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.85fr);
+    }
+}
+
+@media (max-width: 980px) {
+    .light-dashboard-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .light-dashboard-sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+
+    .dashboard-kpi-grid,
+    .dashboard-home-light .cb-main-grid,
+    .dashboard-home-light .cb-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cb-quick-summary-grid,
+    .cb-financial-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.dashboard-home-light .dashboard-house-empty,
+.dashboard-home-light .dashboard-house-empty strong,
+.dashboard-home-light .dashboard-house-empty span,
+.dashboard-home-light .dashboard-kpi-card span,
+.dashboard-home-light .dashboard-kpi-card strong,
+.dashboard-home-light .dashboard-kpi-card small,
+.dashboard-home-light .cb-quick-summary-grid span,
+.dashboard-home-light .cb-quick-summary-grid strong,
+.dashboard-home-light .cb-financial-list span,
+.dashboard-home-light .cb-financial-list strong {
+    max-width: none !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+}
+
+.dashboard-home-light .dashboard-house-empty {
+    grid-auto-flow: row !important;
+    align-content: center !important;
+    gap: 4px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card span,
+.dashboard-home-light .dashboard-kpi-card small,
+.dashboard-home-light .cb-quick-summary-grid span,
+.dashboard-home-light .cb-financial-list span {
+    font-size: 0.74rem !important;
+    line-height: 1.15 !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card strong {
+    font-size: 1.02rem !important;
+    line-height: 1.08 !important;
+}
+
+.dashboard-home-light .cb-quick-summary-card,
+.dashboard-home-light .cb-financial-summary-card {
+    min-height: 122px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid,
+.dashboard-home-light .cb-financial-list {
+    align-items: center !important;
+    min-height: 58px !important;
+}
+
+.dashboard-home-light .cb-financial-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+/* Final light-home cascade lock: keeps legacy dashboard rules out of this approved home. */
+.dashboard-home-light .cb-panel,
+.dashboard-home-light .cb-bankroll-panel,
+.dashboard-home-light .cb-daily-results-card,
+.dashboard-home-light .cb-quick-summary-card,
+.dashboard-home-light .cb-financial-summary-card,
+.dashboard-home-light .cb-latest-tickets-card {
+    border: 1px solid #dfe7f2 !important;
+    background: #ffffff !important;
+    color: #071032 !important;
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06) !important;
+}
+
+.dashboard-home-light .cb-panel-header h2,
+.dashboard-home-light .cb-panel h2,
+.dashboard-home-light .cb-daily-row span,
+.dashboard-home-light .cb-daily-row strong,
+.dashboard-home-light .cb-financial-list strong,
+.dashboard-home-light .cb-quick-summary-grid strong,
+.dashboard-home-light .cb-latest-row {
+    color: #071032 !important;
+}
+
+.dashboard-home-light .cb-panel-header p,
+.dashboard-home-light .cb-quick-summary-grid span,
+.dashboard-home-light .cb-financial-list span,
+.dashboard-home-light .cb-latest-head,
+.dashboard-home-light .cb-latest-empty {
+    color: #435b80 !important;
+}
+
+.dashboard-home-light .cb-area-chart,
+.dashboard-home-light .cb-daily-list,
+.dashboard-home-light .cb-daily-row,
+.dashboard-home-light .cb-financial-list div,
+.dashboard-home-light .cb-quick-summary-grid div {
+    background: #ffffff !important;
+}
+
+.dashboard-home-light .cb-chart-mode-button,
+.dashboard-home-light .cb-small-select,
+.dashboard-home-light .cb-outline-button,
+.dashboard-home-light .cb-latest-top-action {
+    border: 1px solid #dbe3ef !important;
+    background: #ffffff !important;
+    color: #071032 !important;
+}
+
+.dashboard-home-light .cb-outline-button {
+    border-color: #ff8fa0 !important;
+    color: #f0142f !important;
+}
+
+.dashboard-home-light .dashboard-filter-row {
+    width: min(100%, 540px) !important;
+    display: grid !important;
+    grid-template-columns: 220px 300px !important;
+    gap: 12px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .period-filter-row {
+    display: contents !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period,
+.dashboard-home-light .dashboard-filter-row .stats-calendar-field {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+}
+
+.dashboard-home-light .dashboard-kpi-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+@media (max-width: 1180px) {
+    .dashboard-home-light .dashboard-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 980px) {
+    .dashboard-home-light .dashboard-filter-row,
+    .dashboard-home-light .dashboard-kpi-grid {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+    }
+}
+
+/* Reference-composition pass: proportions and hierarchy match the approved home. */
+.dashboard-home-light {
+    gap: 14px !important;
+}
+
+.dashboard-home-light .dashboard-section {
+    width: 100% !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel {
+    width: 100% !important;
+    grid-auto-columns: clamp(304px, 31.5%, 388px) !important;
+    gap: 16px !important;
+    padding: 4px 4px 12px !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel:has(.dashboard-house-empty) {
+    grid-auto-flow: initial !important;
+    grid-auto-columns: initial !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.96fr) !important;
+}
+
+.dashboard-home-light .dashboard-house-card,
+.dashboard-home-light .dashboard-house-empty {
+    min-height: 116px !important;
+    border-radius: 14px !important;
+    padding: 18px 20px !important;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.065) !important;
+}
+
+.dashboard-home-light .dashboard-house-card-main,
+.dashboard-home-light .dashboard-house-card-add {
+    width: 100% !important;
+    gap: 18px !important;
+}
+
+.dashboard-home-light .dashboard-house-avatar {
+    width: 50px !important;
+    height: 50px !important;
+    flex-basis: 50px !important;
+    font-size: 0.96rem !important;
+}
+
+.dashboard-home-light .dashboard-house-avatar.add {
+    width: 28px !important;
+    height: 28px !important;
+    flex-basis: 28px !important;
+    font-size: 1.3rem !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy strong,
+.dashboard-home-light .dashboard-house-empty strong {
+    font-size: 0.92rem !important;
+    line-height: 1.18 !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy small,
+.dashboard-home-light .dashboard-house-empty span {
+    margin-top: 2px !important;
+    color: #385174 !important;
+    font-size: 0.74rem !important;
+    line-height: 1.25 !important;
+    font-weight: 750 !important;
+}
+
+.dashboard-home-light .dashboard-filter-row {
+    width: max-content !important;
+    display: grid !important;
+    grid-template-columns: 188px 236px !important;
+    gap: 10px !important;
+    margin-top: -2px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period {
+    min-height: 46px !important;
+    grid-template-columns: 34px minmax(0, 1fr) auto !important;
+    column-gap: 10px !important;
+    border-radius: 11px !important;
+    padding: 6px 10px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period::before {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period > span {
+    font-size: 0.62rem !important;
+    line-height: 1 !important;
+}
+
+.dashboard-home-light .dashboard-filter-row select,
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface,
+.dashboard-home-light .dashboard-filter-row .reference-selector-value {
+    height: 20px !important;
+    min-height: 20px !important;
+    font-size: 0.82rem !important;
+    line-height: 1 !important;
+}
+
+.dashboard-home-light .dashboard-kpi-grid {
+    width: 100% !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card {
+    min-height: 96px !important;
+    grid-template-columns: 52px minmax(0, 1fr) 54px !important;
+    gap: 12px !important;
+    border-radius: 13px !important;
+    padding: 16px 14px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-icon {
+    width: 48px !important;
+    height: 48px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-copy {
+    gap: 5px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card small {
+    color: #30486d !important;
+    font-size: 0.74rem !important;
+    font-weight: 850 !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card strong {
+    color: #071032 !important;
+    font-size: clamp(1rem, 1.25vw, 1.25rem) !important;
+    line-height: 1.05 !important;
+}
+
+.dashboard-home-light .dashboard-kpi-sparkline {
+    width: 52px !important;
+    height: 28px !important;
+    display: block !important;
+    justify-self: end !important;
+    border-radius: 999px !important;
+    background:
+        linear-gradient(135deg,
+            transparent 0 16%,
+            #147cff 17% 20%,
+            transparent 21% 34%,
+            #147cff 35% 38%,
+            transparent 39% 52%,
+            #147cff 53% 56%,
+            transparent 57% 72%,
+            #147cff 73% 76%,
+            transparent 77% 100%),
+        linear-gradient(180deg, transparent 47%, rgba(20, 124, 255, 0.26) 48% 53%, transparent 54%) !important;
+    opacity: 0.9 !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card.kpi-wagered .dashboard-kpi-sparkline {
+    background:
+        linear-gradient(135deg, transparent 0 16%, #ff8a00 17% 20%, transparent 21% 34%, #ff8a00 35% 38%, transparent 39% 52%, #ff8a00 53% 56%, transparent 57% 72%, #ff8a00 73% 76%, transparent 77% 100%),
+        linear-gradient(180deg, transparent 47%, rgba(255, 138, 0, 0.26) 48% 53%, transparent 54%) !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card.kpi-result .dashboard-kpi-sparkline {
+    background:
+        linear-gradient(135deg, transparent 0 16%, #9b22d4 17% 20%, transparent 21% 34%, #9b22d4 35% 38%, transparent 39% 52%, #9b22d4 53% 56%, transparent 57% 72%, #9b22d4 73% 76%, transparent 77% 100%),
+        linear-gradient(180deg, transparent 47%, rgba(155, 34, 212, 0.25) 48% 53%, transparent 54%) !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card.kpi-final-bank .dashboard-kpi-sparkline {
+    background:
+        linear-gradient(135deg, transparent 0 16%, #09b86f 17% 20%, transparent 21% 34%, #09b86f 35% 38%, transparent 39% 52%, #09b86f 53% 56%, transparent 57% 72%, #09b86f 73% 76%, transparent 77% 100%),
+        linear-gradient(180deg, transparent 47%, rgba(9, 184, 111, 0.26) 48% 53%, transparent 54%) !important;
+}
+
+.dashboard-home-light .cb-main-grid,
+.dashboard-home-light .cb-results-model-grid {
+    width: 100% !important;
+    max-width: none !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.58fr) minmax(300px, 0.88fr) !important;
+    gap: 16px !important;
+}
+
+.dashboard-home-light .cb-bankroll-panel,
+.dashboard-home-light .cb-daily-results-card {
+    min-height: 312px !important;
+}
+
+.dashboard-home-light .cb-area-chart {
+    height: 232px !important;
+}
+
+.dashboard-home-light .cb-bottom-grid {
+    width: 100% !important;
+    max-width: none !important;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr) !important;
+    gap: 16px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-card,
+.dashboard-home-light .cb-financial-summary-card {
+    min-height: 124px !important;
+    padding: 18px 20px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid,
+.dashboard-home-light .cb-financial-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    min-height: 58px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid div,
+.dashboard-home-light .cb-financial-list div {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+    column-gap: 12px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid i,
+.dashboard-home-light .cb-financial-list i {
+    width: 44px !important;
+    height: 44px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid span,
+.dashboard-home-light .cb-financial-list span {
+    color: #385174 !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid strong,
+.dashboard-home-light .cb-financial-list strong {
+    font-size: 1rem !important;
+    line-height: 1.08 !important;
+}
+
+.dashboard-home-light .cb-latest-tickets-card {
+    min-height: 150px !important;
+    padding: 18px 20px 22px !important;
+}
+
+.dashboard-home-light .cb-latest-tickets-card .cb-panel-header {
+    min-height: 38px !important;
+    align-items: center !important;
+    margin-bottom: 16px !important;
+}
+
+.dashboard-home-light .cb-latest-tickets-card h2 {
+    font-size: 1.06rem !important;
+}
+
+.dashboard-home-light .cb-latest-top-action {
+    min-width: 78px !important;
+    min-height: 32px !important;
+    border-radius: 8px !important;
+}
+
+.dashboard-home-light .cb-latest-head,
+.dashboard-home-light .cb-latest-row {
+    min-height: 44px !important;
+}
+
+/* Reference-composition refinement: bottom cards */
+
+.dashboard-home-light .cb-quick-summary-card,
+.dashboard-home-light .cb-financial-summary-card,
+.dashboard-home-light .cb-latest-tickets-card {
+    border-radius: 16px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-card .cb-panel-header,
+.dashboard-home-light .cb-financial-summary-card .cb-panel-header {
+    margin-bottom: 18px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid {
+    gap: 16px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid div {
+    grid-template-columns: 46px minmax(0, 1fr) !important;
+    column-gap: 12px !important;
+    min-width: 0 !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid i {
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 14px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid span {
+    font-size: 0.68rem !important;
+    line-height: 1.12 !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid strong {
+    font-size: 0.96rem !important;
+    line-height: 1.08 !important;
+}
+
+.dashboard-home-light .cb-financial-summary-card {
+    padding-inline: 18px !important;
+}
+
+.dashboard-home-light .cb-financial-list {
+    gap: 10px !important;
+}
+
+.dashboard-home-light .cb-financial-list div {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    column-gap: 8px !important;
+    min-width: 0 !important;
+}
+
+.dashboard-home-light .cb-financial-list i {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 13px !important;
+}
+
+.dashboard-home-light .cb-financial-list span {
+    font-size: 0.62rem !important;
+    line-height: 1.08 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+}
+
+.dashboard-home-light .cb-financial-list strong {
+    font-size: 0.82rem !important;
+    line-height: 1.05 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+}
+
+.dashboard-home-light .cb-latest-tickets-card {
+    min-height: 190px !important;
+}
+
+.dashboard-home-light .cb-latest-tickets-card .cb-panel-header {
+    min-height: 44px !important;
+    margin-bottom: 18px !important;
+}
+
+.dashboard-home-light .cb-latest-top-action {
+    min-width: 88px !important;
+    min-height: 34px !important;
+    align-self: center !important;
+}
+
+.dashboard-home-light .cb-latest-empty {
+    min-height: 70px !important;
+    display: grid !important;
+    place-items: center !important;
+}
+
+@media (max-width: 1180px) {
+    .dashboard-home-light .dashboard-house-carousel {
+        grid-auto-columns: clamp(280px, 42%, 360px) !important;
+    }
+
+    .dashboard-home-light .dashboard-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 980px) {
+    .dashboard-home-light .dashboard-house-carousel {
+        grid-auto-columns: minmax(260px, 84%) !important;
+    }
+
+    .dashboard-home-light .dashboard-filter-row,
+    .dashboard-home-light .dashboard-kpi-grid,
+    .dashboard-home-light .cb-main-grid,
+    .dashboard-home-light .cb-results-model-grid,
+    .dashboard-home-light .cb-bottom-grid {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+    }
+}
+
+/* Data-safe house carousel correction */
+
+html:has(.light-dashboard-shell),
+body:has(.light-dashboard-shell),
+#root:has(.light-dashboard-shell),
+.app:has(.light-dashboard-shell),
+.light-dashboard-shell {
+    background: #f5f7fb !important;
+}
+
+.dashboard-home-light .dashboard-houses-section {
+    border: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel {
+    grid-auto-flow: column !important;
+    grid-auto-columns: clamp(286px, 31.5%, 380px) !important;
+    grid-template-columns: none !important;
+    gap: 16px !important;
+    padding: 0 2px 10px !important;
+    background: transparent !important;
+}
+
+.dashboard-home-light .dashboard-house-card,
+.dashboard-home-light .dashboard-house-empty {
+    min-height: 112px !important;
+    border: 1px solid #e1e8f2 !important;
+    border-radius: 14px !important;
+    padding: 18px 20px !important;
+    background: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.055) !important;
+}
+
+.dashboard-home-light .dashboard-house-card-main,
+.dashboard-home-light .dashboard-house-card-add {
+    gap: 16px !important;
+}
+
+.dashboard-home-light .dashboard-house-avatar {
+    width: 50px !important;
+    height: 50px !important;
+    flex-basis: 50px !important;
+}
+
+.dashboard-home-light .dashboard-house-avatar.add {
+    width: 30px !important;
+    height: 30px !important;
+    flex-basis: 30px !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy strong,
+.dashboard-home-light .dashboard-house-empty strong {
+    color: #071032 !important;
+    font-size: 0.98rem !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy small,
+.dashboard-home-light .dashboard-house-empty span {
+    color: #526789 !important;
+    font-size: 0.76rem !important;
+}
+
+.dashboard-home-light .dashboard-house-card-add {
+    justify-content: center !important;
+    border-style: dashed !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel:has(.dashboard-house-empty) {
+    grid-auto-flow: column !important;
+    grid-auto-columns: clamp(286px, 31.5%, 380px) !important;
+    grid-template-columns: none !important;
+}
+
+/* Objective layout correction: light reference, real data, no inner horizontal overflow. */
+html:has(.light-dashboard-shell),
+body:has(.light-dashboard-shell),
+#root:has(.light-dashboard-shell),
+.app:has(.light-dashboard-shell),
+.light-dashboard-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    background: #f5f7fb !important;
+}
+
+.light-dashboard-main {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 24px !important;
+    overflow-x: hidden !important;
+}
+
+.dashboard-content,
+.dashboard-home-light,
+.dashboard-home-light > * {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+}
+
+.dashboard-home-light {
+    gap: 14px !important;
+    background: transparent !important;
+}
+
+.dashboard-home-light .dashboard-section,
+.dashboard-home-light .dashboard-filter-row,
+.dashboard-home-light .dashboard-kpi-grid,
+.dashboard-home-light .cb-main-grid,
+.dashboard-home-light .cb-results-model-grid,
+.dashboard-home-light .cb-bottom-grid {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.dashboard-home-light .dashboard-houses-section {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel {
+    grid-auto-flow: column !important;
+    grid-auto-columns: calc((100% - 48px) / 4) !important;
+    grid-template-columns: none !important;
+    gap: 16px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 0 0 6px !important;
+    scroll-snap-type: x mandatory !important;
+    scrollbar-gutter: auto !important;
+    background: transparent !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel::-webkit-scrollbar {
+    height: 0 !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel:has(.dashboard-house-empty) {
+    grid-auto-flow: column !important;
+    grid-auto-columns: calc((100% - 48px) / 4) !important;
+    grid-template-columns: none !important;
+}
+
+.dashboard-home-light .dashboard-house-card,
+.dashboard-home-light .dashboard-house-empty,
+.dashboard-home-light .dashboard-house-card-add {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 92px !important;
+    max-height: 92px !important;
+    border: 1px solid #e1e8f2 !important;
+    border-radius: 14px !important;
+    padding: 14px 16px !important;
+    background: #ffffff !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05) !important;
+    scroll-snap-align: start !important;
+}
+
+.dashboard-home-light .dashboard-house-card-add {
+    display: flex !important;
+    justify-content: center !important;
+    border-style: dashed !important;
+}
+
+.dashboard-home-light .dashboard-house-card-main,
+.dashboard-home-light .dashboard-house-card-add {
+    gap: 12px !important;
+}
+
+.dashboard-home-light .dashboard-house-avatar {
+    width: 42px !important;
+    height: 42px !important;
+    flex-basis: 42px !important;
+    font-size: 0.86rem !important;
+}
+
+.dashboard-home-light .dashboard-house-avatar.add {
+    width: 24px !important;
+    height: 24px !important;
+    flex-basis: 24px !important;
+    font-size: 1.18rem !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy strong,
+.dashboard-home-light .dashboard-house-empty strong {
+    font-size: 0.86rem !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy small,
+.dashboard-home-light .dashboard-house-empty span {
+    font-size: 0.7rem !important;
+}
+
+.dashboard-home-light .dashboard-kpi-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card {
+    min-height: 94px !important;
+    grid-template-columns: 42px minmax(0, 1fr) 30px !important;
+    gap: 10px !important;
+    padding: 14px 12px !important;
+    border: 1px solid #e1e8f2 !important;
+    background: #ffffff !important;
+}
+
+.dashboard-home-light .dashboard-kpi-icon {
+    width: 42px !important;
+    height: 42px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-copy {
+    min-width: 0 !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card small,
+.dashboard-home-light .dashboard-kpi-card em {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card strong {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    color: #071032 !important;
+    font-size: clamp(0.84rem, 0.92vw, 1.02rem) !important;
+    line-height: 1.05 !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+}
+
+.dashboard-home-light .dashboard-kpi-sparkline {
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 22px !important;
+}
+
+.dashboard-home-light .cb-panel,
+.dashboard-home-light .cb-bankroll-panel,
+.dashboard-home-light .cb-daily-results-card,
+.dashboard-home-light .cb-quick-summary-card,
+.dashboard-home-light .cb-financial-summary-card,
+.dashboard-home-light .cb-latest-tickets-card {
+    border: 1px solid #e1e8f2 !important;
+    background: #ffffff !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05) !important;
+}
+
+.dashboard-home-light .cb-main-grid,
+.dashboard-home-light .cb-results-model-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.88fr) !important;
+    gap: 16px !important;
+}
+
+.dashboard-home-light .cb-bottom-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 16px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid,
+.dashboard-home-light .cb-financial-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid div,
+.dashboard-home-light .cb-financial-list div {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    column-gap: 9px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid i,
+.dashboard-home-light .cb-financial-list i {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 13px !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid span,
+.dashboard-home-light .cb-financial-list span {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+}
+
+.dashboard-home-light .cb-quick-summary-grid strong,
+.dashboard-home-light .cb-financial-list strong {
+    overflow: visible !important;
+    font-size: clamp(0.78rem, 0.82vw, 0.94rem) !important;
+    line-height: 1.08 !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+}
+
+.dashboard-home-light .cb-latest-tickets-card {
+    overflow: hidden !important;
+}
+
+.dashboard-home-light .cb-latest-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+.dashboard-home-light .cb-latest-head,
+.dashboard-home-light .cb-latest-row {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: 0.62fr 1fr minmax(0, 1.15fr) 0.72fr 0.78fr 0.78fr 0.82fr 0.9fr 0.7fr 20px !important;
+    gap: 8px !important;
+}
+
+.dashboard-home-light .cb-latest-head span,
+.dashboard-home-light .cb-latest-row span,
+.dashboard-home-light .cb-latest-row strong {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.dashboard-home-light .cb-latest-empty {
+    width: 100% !important;
+    min-height: 76px !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px dashed #d7e0ec !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+}
+
+@media (max-width: 1280px) {
+    .dashboard-home-light .dashboard-house-carousel,
+    .dashboard-home-light .dashboard-house-carousel:has(.dashboard-house-empty) {
+        grid-auto-columns: calc((100% - 32px) / 3) !important;
+    }
+
+    .dashboard-home-light .dashboard-kpi-card {
+        grid-template-columns: 40px minmax(0, 1fr) 24px !important;
+        gap: 8px !important;
+        padding: 12px 10px !important;
+    }
+
+    .dashboard-home-light .dashboard-kpi-card strong {
+        font-size: 0.82rem !important;
+    }
+}
+
+/* Approved-reference final alignment: no structure changes, only visible dashboard proportions. */
+.dashboard-home-light .dashboard-house-next-button {
+    display: none !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel {
+    grid-auto-flow: column !important;
+    grid-auto-columns: calc((100% - 60px) / 4) !important;
+    gap: 20px !important;
+    padding: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    scrollbar-width: none !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel::-webkit-scrollbar {
+    display: none !important;
+}
+
+.dashboard-home-light .dashboard-house-card,
+.dashboard-home-light .dashboard-house-empty,
+.dashboard-home-light .dashboard-house-card-add {
+    min-height: 100px !important;
+    max-height: 100px !important;
+    padding: 18px 20px !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+}
+
+.dashboard-home-light .dashboard-house-card-add {
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 3 !important;
+}
+
+.dashboard-home-light .dashboard-house-avatar {
+    width: 56px !important;
+    height: 56px !important;
+    flex-basis: 56px !important;
+    font-size: 1rem !important;
+}
+
+.dashboard-home-light .dashboard-house-avatar.add {
+    width: 24px !important;
+    height: 24px !important;
+    flex-basis: 24px !important;
+    font-size: 1.18rem !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy {
+    gap: 6px !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy strong,
+.dashboard-home-light .dashboard-house-empty strong {
+    font-size: 1.08rem !important;
+    line-height: 1.12 !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy small,
+.dashboard-home-light .dashboard-house-empty span {
+    font-size: 0.82rem !important;
+    line-height: 1.2 !important;
+    font-weight: 850 !important;
+}
+
+.dashboard-home-light .dashboard-filter-row {
+    width: auto !important;
+    max-width: max-content !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, 224px) !important;
+    gap: 16px !important;
+    margin-top: 2px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .period-filter-row {
+    display: contents !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period,
+.dashboard-home-light .dashboard-filter-row .stats-calendar-field {
+    width: 224px !important;
+    min-width: 224px !important;
+    max-width: 224px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period {
+    min-height: 52px !important;
+    grid-template-columns: 36px minmax(0, 1fr) 18px !important;
+    align-items: center !important;
+    column-gap: 12px !important;
+    padding: 8px 12px !important;
+    border-radius: 10px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period::before {
+    width: 36px !important;
+    height: 36px !important;
+    align-self: center !important;
+    border-radius: 9px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period > span {
+    align-self: end !important;
+    font-size: 0.66rem !important;
+}
+
+.dashboard-home-light .dashboard-filter-row select,
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface,
+.dashboard-home-light .dashboard-filter-row .reference-selector-value {
+    min-height: 20px !important;
+    height: 20px !important;
+    align-self: start !important;
+    font-size: 0.84rem !important;
+    line-height: 1.05 !important;
+}
+
+.dashboard-home-light .dashboard-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card {
+    min-height: 94px !important;
+    grid-template-columns: 54px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 18px 20px !important;
+    border-radius: 12px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-icon {
+    width: 54px !important;
+    height: 54px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-copy {
+    gap: 6px !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card small {
+    color: #40527a !important;
+    font-size: 0.78rem !important;
+    line-height: 1.1 !important;
+    font-weight: 850 !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card strong {
+    color: #071032 !important;
+    font-size: clamp(1.05rem, 1.25vw, 1.24rem) !important;
+    line-height: 1.08 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+}
+
+.dashboard-home-light .dashboard-kpi-sparkline {
+    display: none !important;
+}
+
+.dashboard-home-light .dashboard-kpi-card em {
+    display: none !important;
+}
+
+@media (max-width: 1280px) {
+    .dashboard-home-light .dashboard-house-carousel {
+        grid-auto-columns: calc((100% - 60px) / 4) !important;
+    }
+
+    .dashboard-home-light .dashboard-kpi-card {
+        grid-template-columns: 48px minmax(0, 1fr) !important;
+        padding: 16px 16px !important;
+    }
+
+    .dashboard-home-light .dashboard-kpi-icon {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .dashboard-home-light .dashboard-kpi-card strong {
+        font-size: 1rem !important;
+    }
+}
+
+/* Filter text must stay readable like the approved reference. */
+.dashboard-home-light .dashboard-filter-row {
+    grid-template-columns: repeat(2, 248px) !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period,
+.dashboard-home-light .dashboard-filter-row .stats-calendar-field {
+    width: 248px !important;
+    min-width: 248px !important;
+    max-width: 248px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface,
+.dashboard-home-light .dashboard-filter-row .reference-selector-value {
+    min-width: 0 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+}
+
+/* Period/date icons aligned to the approved reference. */
+.dashboard-home-light .dashboard-filter-row .reference-period {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period::before {
+    content: "" !important;
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
+    width: 36px !important;
+    height: 36px !important;
+    align-self: center !important;
+    justify-self: center !important;
+    border-radius: 9px !important;
+    background: #ffe4ea !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period:nth-child(2)::before {
+    background: #e8f2ff !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period::after {
+    content: "" !important;
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
+    width: 18px !important;
+    height: 18px !important;
+    align-self: center !important;
+    justify-self: center !important;
+    z-index: 1 !important;
+    background: #ff1744 !important;
+    -webkit-mask:
+        linear-gradient(#000 0 0) 2px 4px / 14px 12px no-repeat,
+        linear-gradient(#000 0 0) 4px 2px / 2px 4px no-repeat,
+        linear-gradient(#000 0 0) 12px 2px / 2px 4px no-repeat,
+        linear-gradient(#000 0 0) 5px 9px / 2px 2px no-repeat,
+        linear-gradient(#000 0 0) 9px 9px / 2px 2px no-repeat,
+        linear-gradient(#000 0 0) 13px 9px / 2px 2px no-repeat;
+    mask:
+        linear-gradient(#000 0 0) 2px 4px / 14px 12px no-repeat,
+        linear-gradient(#000 0 0) 4px 2px / 2px 4px no-repeat,
+        linear-gradient(#000 0 0) 12px 2px / 2px 4px no-repeat,
+        linear-gradient(#000 0 0) 5px 9px / 2px 2px no-repeat,
+        linear-gradient(#000 0 0) 9px 9px / 2px 2px no-repeat,
+        linear-gradient(#000 0 0) 13px 9px / 2px 2px no-repeat;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period:nth-child(2)::after {
+    background: #2563eb !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-calendar-icon {
+    display: none !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period > span,
+.dashboard-home-light .dashboard-filter-row select,
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* Hard align filter icons: keep the icon badge inside the card, centered. */
+.dashboard-home-light .dashboard-filter-row .reference-period {
+    position: relative !important;
+    grid-template-columns: minmax(0, 1fr) 18px !important;
+    grid-template-rows: auto auto !important;
+    padding-left: 60px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period::before {
+    position: absolute !important;
+    left: 12px !important;
+    top: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    transform: translateY(-50%) !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period::after {
+    position: absolute !important;
+    left: 21px !important;
+    top: 50% !important;
+    width: 18px !important;
+    height: 18px !important;
+    transform: translateY(-50%) !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period > span {
+    grid-column: 1 / 2 !important;
+    grid-row: 1 !important;
+}
+
+.dashboard-home-light .dashboard-filter-row select,
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-calendar-icon,
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface .reference-calendar-icon {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Final filter-icon placement: badge left, text/value right, no overlap. */
+.dashboard-home-light .dashboard-filter-row .reference-period {
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) 16px !important;
+    grid-template-rows: 16px 20px !important;
+    align-items: center !important;
+    column-gap: 12px !important;
+    min-height: 52px !important;
+    padding: 8px 12px !important;
+    padding-left: 12px !important;
+    overflow: hidden !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period::before {
+    position: static !important;
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    width: 36px !important;
+    height: 36px !important;
+    align-self: center !important;
+    justify-self: center !important;
+    transform: none !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period::after {
+    position: static !important;
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    width: 18px !important;
+    height: 18px !important;
+    align-self: center !important;
+    justify-self: center !important;
+    transform: none !important;
+    z-index: 1 !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-period > span {
+    grid-column: 2 / 4 !important;
+    grid-row: 1 !important;
+    align-self: end !important;
+    justify-self: start !important;
+    margin: 0 !important;
+    text-align: left !important;
+}
+
+.dashboard-home-light .dashboard-filter-row select,
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface {
+    grid-column: 2 / 4 !important;
+    grid-row: 2 !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    text-align: left !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-selector-surface {
+    justify-content: flex-start !important;
+}
+
+.dashboard-home-light .dashboard-filter-row .reference-selector-value {
+    display: block !important;
+    text-align: left !important;
+}
+
+/* Requested updates: visible house carousel scrollbar and neutral daily result state. */
+.dashboard-home-light .dashboard-house-carousel {
+    padding-bottom: 10px !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #b8c6da transparent !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel::-webkit-scrollbar {
+    display: block !important;
+    height: 8px !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel::-webkit-scrollbar-track {
+    border-radius: 999px !important;
+    background: transparent !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel::-webkit-scrollbar-thumb {
+    border-radius: 999px !important;
+    background: #b8c6da !important;
+}
+
+.dashboard-home-light .cb-daily-results-card {
+    min-height: 344px !important;
+}
+
+.dashboard-home-light .cb-daily-list {
+    gap: 0 !important;
+}
+
+.dashboard-home-light .cb-daily-row {
+    min-height: 31px !important;
+}
+
+.dashboard-home-light .cb-daily-row i.neutral {
+    background: #eef3f9 !important;
+    color: #6b7d98 !important;
+}
+
+/* Keep the add-house card pinned and make selected house unmistakable. */
+.dashboard-home-light .dashboard-house-card-add {
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 20 !important;
+    box-shadow:
+        -18px 0 24px rgba(245, 247, 251, 0.92),
+        0 10px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+.dashboard-home-light .dashboard-house-card.selected {
+    position: relative !important;
+    border-color: #ff1744 !important;
+    background: #fff7f9 !important;
+    box-shadow:
+        0 0 0 2px rgba(255, 23, 68, 0.12),
+        0 12px 28px rgba(255, 23, 68, 0.10) !important;
+}
+
+.dashboard-home-light .dashboard-house-card.selected::after {
+    content: "✓" !important;
+    position: absolute !important;
+    top: 10px !important;
+    right: 12px !important;
+    width: 22px !important;
+    height: 22px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    background: #ff1744 !important;
+    color: #ffffff !important;
+    font-size: 0.72rem !important;
+    font-weight: 950 !important;
+}
+
+.dashboard-home-light .dashboard-house-card.selected .dashboard-house-card-copy strong {
+    color: #ff1744 !important;
+}
+
+/* House cards: centered name, no ticket count, menu dots bottom-right. */
+.dashboard-home-light .dashboard-house-card {
+    position: relative !important;
+    justify-content: center !important;
+    padding: 18px 44px 18px 20px !important;
+}
+
+.dashboard-home-light .dashboard-house-card-main {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy {
+    justify-items: center !important;
+    text-align: center !important;
+}
+
+.dashboard-home-light .dashboard-house-card-copy small {
+    display: none !important;
+}
+
+.dashboard-home-light .dashboard-house-menu-button {
+    position: absolute !important;
+    right: 12px !important;
+    bottom: 10px !important;
+    z-index: 8 !important;
+    width: 28px !important;
+    height: 24px !important;
+    min-width: 28px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    color: #7a8aa6 !important;
+    opacity: 1 !important;
+    font: inherit !important;
+    font-size: 1rem !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+}
+
+.dashboard-home-light .dashboard-house-menu-button:hover,
+.dashboard-home-light .dashboard-house-menu-button[aria-expanded="true"] {
+    background: #f1f5fb !important;
+    color: #071032 !important;
+}
+
+.dashboard-home-light .dashboard-house-menu {
+    position: absolute !important;
+    right: 12px !important;
+    bottom: 38px !important;
+    z-index: 30 !important;
+    width: 118px !important;
+    display: grid !important;
+    gap: 4px !important;
+    border: 1px solid #dbe3ef !important;
+    border-radius: 10px !important;
+    padding: 6px !important;
+    background: #ffffff !important;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16) !important;
+}
+
+.dashboard-home-light .dashboard-house-menu button {
+    min-height: 30px !important;
+    border: 0 !important;
+    border-radius: 7px !important;
+    padding: 0 9px !important;
+    background: transparent !important;
+    color: #253a5b !important;
+    font: inherit !important;
+    font-size: 0.76rem !important;
+    font-weight: 850 !important;
+    text-align: left !important;
+    cursor: pointer !important;
+}
+
+.dashboard-home-light .dashboard-house-menu button:hover {
+    background: #f1f5fb !important;
+}
+
+.dashboard-home-light .dashboard-house-menu button.danger {
+    color: #e11d2e !important;
+}
+
+/* Final polish: selected marker at bottom, card menu opens downward, modal close aligned. */
+.dashboard-home-light .dashboard-house-row-fixed {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    align-items: start !important;
+    overflow: visible !important;
+}
+
+.dashboard-home-light .dashboard-house-row-fixed .dashboard-house-carousel {
+    grid-column: 1 / 4 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    grid-auto-columns: calc((100% - 32px) / 3) !important;
+    padding: 0 0 10px !important;
+}
+
+.dashboard-home-light .dashboard-house-row-fixed .dashboard-house-card-add {
+    grid-column: 4 !important;
+    position: relative !important;
+    right: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 116px !important;
+    align-self: start !important;
+    z-index: 1 !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+.dashboard-home-light .dashboard-house-card.selected::after {
+    top: auto !important;
+    right: auto !important;
+    left: 12px !important;
+    bottom: 10px !important;
+}
+
+.dashboard-home-light .dashboard-house-menu {
+    top: auto !important;
+    right: 10px !important;
+    bottom: 20px !important;
+    transform: none !important;
+}
+
+.dashboard-home-light .dashboard-house-card {
+    overflow: visible !important;
+}
+
+.dashboard-home-light .dashboard-house-carousel {
+    overflow-y: visible !important;
+    padding-bottom: 16px !important;
+}
+
+.light-house-modal {
+    position: relative !important;
+    padding: 22px !important;
+    padding-top: 24px !important;
+}
+
+.light-house-modal header {
+    position: relative !important;
+    padding-right: 42px !important;
+}
+
+.light-house-modal header button[aria-label="Fechar"] {
+    position: absolute !important;
+    top: -8px !important;
+    right: -8px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+}
+
+/* Fixed add-house layout: 3 scrolling house cards + 1 fixed add card. */
+.dashboard-home-light .dashboard-house-row-fixed {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    align-items: start !important;
+    overflow: visible !important;
+}
+
+.dashboard-home-light .dashboard-house-scroll-fixed {
+    grid-column: 1 / span 3 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    display: grid !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: calc((100% - 32px) / 3) !important;
+    gap: 16px !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    padding: 0 0 12px !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #b8c6da transparent !important;
+}
+
+.dashboard-home-light .dashboard-house-scroll-fixed::-webkit-scrollbar {
+    display: block !important;
+    height: 8px !important;
+}
+
+.dashboard-home-light .dashboard-house-scroll-fixed::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.dashboard-home-light .dashboard-house-scroll-fixed::-webkit-scrollbar-thumb {
+    border-radius: 999px !important;
+    background: #b8c6da !important;
+}
+
+.dashboard-home-light .dashboard-house-row-fixed .dashboard-house-card,
+.dashboard-home-light .dashboard-house-card-add-fixed {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 116px !important;
+    height: 116px !important;
+    box-sizing: border-box !important;
+}
+
+.dashboard-home-light .dashboard-house-card-add-fixed {
+    grid-column: 4 !important;
+    position: relative !important;
+    right: auto !important;
+    align-self: start !important;
+    z-index: 1 !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Period/reference block alignment requested for the light dashboard home. */
+.dashboard-home-light .dashboard-period-reference-block {
+    width: max-content !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    border: 1px solid #dfe7f2 !important;
+    border-radius: 18px !important;
+    padding: 12px !important;
+    background: #eef3f9 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76), 0 10px 24px rgba(15, 23, 42, 0.045) !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period {
+    width: 248px !important;
+    min-height: 58px !important;
+    height: 58px !important;
+    border-color: #d9e3ef !important;
+    border-radius: 10px !important;
+    padding: 9px 14px !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.045) !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period::before {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 9px !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period::after {
+    left: 25px !important;
+    top: 22px !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period > span {
+    font-size: 0.68rem !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period select,
+.dashboard-home-light .dashboard-period-reference-block .reference-selector-surface,
+.dashboard-home-light .dashboard-period-reference-block .reference-selector-value {
+    font-size: 0.86rem !important;
+}
+
+.dashboard-home-light .dashboard-house-row-fixed .dashboard-house-card,
+.dashboard-home-light .dashboard-house-card-add-fixed,
+.dashboard-home-light .dashboard-kpi-card {
+    min-height: 96px !important;
+    height: 96px !important;
+}
+
+@media (max-width: 760px) {
+    .dashboard-home-light .dashboard-period-reference-block {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    .dashboard-home-light .dashboard-period-reference-block .reference-period {
+        width: 100% !important;
+    }
+}
+
+/* Requested dashboard interaction and compact top controls. */
+.dashboard-home-header-actions {
+    align-items: center !important;
+}
+
+.dashboard-header-user-card {
+    min-width: 194px;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #dbe3ef;
+    border-radius: 14px;
+    padding: 10px 14px;
+    background: #ffffff;
+    color: #071032;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.055);
+}
+
+.dashboard-header-user-card i {
+    width: 36px;
+    height: 36px;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 36px;
+    border-radius: 999px;
+    background: #ef1230;
+    color: #ffffff;
+    font-style: normal;
+    font-size: 0.74rem;
+    font-weight: 900;
+}
+
+.dashboard-header-user-card span {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.dashboard-header-user-card strong,
+.dashboard-header-user-card small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-header-user-card strong {
+    color: #071032;
+    font-size: 0.82rem;
+    font-weight: 900;
+}
+
+.dashboard-header-user-card small {
+    color: #526789;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.dashboard-home-light .dashboard-period-reference-block {
+    gap: 10px !important;
+    padding: 9px !important;
+    border-radius: 14px !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period {
+    width: 202px !important;
+    min-height: 52px !important;
+    height: 52px !important;
+    grid-template-columns: 34px minmax(0, 1fr) 14px !important;
+    gap: 10px !important;
+    padding: 8px 11px !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period::before {
+    width: 34px !important;
+    height: 34px !important;
+    align-self: center !important;
+    justify-self: center !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period::after {
+    left: 22px !important;
+    top: 19px !important;
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 3px !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period > span {
+    font-size: 0.62rem !important;
+    line-height: 1 !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period select,
+.dashboard-home-light .dashboard-period-reference-block .reference-selector-surface,
+.dashboard-home-light .dashboard-period-reference-block .reference-selector-value {
+    min-height: 18px !important;
+    height: 18px !important;
+    font-size: 0.8rem !important;
+    line-height: 1 !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-calendar-popover {
+    z-index: 4000 !important;
+}
+
+.dashboard-home-light .dashboard-house-card-main {
+    cursor: pointer !important;
+}
+
+.dashboard-home-light .dashboard-house-card {
+    cursor: pointer !important;
+}
+
+.dashboard-home-light .dashboard-house-card:not(.selected):hover {
+    border-color: #cbd8ea !important;
+    background: #fbfdff !important;
+}
+
+.cb-chart-mode-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 11px !important;
+}
+
+.cb-chart-mode-button::before {
+    content: none !important;
+}
+
+.cb-chart-mode-button i {
+    width: 7px !important;
+    height: 7px !important;
+    display: inline-block !important;
+    border-right: 2px solid currentColor !important;
+    border-bottom: 2px solid currentColor !important;
+    transform: translateY(-2px) rotate(45deg) !important;
+    opacity: 0.72 !important;
+}
+
+.cb-area-chart.monthly-scroll {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: thin;
+    scrollbar-color: #b8c6da transparent;
+}
+
+.cb-area-chart.monthly-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.cb-area-chart.monthly-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.cb-area-chart.monthly-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #b8c6da;
+}
+
+.cb-area-chart-canvas {
+    height: 100%;
+}
+
+.cb-daily-list.scrollable {
+    max-height: 217px !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    padding-right: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #b8c6da transparent;
+}
+
+.cb-daily-list.scrollable::-webkit-scrollbar {
+    width: 7px;
+}
+
+.cb-daily-list.scrollable::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.cb-daily-list.scrollable::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #b8c6da;
+}
+
+.dashboard-home-light .cb-daily-list.scrollable {
+    max-height: 217px !important;
+}
+
+.dark-dashboard-home .cb-results-model-grid .cb-daily-list.scrollable {
+    max-height: 294px !important;
+}
+
+@media (max-width: 760px) {
+    .dashboard-header-user-card {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .dashboard-home-light .dashboard-period-reference-block {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .dashboard-home-light .dashboard-period-reference-block .reference-period {
+        width: 100% !important;
+    }
+}
+
+/* Final lock: compact Periodo/Referencia controls. */
+.dashboard-home-light .dashboard-period-reference-block {
+    width: 394px !important;
+    max-width: 100% !important;
+    height: 82px !important;
+    min-height: 82px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, 174px) !important;
+    align-items: center !important;
+    justify-content: start !important;
+    gap: 12px !important;
+    padding: 9px 10px !important;
+    border: 1px solid #d8e3f1 !important;
+    border-radius: 15px !important;
+    background: #f1f5fb !important;
+    box-shadow:
+        0 10px 24px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period {
+    width: 174px !important;
+    min-width: 174px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) 14px !important;
+    grid-template-rows: 15px 19px !important;
+    column-gap: 10px !important;
+    row-gap: 1px !important;
+    align-items: center !important;
+    padding: 8px 10px !important;
+    border: 1px solid #d7e1ee !important;
+    border-radius: 9px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period::before {
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+    align-self: center !important;
+    justify-self: center !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period::after {
+    left: 21px !important;
+    top: 20px !important;
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 3px !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period > span {
+    grid-column: 2 / 4 !important;
+    grid-row: 1 !important;
+    align-self: end !important;
+    margin: 0 !important;
+    color: #1f3b66 !important;
+    font-size: 0.58rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period select,
+.dashboard-home-light .dashboard-period-reference-block .reference-selector-surface {
+    grid-column: 2 / 4 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 20px !important;
+    height: 20px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #020b2d !important;
+    box-shadow: none !important;
+    font-size: 0.82rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period select {
+    padding-right: 16px !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-selector-value {
+    overflow: hidden !important;
+    color: #020b2d !important;
+    font-size: 0.82rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-calendar-icon,
+.dashboard-home-light .dashboard-period-reference-block .reference-selector-surface .reference-calendar-icon {
+    display: none !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block,
+.dashboard-home-light .dashboard-period-reference-block .reference-period,
+.dashboard-home-light .dashboard-period-reference-block .reference-calendar-picker {
+    overflow: visible !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-period {
+    position: relative !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-calendar-picker {
+    position: relative !important;
+}
+
+.dashboard-home-light .dashboard-period-reference-block .reference-calendar-popover {
+    position: absolute !important;
+    top: calc(100% + 13px) !important;
+    left: 50% !important;
+    z-index: 99999 !important;
+    width: max-content !important;
+    max-width: min(340px, calc(100vw - 32px)) !important;
+    transform: translateX(-50%) !important;
+}
+
+@media (max-width: 760px) {
+    .dashboard-home-light .dashboard-period-reference-block {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .dashboard-home-light .dashboard-period-reference-block .reference-period {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+/* Shared filter cards: house, type, period and reference follow the dashboard home pattern. */
+.light-dashboard-main .dashboard-filter-row--full,
+.light-dashboard-main .dashboard-filter-row--reports,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports {
+    width: max-content !important;
+    max-width: 100% !important;
+    min-height: 82px !important;
+    display: grid !important;
+    align-items: center !important;
+    justify-content: start !important;
+    gap: 12px !important;
+    padding: 9px 10px !important;
+    border: 1px solid #d8e3f1 !important;
+    border-radius: 15px !important;
+    background: #f1f5fb !important;
+    box-shadow:
+        0 10px 24px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full {
+    grid-template-columns: repeat(4, 174px) !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--reports,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports {
+    grid-template-columns: repeat(3, 174px) !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--reports.advanced-mode,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports.advanced-mode {
+    grid-template-columns: repeat(2, 174px) !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period,
+.light-dashboard-main .dashboard-filter-row--reports .reference-period,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period {
+    position: relative !important;
+    width: 174px !important;
+    min-width: 174px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) 14px !important;
+    grid-template-rows: 15px 19px !important;
+    column-gap: 10px !important;
+    row-gap: 1px !important;
+    align-items: center !important;
+    padding: 8px 10px !important;
+    border: 1px solid #d7e1ee !important;
+    border-radius: 9px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period::before,
+.light-dashboard-main .dashboard-filter-row--reports .reference-period::before,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period::before {
+    content: "" !important;
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+    align-self: center !important;
+    justify-self: center !important;
+    background: #ffe3ea !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period::after,
+.light-dashboard-main .dashboard-filter-row--reports .reference-period::after,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 21px !important;
+    top: 20px !important;
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 3px !important;
+    background: #f0142f !important;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.72) !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period:nth-child(1)::before,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period:nth-child(1)::before {
+    background: #e1f8ee !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period:nth-child(1)::after,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period:nth-child(1)::after {
+    background: #09b86f !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period:nth-child(2)::before {
+    background: #fff0dd !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period:nth-child(2)::after {
+    background: #ff8a00 !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period:nth-child(4)::before,
+.light-dashboard-main .dashboard-filter-row--reports .reference-period:last-child::before,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period:last-child::before {
+    background: #e7f1ff !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period:nth-child(4)::after,
+.light-dashboard-main .dashboard-filter-row--reports .reference-period:last-child::after,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period:last-child::after {
+    background: #147cff !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .period-filter-row,
+.light-dashboard-main .dashboard-filter-row--reports .period-filter-row,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .period-filter-row {
+    display: contents !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period > span,
+.light-dashboard-main .dashboard-filter-row--reports .reference-period > span,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period > span {
+    grid-column: 2 / 4 !important;
+    grid-row: 1 !important;
+    align-self: end !important;
+    margin: 0 !important;
+    color: #1f3b66 !important;
+    font-size: 0.58rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-period select,
+.light-dashboard-main .dashboard-filter-row--reports .reference-period select,
+.light-dashboard-main .dashboard-filter-row--full .reference-selector-surface,
+.light-dashboard-main .dashboard-filter-row--reports .reference-selector-surface,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period select,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-selector-surface {
+    grid-column: 2 / 4 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 20px !important;
+    height: 20px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #020b2d !important;
+    box-shadow: none !important;
+    font-size: 0.82rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-selector-value,
+.light-dashboard-main .dashboard-filter-row--reports .reference-selector-value,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-selector-value {
+    overflow: hidden !important;
+    color: #020b2d !important;
+    font-size: 0.82rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-calendar-icon,
+.light-dashboard-main .dashboard-filter-row--reports .reference-calendar-icon,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-calendar-icon {
+    display: none !important;
+}
+
+.light-dashboard-main .dashboard-filter-row--full .reference-calendar-popover,
+.light-dashboard-main .dashboard-filter-row--reports .reference-calendar-popover,
+.reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-calendar-popover {
+    position: absolute !important;
+    top: calc(100% + 13px) !important;
+    left: 50% !important;
+    z-index: 99999 !important;
+    width: max-content !important;
+    max-width: min(340px, calc(100vw - 32px)) !important;
+    transform: translateX(-50%) !important;
+}
+
+@media (max-width: 980px) {
+    .light-dashboard-main .dashboard-filter-row--full,
+    .light-dashboard-main .dashboard-filter-row--reports,
+    .light-dashboard-main .dashboard-filter-row--reports.advanced-mode,
+    .reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports,
+    .reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports.advanced-mode {
+        width: 100% !important;
+        min-height: 0 !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .light-dashboard-main .dashboard-filter-row--full .reference-period,
+    .light-dashboard-main .dashboard-filter-row--reports .reference-period,
+    .reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports .reference-period {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+@media (max-width: 620px) {
+    .light-dashboard-main .dashboard-filter-row--full,
+    .light-dashboard-main .dashboard-filter-row--reports,
+    .light-dashboard-main .dashboard-filter-row--reports.advanced-mode,
+    .reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports,
+    .reports-section[aria-labelledby="reports-page-title"] .dashboard-filter-row--reports.advanced-mode {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Final house-card sizing: dashboard-home.css is imported after App.css. */
+.dashboard-home-light .dashboard-house-row-fixed .dashboard-house-card,
+.dashboard-home-light .dashboard-house-card-all-fixed,
+.dashboard-home-light .dashboard-house-card-add-fixed,
+.dashboard-home-light .dashboard-house-scroll-fixed > .dashboard-house-card {
+    height: 70px !important;
+    min-height: 70px !important;
+}
+
+.dashboard-home-light .dashboard-house-card-main,
+.dashboard-home-light .dashboard-house-card-all-fixed,
+.dashboard-home-light .dashboard-house-card-add-fixed {
+    height: 70px !important;
+    min-height: 70px !important;
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+}
+
+.dashboard-home-light .dashboard-house-scroll-fixed > .dashboard-house-card > .dashboard-house-menu-button,
+.dashboard-home-light .dashboard-house-scroll-fixed .dashboard-house-card .dashboard-house-menu-button {
+    position: absolute !important;
+    top: 4px !important;
+    right: -2px !important;
+    bottom: auto !important;
+    transform: translateX(2px) !important;
+}
+
+.dashboard-home-light .dashboard-house-scroll-fixed {
+    cursor: grab !important;
+    touch-action: pan-y !important;
+}
+
+.dashboard-home-light .dashboard-house-scroll-fixed.is-dragging {
+    cursor: grabbing !important;
+    scroll-snap-type: none !important;
+    user-select: none !important;
+}
+
+.dashboard-home-light .dashboard-house-scroll-fixed.is-dragging .dashboard-house-card,
+.dashboard-home-light .dashboard-house-scroll-fixed.is-dragging .dashboard-house-card-main {
+    cursor: grabbing !important;
+}
+
+/* Dashboard top period/reference filters. */
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-controls {
+    align-items: start !important;
+    gap: 18px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar {
+    display: grid !important;
+    grid-template-columns: 154px 188px !important;
+    align-items: end !important;
+    gap: 16px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-period {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: grid !important;
+    gap: 7px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-period > span {
+    display: block !important;
+    margin: 0 !important;
+    color: #65708a !important;
+    font-size: 0.78rem !important;
+    font-weight: 850 !important;
+    line-height: 1 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar select,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-selector-surface {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    border: 1px solid #dfe7f0 !important;
+    border-radius: 11px !important;
+    padding: 0 36px 0 16px !important;
+    background: #ffffff !important;
+    color: #071332 !important;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-selector-value {
+    color: #071332 !important;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important;
+}
+
+/* Compact top filters matching the dashboard reference. */
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-controls {
+    grid-template-columns: auto 1px 42px 44px !important;
+    grid-template-rows: auto 38px !important;
+    align-items: start !important;
+    gap: 16px !important;
+    row-gap: 7px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar {
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    grid-template-columns: 132px 158px !important;
+    align-items: end !important;
+    gap: 14px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-period {
+    gap: 7px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-period > span {
+    color: #233861 !important;
+    font-size: 0.72rem !important;
+    font-weight: 750 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar select,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-selector-surface {
+    height: 38px !important;
+    min-height: 38px !important;
+    border-radius: 7px !important;
+    padding: 0 34px 0 13px !important;
+    font-size: 0.84rem !important;
+    font-weight: 900 !important;
+    box-shadow: none !important;
+}
+
+.app .light-dashboard-shell .light-sidebar-brand img {
+    width: 230px !important;
+    min-width: 230px !important;
+    height: auto !important;
+    max-width: none !important;
+}
+
+.app .light-dashboard-shell .light-sidebar-brand {
+    justify-content: center !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+    overflow: visible !important;
+}
+
+.app .light-dashboard-shell .light-sidebar-chevron {
+    width: 7px !important;
+    height: 7px !important;
+    display: block !important;
+    flex: 0 0 7px !important;
+    margin-left: auto !important;
+    border-right: 2px solid currentColor !important;
+    border-bottom: 2px solid currentColor !important;
+    color: #71809b !important;
+    transform: rotate(45deg) translateY(-2px) !important;
+    transform-origin: center !important;
+    transition: transform 0.18s ease, color 0.18s ease !important;
+}
+
+.app .light-dashboard-shell .light-sidebar-link.is-expanded .light-sidebar-chevron {
+    color: #e11d2e !important;
+    transform: rotate(225deg) translateY(-1px) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-period:first-child select {
+    appearance: none !important;
+    background-image: linear-gradient(45deg, transparent 50%, #18315c 50%),
+        linear-gradient(135deg, #18315c 50%, transparent 50%) !important;
+    background-position: calc(100% - 17px) 16px, calc(100% - 12px) 16px !important;
+    background-size: 5px 5px, 5px 5px !important;
+    background-repeat: no-repeat !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-selector-value {
+    font-size: 0.84rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-calendar-picker {
+    height: 38px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-calendar-icon,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-selector-surface .reference-calendar-icon {
+    display: block !important;
+    right: 12px !important;
+    width: 16px !important;
+    height: 16px !important;
+    color: #18315c !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-divider {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: 1px !important;
+    height: 38px !important;
+    margin: 0 4px !important;
+    background: #dfe6f1 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-bell {
+    grid-column: 3 !important;
+    grid-row: 2 !important;
+    width: 40px !important;
+    height: 40px !important;
+    align-self: start !important;
+    margin-top: -1px !important;
+    border: 1px solid #dfe7f0 !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    color: #18315c !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-bell svg {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-bell i {
+    top: -8px !important;
+    right: -8px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    border-width: 2px !important;
+    font-size: 0.62rem !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-avatar {
+    grid-column: 4 !important;
+    grid-row: 2 !important;
+    width: 44px !important;
+    height: 44px !important;
+    align-self: start !important;
+    margin-top: -3px !important;
+    border: 0 !important;
+    font-size: 0.82rem !important;
+}
+
+/* Final alignment for the dashboard top controls. */
+.app .light-dashboard-shell .dashboard-home-light.cb-dashboard-overview,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-page-header {
+    overflow: visible !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-controls {
+    display: grid !important;
+    grid-template-columns: 118px 138px auto !important;
+    grid-template-rows: 13px 38px !important;
+    align-items: start !important;
+    column-gap: 14px !important;
+    row-gap: 5px !important;
+    overflow: visible !important;
+    position: relative !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-controls::before,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-controls::after {
+    display: block !important;
+    align-self: start !important;
+    color: #233861 !important;
+    font-size: 0.72rem !important;
+    font-weight: 750 !important;
+    line-height: 1 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-controls::before {
+    content: "Período" !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-controls::after {
+    content: "Referência" !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar {
+    grid-column: 1 / 3 !important;
+    grid-row: 2 !important;
+    display: grid !important;
+    grid-template-columns: 118px 138px !important;
+    align-items: end !important;
+    gap: 14px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-period {
+    display: grid !important;
+    gap: 0 !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-period > span {
+    display: none !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar select,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-selector-surface {
+    height: 38px !important;
+    min-height: 38px !important;
+    border: 1px solid #dfe7f0 !important;
+    border-radius: 7px !important;
+    padding: 0 36px 0 13px !important;
+    background: #ffffff !important;
+    font-size: 0.84rem !important;
+    font-weight: 900 !important;
+    box-shadow: none !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-selector-value {
+    font-size: 0.84rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-toolbar .reference-calendar-picker {
+    height: 38px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-top-divider {
+    display: none !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-bell {
+    grid-column: 4 !important;
+    grid-row: 2 !important;
+    align-self: start !important;
+    width: 42px !important;
+    height: 38px !important;
+    margin-top: 0 !important;
+    border: 1px solid #dfe7f0 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-bell i {
+    top: -5px !important;
+    right: -5px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    z-index: 5 !important;
+    overflow: visible !important;
+    line-height: 18px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-avatar {
+    grid-column: 5 !important;
+    grid-row: 2 !important;
+    align-self: start !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin-top: -3px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-menu {
+    grid-column: 3 !important;
+    grid-row: 2 !important;
+    height: 58px !important;
+    min-width: 184px !important;
+    display: grid !important;
+    grid-template-columns: 52px minmax(0, auto) 28px !important;
+    align-items: center !important;
+    column-gap: 12px !important;
+    align-self: start !important;
+    margin: -19px 0 0 12px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #071332 !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-logout {
+    width: 28px !important;
+    height: 32px !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    color: #071f4b !important;
+    cursor: pointer !important;
+    transform: none !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-logout:hover,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-logout:focus-visible {
+    background: #e8eef7 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-account-menu {
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    min-width: 112px !important;
+    border: 1px solid #dfe7f0 !important;
+    border-radius: 9px !important;
+    padding: 5px !important;
+    background: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(7, 19, 50, 0.14) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-account-menu button {
+    width: 100% !important;
+    min-height: 34px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    padding: 0 12px !important;
+    background: transparent !important;
+    color: #d71936 !important;
+    font-size: 0.78rem !important;
+    font-weight: 850 !important;
+    text-align: left !important;
+    cursor: pointer !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-account-menu button:hover,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-account-menu button:focus-visible {
+    background: #fff0f3 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-avatar {
+    width: 52px !important;
+    height: 52px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, #ff1745 0%, #d90f2d 100%) !important;
+    color: #ffffff !important;
+    overflow: hidden !important;
+    font-size: 0.96rem !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+    box-shadow: 0 8px 18px rgba(224, 18, 50, 0.18) !important;
+    transform: translateX(10px) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-avatar img {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    object-fit: cover !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-text {
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 3px !important;
+    justify-items: start !important;
+    text-align: left !important;
+    transform: translateX(10px) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-text strong {
+    max-width: 86px !important;
+    overflow: hidden !important;
+    color: #071332 !important;
+    font-size: 0.76rem !important;
+    font-weight: 900 !important;
+    display: block !important;
+    padding-bottom: 2px !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-text small {
+    color: #233861 !important;
+    font-size: 0.67rem !important;
+    font-weight: 700 !important;
+    line-height: 1.05 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-user-chevron {
+    width: 7px !important;
+    height: 7px !important;
+    border-right: 2px solid #071f4b !important;
+    border-bottom: 2px solid #071f4b !important;
+    transform: rotate(45deg) translateY(-2px) !important;
+}
+
+/* Final page-title normalization. Keep all main page titles aligned with "Novo bilhete". */
+.app .light-dashboard-shell .light-dashboard-main .submenu-page,
+.app .light-dashboard-shell .light-dashboard-main .reports-page {
+    gap: 16px !important;
+}
+
+.app .light-dashboard-shell .light-dashboard-main .submenu-page-header,
+.app .light-dashboard-shell .light-dashboard-main .reports-page-heading {
+    min-height: 64px !important;
+    margin-bottom: 0 !important;
+}
+
+.app .light-dashboard-shell .light-dashboard-main .submenu-page-header .cb-page-header__copy {
+    display: grid !important;
+    gap: 6px !important;
+}
+
+.app .light-dashboard-shell .light-dashboard-main .submenu-page-header .cb-page-header__copy h1,
+.app .light-dashboard-shell .light-dashboard-main .submenu-page-header .cb-page-header__copy p {
+    margin: 0 !important;
+}
+
+.light-dashboard-main .submenu-page-header h1,
+.submenu-page-header h1,
+.reports-section[aria-labelledby="reports-page-title"] .reports-page-heading h2,
+.reports-page-heading h2,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-page-header h1,
+.app .light-dashboard-shell .cb-dashboard-page-header h1,
+.dashboard-home-header h1,
+.page-header h1 {
+    font-size: 1.8rem !important;
+    line-height: 1.05 !important;
+    font-weight: 950 !important;
+    letter-spacing: 0 !important;
+}
+
+.light-dashboard-main .submenu-page-header,
+.submenu-page-header,
+.reports-section[aria-labelledby="reports-page-title"] .reports-page-heading,
+.reports-page-heading,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-page-header > div:first-child,
+.app .light-dashboard-shell .cb-dashboard-page-header > div:first-child,
+.dashboard-home-header > div:first-child,
+.page-header > div:first-child {
+    gap: 6px !important;
+}
+
+.light-dashboard-main .submenu-page-header p,
+.submenu-page-header p,
+.reports-section[aria-labelledby="reports-page-title"] .reports-page-heading .reports-section-context,
+.reports-page-heading .reports-section-context,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-page-header p,
+.app .light-dashboard-shell .cb-dashboard-page-header p,
+.dashboard-home-header p,
+.page-header p {
+    margin-top: 0 !important;
+    color: #53617f !important;
+    font-size: 0.92rem !important;
+    line-height: 1.25 !important;
+    font-weight: 750 !important;
+    letter-spacing: 0 !important;
+}
+
+/* Final chart section: bankroll evolution + daily result reference layout. */
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-insights-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 2fr) minmax(340px, 0.98fr) !important;
+    gap: 16px !important;
+    align-items: stretch !important;
+    margin-top: 16px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-bankroll-panel,
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-results-card {
+    height: 340px !important;
+    min-height: 300px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #dfe7f2 !important;
+    border-radius: 12px !important;
+    padding: 18px 20px 14px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 255, 0.96)) !important;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 18px 38px rgba(15, 23, 42, 0.07) !important;
+    overflow: hidden !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-bankroll-panel .cb-panel-header,
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-results-card .cb-panel-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+    align-items: start !important;
+    margin-bottom: 6px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-results-card .cb-panel-header {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-bankroll-panel .cb-panel-header h2,
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-results-card .cb-panel-header h2 {
+    color: #071345 !important;
+    font-size: 1.02rem !important;
+    line-height: 1.1 !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-bankroll-panel .cb-panel-header p,
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-results-card .cb-panel-header p {
+    margin-top: 4px !important;
+    color: #334a72 !important;
+    font-size: 0.74rem !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-chart-mode-button,
+.app .light-dashboard-shell .dashboard-home-light .cb-small-select {
+    min-width: 94px !important;
+    min-height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    border: 1px solid #dce6f2 !important;
+    border-radius: 7px !important;
+    padding: 0 12px !important;
+    background: #ffffff !important;
+    color: #071345 !important;
+    font-size: 0.74rem !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-chart-mode-button {
+    min-width: 124px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-chart-mode-button i,
+.app .light-dashboard-shell .dashboard-home-light .cb-small-select i {
+    width: 6px !important;
+    height: 6px !important;
+    border-right: 2px solid currentColor !important;
+    border-bottom: 2px solid currentColor !important;
+    transform: translateY(-2px) rotate(45deg) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart {
+    height: 226px !important;
+    min-height: 226px !important;
+    margin-top: 2px !important;
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    transition: min-width 0.2s ease, width 0.2s ease !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart.scrollable-dates .cb-area-chart-canvas {
+    width: var(--bank-chart-width, 100%) !important;
+    min-width: var(--bank-chart-width, 100%) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart.scrollable-dates {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding-bottom: 8px !important;
+    cursor: grab !important;
+    user-select: none !important;
+    touch-action: pan-x !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #b8c8dd #eef3f8 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart.scrollable-dates.is-dragging {
+    cursor: grabbing !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart.scrollable-dates::-webkit-scrollbar {
+    height: 8px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart.scrollable-dates::-webkit-scrollbar-track {
+    border-radius: 999px !important;
+    background: #eef3f8 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart.scrollable-dates::-webkit-scrollbar-thumb {
+    border: 2px solid #eef3f8 !important;
+    border-radius: 999px !important;
+    background: #b8c8dd !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart.scrollable-dates::-webkit-scrollbar-thumb:hover {
+    background: #92a6c1 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart .recharts-cartesian-grid line {
+    stroke: #dce5f0 !important;
+    stroke-dasharray: 4 5 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-area-chart .recharts-area-curve {
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-chart-axis-value {
+    fill: #071345 !important;
+    font-size: 0.72rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-chart-axis-label {
+    fill: #071345 !important;
+    font-size: 0.74rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .chart-tooltip {
+    border: 1px solid #e4ebf4 !important;
+    border-radius: 6px !important;
+    padding: 9px 12px !important;
+    background: #ffffff !important;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .chart-tooltip.is-left {
+    transform: translateX(calc(-100% - 18px)) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .chart-tooltip span {
+    color: #53617d !important;
+    font-size: 0.72rem !important;
+    font-weight: 750 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .chart-tooltip strong {
+    margin-top: 0 !important;
+    color: #071345 !important;
+    font-size: 0.8rem !important;
+    font-weight: 950 !important;
+    white-space: nowrap !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-results-card {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-list {
+    display: grid !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-list.scrollable {
+    max-height: 272px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row {
+    min-height: 48px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto 24px !important;
+    align-items: center !important;
+    gap: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 0 12px !important;
+    background: #f8fafc !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row span {
+    color: #071345 !important;
+    font-size: 0.84rem !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row strong {
+    font-size: 0.84rem !important;
+    font-weight: 950 !important;
+    white-space: nowrap !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row strong.positive {
+    color: #05a765 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row strong.negative {
+    color: #ff1732 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row i {
+    width: 22px !important;
+    height: 22px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    font-size: 0.74rem !important;
+    font-style: normal !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row i.positive {
+    background: #dcf8eb !important;
+    color: #05a765 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row i.negative {
+    background: #ffe4ea !important;
+    color: #ff1732 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-daily-row i.neutral {
+    background: #eef3f9 !important;
+    color: #53617d !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-outline-button {
+    width: 100% !important;
+    min-height: 39px !important;
+    margin-top: auto !important;
+    border: 1px solid #ff7890 !important;
+    border-radius: 7px !important;
+    background: #ffffff !important;
+    color: #ff0f2f !important;
+    font-size: 0.84rem !important;
+    font-weight: 950 !important;
+}
+
+@media (max-width: 1180px) {
+    .app .light-dashboard-shell .dashboard-home-light .cb-dashboard-insights-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .app .light-dashboard-shell .dashboard-home-light .cb-bankroll-panel,
+    .app .light-dashboard-shell .dashboard-home-light .cb-daily-results-card {
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 16px !important;
+    }
+
+    .app .light-dashboard-shell .dashboard-home-light .cb-area-chart {
+        height: 220px !important;
+        min-height: 220px !important;
+    }
+}
+
+/* Final dashboard vertical rhythm: keep the main blocks evenly spaced. */
+.app .light-dashboard-shell .dashboard-home-light.cb-dashboard-overview {
+    display: grid !important;
+    gap: 10px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-page-header {
+    min-height: 54px !important;
+    margin-bottom: 0 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .dashboard-house-row-fixed,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-hero-grid,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-insights-grid {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .dashboard-house-row-fixed {
+    margin-top: 10px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .dashboard-house-scroll-fixed {
+    padding-bottom: 7px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-hero-grid {
+    gap: 10px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-secondary-grid {
+    gap: 10px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-insights-grid {
+    gap: 10px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-insights-grid,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-bottom-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(340px, 0.98fr) !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-panel {
+    grid-column: auto !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-panel,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-panel {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border: 1px solid #dfe7f2 !important;
+    border-radius: 12px !important;
+    padding: 18px 20px !important;
+    background: #ffffff !important;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 18px 38px rgba(15, 23, 42, 0.07) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-panel .cb-panel-header,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-panel .cb-panel-header {
+    margin-bottom: 14px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-panel .cb-panel-header h2,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-panel .cb-panel-header h2 {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    color: #071345 !important;
+    font-size: 1.02rem !important;
+    line-height: 1.1 !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-panel .cb-panel-header h2 > span,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-panel .cb-panel-header h2 > span {
+    width: 22px !important;
+    height: 22px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    color: #1877f2 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-panel .cb-panel-header h2 svg,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-panel .cb-panel-header h2 svg {
+    width: 22px !important;
+    height: 22px !important;
+    stroke-width: 2.5 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-list {
+    display: grid !important;
+    gap: 0 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-head,
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row {
+    display: grid !important;
+    grid-template-columns: 66px minmax(130px, 1fr) 96px 106px 112px 92px !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-head {
+    min-height: 50px !important;
+    border-bottom: 1px solid #dfe7f2 !important;
+    color: #405173 !important;
+    font-size: 0.74rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row {
+    min-height: 68px !important;
+    border-bottom: 1px solid #dfe7f2 !important;
+    color: #071345 !important;
+    font-size: 0.78rem !important;
+    font-weight: 850 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row strong {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    color: #071345 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row > .positive {
+    color: #08a64f !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row > .negative {
+    color: #ef1734 !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row .house-logo-mark {
+    width: 24px !important;
+    height: 24px !important;
+    flex: 0 0 24px !important;
+    font-size: 0.68rem !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row em {
+    width: max-content !important;
+    min-width: 74px !important;
+    justify-self: start !important;
+    border: 1px solid #b8efd2 !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+    background: #ffffff !important;
+    color: #05a765 !important;
+    font-style: normal !important;
+    font-size: 0.78rem !important;
+    font-weight: 950 !important;
+    text-align: center !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row em.negative {
+    border-color: #ffb9c5 !important;
+    color: #ff1732 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-latest-row em.neutral {
+    border-color: #d7e1ee !important;
+    color: #53617d !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-show-all-button {
+    width: 100% !important;
+    min-height: 40px !important;
+    margin-top: 12px !important;
+    border: 1px solid #dfe7f2 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #ff0f2f !important;
+    font: inherit !important;
+    font-size: 0.84rem !important;
+    font-weight: 950 !important;
+    cursor: pointer !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-list {
+    flex: 1 1 auto !important;
+    display: grid !important;
+    grid-template-rows: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row {
+    min-height: 43px !important;
+    height: 100% !important;
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto !important;
+    align-items: center !important;
+    column-gap: 12px !important;
+    border: 1px solid #dfe7f2 !important;
+    border-radius: 8px !important;
+    padding: 8px 10px !important;
+    background: #ffffff !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row > span {
+    grid-row: 1 / 3 !important;
+    width: 22px !important;
+    height: 22px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, #20d475, #07a85a) !important;
+    color: #ffffff !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row.negative > span {
+    background: linear-gradient(135deg, #ff435c, #e60021) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row.pending > span {
+    background: linear-gradient(135deg, #ffbd35, #ff9200) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row.target > span {
+    background: linear-gradient(135deg, #2f8cff, #0867e8) !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row svg {
+    width: 13px !important;
+    height: 13px !important;
+    stroke-width: 3 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row strong {
+    color: #263859 !important;
+    font-size: 0.78rem !important;
+    font-weight: 850 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row b {
+    grid-column: 3 !important;
+    grid-row: 1 / 3 !important;
+    color: #071345 !important;
+    font-size: 0.96rem !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row small {
+    min-height: 0.68rem !important;
+    color: #05a765 !important;
+    font-size: 0.68rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row.negative small {
+    color: #ff1732 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-quick-row.pending small {
+    color: #ff9900 !important;
+}
+
+@media (max-width: 1180px) {
+    .app .light-dashboard-shell .dashboard-home-light .cb-dashboard-bottom-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Keep the top reference calendar above the dashboard cards and house menus. */
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .cb-dashboard-page-header,
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .cb-dashboard-top-controls,
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .cb-dashboard-toolbar,
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .reference-period:has(.reference-calendar-popover),
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .reference-calendar-picker {
+    position: relative !important;
+    z-index: 1000000 !important;
+    overflow: visible !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .reference-calendar-popover {
+    z-index: 1000001 !important;
+}
+
+.dashboard-house-menu.dashboard-house-menu-portal {
+    position: fixed !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 1000002 !important;
+    width: 94px !important;
+    display: grid !important;
+    gap: 4px !important;
+    border: 1px solid #dbe3ef !important;
+    border-radius: 9px !important;
+    padding: 5px !important;
+    background: #ffffff !important;
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16) !important;
+}
+
+.dashboard-house-menu.dashboard-house-menu-portal button {
+    width: 100% !important;
+    min-height: 30px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    padding: 0 9px !important;
+    background: transparent !important;
+    color: #253a5b !important;
+    font: inherit !important;
+    font-size: 0.76rem !important;
+    font-weight: 850 !important;
+    text-align: left !important;
+    cursor: pointer !important;
+}
+
+.dashboard-house-menu.dashboard-house-menu-portal button:hover {
+    background: #f1f5fb !important;
+}
+
+.dashboard-house-menu.dashboard-house-menu-portal button.danger {
+    color: #e11d2e !important;
+}
+
+/* Bilhetes do dia: reference composition. */
+.app .light-dashboard-shell .cb-tickets-day-page { gap: 16px !important; }
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar {
+    grid-template-columns: minmax(180px, 230px) 155px 140px 155px !important;
+    gap: 16px !important;
+    align-items: end !important;
+    justify-content: start !important;
+    min-height: 113.48px !important;
+    padding: 16px !important;
+}
+.app .light-dashboard-shell .cb-ticket-result-filter-field {
+    width: 155px !important;
+    min-width: 155px !important;
+    max-width: 155px !important;
+}
+.app .light-dashboard-shell .cb-ticket-period-field {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    display: grid !important;
+    gap: 7px !important;
+    margin: 0 !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period:last-child {
+    width: 155px !important;
+    min-width: 155px !important;
+    max-width: 155px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period:last-child .reference-selector-surface {
+    width: 155px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period > span {
+    margin: 0 !important;
+    color: #172746 !important;
+    font-size: 0.78rem !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period select,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar > .reference-period .reference-selector-surface {
+    width: 140px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-ticket-period-field select {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar .reference-date-field {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar .reference-date-field > span {
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar .reference-date-field .reference-selector-surface {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 360px) !important;
+    gap: 16px !important;
+    align-items: start !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-main {
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 16px !important;
+}
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-filter-field select,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar .reference-selector-surface,
+.app .light-dashboard-shell .cb-tickets-day-page .cb-ticket-new-button {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-head,
+.app .light-dashboard-shell .cb-ticket-table-row {
+    grid-template-columns: 66px minmax(140px, 1fr) 96px 106px 112px 92px 42px !important;
+    gap: 8px !important;
+    padding-right: 22px !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-head { min-height: 50px !important; }
+.app .light-dashboard-shell .cb-ticket-table-row { min-height: 68px !important; }
+.app .light-dashboard-shell .cb-ticket-table-row .reference-house-menu-button {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #071332 !important;
+    font-size: 1.35rem !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+    opacity: 1 !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-house-menu-button:hover {
+    background: #eef3fa !important;
+    color: #ef1734 !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row > .reference-ticket-menu-wrap {
+    position: relative !important;
+    align-self: center !important;
+    overflow: visible !important;
+    padding: 0 !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu {
+    position: absolute !important;
+    top: calc(100% + 6px) !important;
+    right: 0 !important;
+    z-index: 500 !important;
+    min-width: 128px !important;
+    display: grid !important;
+    gap: 4px !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 10px !important;
+    padding: 6px !important;
+    background: #ffffff !important;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16) !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu button {
+    min-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    border: 0 !important;
+    border-radius: 7px !important;
+    padding: 0 10px !important;
+    background: transparent !important;
+    color: #172746 !important;
+    font-size: 0.76rem !important;
+    font-weight: 850 !important;
+    text-align: left !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu button:hover {
+    background: #f1f5fa !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu button.danger {
+    color: #e11d2e !important;
+}
+.app .light-dashboard-shell .cb-ticket-table-row .reference-ticket-menu button.danger:hover {
+    background: #fff0f2 !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 10000 !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 24px !important;
+    background: rgba(7, 19, 50, 0.5) !important;
+    backdrop-filter: blur(3px) !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal {
+    position: relative !important;
+    width: min(580px, calc(100vw - 32px)) !important;
+    max-height: calc(100vh - 48px) !important;
+    overflow-y: auto !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 16px !important;
+    padding: 22px !important;
+    background: #f8fafc !important;
+    box-shadow: 0 28px 70px rgba(7, 19, 50, 0.28) !important;
+}
+
+.app .light-dashboard-shell .cb-movement-edit-modal {
+    width: min(600px, 100%) !important;
+}
+
+.app .light-dashboard-shell .cb-movement-edit-modal .refined-movement-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal-close {
+    position: absolute !important;
+    top: 14px !important;
+    right: 14px !important;
+    z-index: 5 !important;
+    width: 34px !important;
+    height: 34px !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 9px !important;
+    background: #ffffff !important;
+    color: #172746 !important;
+    font-size: 1.4rem !important;
+    line-height: 1 !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .submenu-page {
+    gap: 16px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .submenu-page-header {
+    min-height: 54px !important;
+    padding-right: 48px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .reference-form-page {
+    margin: 0 !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-flow: row !important;
+    align-items: stretch !important;
+    gap: 18px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-row {
+    grid-column: 1 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    gap: 18px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid label {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 9px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid .reference-date-field { width: 160px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-house-field { width: 165px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-odd-field { width: 105px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-stake-field,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-return-field { width: 140px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-origin-field { width: 150px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-split-field {
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-result-field { width: 180px !important; }
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-notes-field {
+    width: 270px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid.has-stake-split .ticket-edit-notes-field {
+    width: 100% !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-result-field,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-notes-field {
+    align-self: flex-start !important;
+    display: grid !important;
+    gap: 9px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-result-field select,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-notes-field textarea {
+    margin: 0 !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid input,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid select,
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid .reference-selector-surface {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+.app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-notes-field textarea {
+    min-height: 44px !important;
+    height: 44px !important;
+}
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+    .app .light-dashboard-shell .cb-ticket-edit-modal .ticket-edit-form-grid label {
+        width: 100% !important;
+    }
+}
+.app .light-dashboard-shell .cb-ticket-table-row > .positive,
+.app .light-dashboard-shell .cb-ticket-day-sidebar .positive { color: #08a64f !important; font-weight: 900 !important; }
+.app .light-dashboard-shell .cb-ticket-table-row > .negative,
+.app .light-dashboard-shell .cb-ticket-day-sidebar .negative { color: #ef1734 !important; font-weight: 900 !important; }
+.app .light-dashboard-shell .cb-ticket-day-sidebar { display: grid !important; gap: 14px !important; }
+.app .light-dashboard-shell .cb-ticket-side-card {
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 14px !important;
+    padding: 16px 18px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045) !important;
+}
+.app .light-dashboard-shell .cb-ticket-side-card h3 {
+    display: flex !important; align-items: center !important; gap: 10px !important;
+    margin: 0 0 14px !important; color: #071332 !important; font-size: .88rem !important; font-weight: 950 !important;
+}
+.app .light-dashboard-shell .cb-ticket-side-card h3 > span { color: #ef1734 !important; font-size: 1.05rem !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary { display: grid !important; gap: 0 !important; margin: 0 !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary > div {
+    min-height: 34px !important; display: flex !important; align-items: center !important;
+    justify-content: space-between !important; gap: 12px !important; border-bottom: 1px solid #edf1f6 !important;
+}
+.app .light-dashboard-shell .cb-ticket-day-summary > div:last-child { border-bottom: 0 !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary dt,
+.app .light-dashboard-shell .cb-ticket-day-summary dd { margin: 0 !important; color: #52627d !important; font-size: .75rem !important; font-weight: 800 !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary dd { color: #071332 !important; font-weight: 950 !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary dd.roi { border-radius: 7px !important; padding: 4px 7px !important; background: #eaf3ff !important; color: #1769e8 !important; }
+.app .light-dashboard-shell .cb-ticket-metrics-card { padding: 18px !important; }
+.app .light-dashboard-shell .cb-ticket-metrics-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+}
+.app .light-dashboard-shell .cb-ticket-metrics-header h3 { margin: 0 !important; }
+.app .light-dashboard-shell .cb-ticket-metrics-header h3 > span {
+    display: grid !important;
+    place-items: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+    background: #fff0f3 !important;
+    color: #ef1734 !important;
+}
+.app .light-dashboard-shell .cb-ticket-metrics-header time {
+    flex: 0 0 auto !important;
+    padding: 8px 9px !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 9px !important;
+    color: #52627d !important;
+    font-size: .67rem !important;
+    font-weight: 850 !important;
+}
+.app .light-dashboard-shell .cb-ticket-metrics-card .cb-ticket-day-summary > div { min-height: 45px !important; }
+.app .light-dashboard-shell .cb-ticket-icon-summary dt,
+.app .light-dashboard-shell .cb-ticket-performance-list dt {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span {
+    display: grid !important;
+    place-items: center !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 9px !important;
+    font-size: .8rem !important;
+}
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span.blue { background: #edf4ff !important; color: #1769e8 !important; }
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span.green { background: #eaf8f0 !important; color: #08a64f !important; }
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span.red { background: #fff0f3 !important; color: #ef1734 !important; }
+.app .light-dashboard-shell .cb-ticket-icon-summary dt > span.neutral { background: #f1f4f8 !important; color: #66758e !important; }
+.app .light-dashboard-shell .cb-ticket-day-summary dd.neutral { color: #071332 !important; }
+.app .light-dashboard-shell .cb-ticket-performance-list dt > span {
+    width: 9px !important;
+    height: 9px !important;
+    border-radius: 999px !important;
+    background: #9aa8bd !important;
+}
+.app .light-dashboard-shell .cb-ticket-performance-list dt > span.won { background: #08a64f !important; }
+.app .light-dashboard-shell .cb-ticket-performance-list dt > span.lost { background: #ef1734 !important; }
+.app .light-dashboard-shell .cb-ticket-performance-list dt > span.pending { background: #ffad17 !important; }
+.app .light-dashboard-shell .cb-ticket-performance { display: grid !important; grid-template-columns: 104px minmax(0, 1fr) !important; align-items: center !important; gap: 16px !important; }
+.app .light-dashboard-shell .cb-ticket-donut {
+    width: 96px !important; height: 96px !important; border-radius: 999px !important; position: relative !important;
+    background: conic-gradient(#08a64f 0 var(--won), #ef1734 var(--won) var(--lost), #ffad17 var(--lost) var(--pending), #9aa8bd var(--pending) 100%) !important;
+}
+.app .light-dashboard-shell .cb-ticket-donut::after { content: "" !important; position: absolute !important; inset: 20px !important; border-radius: inherit !important; background: #fff !important; }
+.app .light-dashboard-shell .cb-ticket-performance ul { display: grid !important; gap: 8px !important; margin: 0 !important; padding: 0 !important; list-style: none !important; }
+.app .light-dashboard-shell .cb-ticket-performance li { display: grid !important; grid-template-columns: 8px 1fr !important; gap: 2px 7px !important; color: #52627d !important; font-size: .68rem !important; font-weight: 800 !important; }
+.app .light-dashboard-shell .cb-ticket-performance li > span { width: 8px !important; height: 8px !important; margin-top: 2px !important; border-radius: 999px !important; background: #9aa8bd !important; }
+.app .light-dashboard-shell .cb-ticket-performance li.won > span { background: #08a64f !important; }
+.app .light-dashboard-shell .cb-ticket-performance li.lost > span { background: #ef1734 !important; }
+.app .light-dashboard-shell .cb-ticket-performance li.pending > span { background: #ffad17 !important; }
+.app .light-dashboard-shell .cb-ticket-performance li strong { grid-column: 2 !important; color: #071332 !important; font-size: .66rem !important; }
+.app .light-dashboard-shell .cb-ticket-best-house { display: grid !important; grid-template-columns: 40px minmax(0, 1fr) auto auto !important; align-items: center !important; gap: 10px !important; }
+.app .light-dashboard-shell .cb-ticket-best-house > span { color: #52627d !important; font-size: .7rem !important; font-weight: 850 !important; }
+.app .light-dashboard-shell .cb-ticket-best-house > div { display: grid !important; gap: 3px !important; }
+.app .light-dashboard-shell .cb-ticket-best-house small { color: #60708a !important; font-size: .65rem !important; font-weight: 800 !important; }
+.app .light-dashboard-shell .cb-ticket-best-house strong { color: #08a64f !important; font-size: .82rem !important; font-weight: 950 !important; }
+.app .light-dashboard-shell .cb-ticket-quick-actions {
+    display: grid !important;
+    grid-template-rows: auto 44px !important;
+    align-content: end !important;
+    height: 113.48px !important;
+    box-sizing: border-box !important;
+}
+.app .light-dashboard-shell .cb-ticket-quick-actions h3 {
+    margin-bottom: 13px !important;
+    line-height: 1 !important;
+}
+.app .light-dashboard-shell .cb-ticket-quick-actions h3 > span { font-size: inherit !important; }
+.app .light-dashboard-shell .cb-ticket-quick-actions > div { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+.app .light-dashboard-shell .cb-ticket-quick-actions button { height: 44px !important; min-height: 44px !important; max-height: 44px !important; border: 1px solid #dfe6f0 !important; border-radius: 9px !important; background: #fff !important; color: #172746 !important; font-size: .68rem !important; font-weight: 850 !important; }
+.app .light-dashboard-shell .cb-ticket-quick-actions button:last-child { grid-column: auto !important; justify-self: stretch !important; padding: 0 !important; }
+@media (max-width: 1180px) {
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .app .light-dashboard-shell .cb-tickets-day-layout { grid-template-columns: 1fr !important; }
+    .app .light-dashboard-shell .cb-ticket-day-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar,
+    .app .light-dashboard-shell .cb-ticket-day-sidebar { grid-template-columns: 1fr !important; }
+}
+
+/* Extrato de movimentações: same composition as Bilhetes do dia. */
+.app .light-dashboard-shell .cb-movement-statement-page {
+    gap: 16px !important;
+}
+
+.app .light-dashboard-shell .cb-movement-statement-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 360px) !important;
+}
+
+@media (min-width: 1181px) {
+    .app .light-dashboard-shell .cb-tickets-day-page .cb-movement-statement-toolbar {
+        grid-template-columns: minmax(180px, 1fr) 161px 130px 155px !important;
+        column-gap: 16px !important;
+    }
+}
+
+@media (min-width: 721px) {
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period:not(:last-child),
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period:not(:last-child) select {
+        width: 130px !important;
+        min-width: 130px !important;
+        max-width: 130px !important;
+    }
+}
+
+.app .light-dashboard-shell .cb-movement-type-filter-field {
+    width: 161px !important;
+    min-width: 161px !important;
+    max-width: 161px !important;
+}
+
+.app .light-dashboard-shell .cb-movement-statement-toolbar > .cb-ticket-filter-field:first-child {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    justify-self: stretch !important;
+    box-sizing: border-box !important;
+}
+
+.app .light-dashboard-shell .cb-movement-statement-toolbar > .cb-ticket-filter-field:first-child select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+}
+
+/* Portaled period calendars follow their trigger without being clipped by scroll containers. */
+.reference-calendar-popover.reference-calendar-popover-portal {
+    position: fixed !important;
+    top: var(--calendar-anchor-top) !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: var(--calendar-anchor-left) !important;
+    transform: none !important;
+}
+
+.app .light-dashboard-shell .cb-movement-table-head,
+.app .light-dashboard-shell .cb-movement-table-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) 42px !important;
+    gap: 8px !important;
+    padding-right: 22px !important;
+}
+
+.app .light-dashboard-shell .cb-movement-table-head {
+    min-height: 50px !important;
+}
+
+.app .light-dashboard-shell .cb-movement-table-row {
+    min-height: 68px !important;
+}
+
+.app .light-dashboard-shell .cb-movement-table-row .movement-type-badge {
+    width: max-content !important;
+    min-width: 72px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 28px !important;
+    border-radius: 999px !important;
+    padding: 0 10px !important;
+    font-size: 0.68rem !important;
+    font-style: normal !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .cb-movement-table-row .movement-type-badge.deposit {
+    border: 1px solid #bbf7d0 !important;
+    background: #ecfdf5 !important;
+    color: #08a64f !important;
+}
+
+.app .light-dashboard-shell .cb-movement-table-row .movement-type-badge.withdraw {
+    border: 1px solid #fecdd3 !important;
+    background: #fff1f2 !important;
+    color: #e11d2e !important;
+}
+
+.app .light-dashboard-shell .cb-movement-table-row .movement-type-badge.adjustment {
+    border: 1px solid #bfdbfe !important;
+    background: #eff6ff !important;
+    color: #1769e8 !important;
+}
+
+.app .light-dashboard-shell .cb-movement-period-sidebar {
+    align-content: start !important;
+}
+
+.app .light-dashboard-shell .cb-movement-period-summary > div {
+    min-height: 54px !important;
+}
+
+.app .light-dashboard-shell .cb-movement-period-summary dd {
+    white-space: nowrap !important;
+}
+
+@media (max-width: 1180px) {
+    .app .light-dashboard-shell .cb-movement-statement-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-period-sidebar {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-table-card {
+        overflow-x: auto !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-table-head,
+    .app .light-dashboard-shell .cb-movement-table-row {
+        min-width: 680px !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .cb-movement-statement-toolbar {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-type-filter-field,
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period,
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period:last-child {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period select,
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period .reference-selector-surface,
+    .app .light-dashboard-shell .cb-movement-statement-toolbar > .reference-period:last-child .reference-selector-surface {
+        width: 100% !important;
+    }
+}
+
+/* Novo bilhete: two-column reference composition. */
+.app .light-dashboard-shell .submenu-ticket-form-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: grid !important;
+    gap: 16px !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-header {
+    min-height: 64px !important;
+    margin: 0 !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-icon {
+    width: 64px !important;
+    height: 64px !important;
+    border-radius: 16px !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-header h1 {
+    font-size: 2rem !important;
+    line-height: 1.05 !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-header p {
+    margin-top: 8px !important;
+    font-size: 0.98rem !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form,
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-flow-layout {
+    margin: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-flow-layout {
+    display: grid !important;
+    grid-template-columns: 546px minmax(330px, 1fr) !important;
+    gap: 20px !important;
+    align-items: start !important;
+}
+
+.app .light-dashboard-shell .reference-ticket-entry-card {
+    width: 546px !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    align-content: start !important;
+    border: 1px solid #dde5ef !important;
+    border-radius: 14px !important;
+    padding: 22px 30px 28px !important;
+    background: #ffffff !important;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.045) !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 22px 28px !important;
+    align-content: start !important;
+    align-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > label,
+.app .light-dashboard-shell .ticket-reference-fields > .ticket-form-calendar-field {
+    grid-column: span 2 !important;
+    min-width: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > .ticket-form-calendar-field {
+    width: calc(100% - 6px) !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > .reference-date-field {
+    width: 138px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > .reference-date-field .reference-calendar-picker,
+.app .light-dashboard-shell .ticket-reference-fields > .reference-date-field .reference-date-trigger {
+    width: 100% !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > .reference-date-field .reference-date-trigger {
+    height: 38px !important;
+    min-height: 38px !important;
+    margin-top: 7px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-stake-field,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-return-field {
+    grid-column: span 3 !important;
+    width: 50% !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-stake-field {
+    justify-self: end !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-return-field {
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields > label:nth-of-type(5),
+.app .light-dashboard-shell .ticket-reference-fields > label:nth-of-type(6) {
+    grid-column: span 3 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields label,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-form-calendar-field > label {
+    gap: 0 !important;
+    color: #253a5b !important;
+    font-size: 0.84rem !important;
+    font-weight: 850 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields input,
+.app .light-dashboard-shell .ticket-reference-fields select,
+.app .light-dashboard-shell .ticket-reference-fields .reference-selector-surface {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    margin-top: 7px !important;
+    border: 1px solid #ccd8e8 !important;
+    border-radius: 9px !important;
+    padding: 0 16px !important;
+    background: #ffffff !important;
+    color: #12213e !important;
+    font-size: 0.94rem !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields input[readonly] {
+    background: #fbfcfe !important;
+    color: #60708a !important;
+}
+
+.app .light-dashboard-shell .ticket-description-field {
+    position: relative !important;
+    grid-column: 1 / -1 !important;
+}
+
+.app .light-dashboard-shell .ticket-description-field small {
+    color: #64748b !important;
+    font-weight: 650 !important;
+}
+
+.app .light-dashboard-shell .ticket-description-label {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+}
+
+.app .light-dashboard-shell .ticket-description-field textarea {
+    width: 100% !important;
+    height: 120px !important;
+    min-height: 120px !important;
+    margin-top: 7px !important;
+    border: 1px solid #ccd8e8 !important;
+    border-radius: 9px !important;
+    padding: 18px 16px 32px !important;
+    color: #253a5b !important;
+    font: inherit !important;
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+    resize: vertical !important;
+}
+
+.app .light-dashboard-shell .ticket-description-field > em {
+    position: absolute !important;
+    right: 14px !important;
+    bottom: 12px !important;
+    color: #60708a !important;
+    font-size: 0.74rem !important;
+    font-style: normal !important;
+    font-weight: 700 !important;
+}
+
+.app .light-dashboard-shell .ticket-calculation-note {
+    grid-column: 1 / -1 !important;
+    min-height: 66px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    border: 1px solid #bdd8ff !important;
+    border-radius: 9px !important;
+    padding: 12px 16px !important;
+    background: #f7fbff !important;
+    color: #405678 !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+}
+
+.app .light-dashboard-shell .ticket-calculation-note > span {
+    width: 18px !important;
+    height: 18px !important;
+    display: grid !important;
+    flex: 0 0 18px !important;
+    place-items: center !important;
+    border: 2px solid #357cf5 !important;
+    border-radius: 999px !important;
+    color: #357cf5 !important;
+    font-size: 0.68rem !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary {
+    position: sticky !important;
+    top: 22px !important;
+    min-height: 0 !important;
+    align-content: start !important;
+    border: 1px solid #ffcbd2 !important;
+    border-radius: 14px !important;
+    padding: 0 20px 20px !important;
+    background: linear-gradient(180deg, #fff8f9 0%, #ffffff 68%) !important;
+    overflow: hidden !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary > header {
+    min-height: 70px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 0 -20px 16px !important;
+    border-bottom: 1px solid #ffd8de !important;
+    padding: 0 20px !important;
+    color: #ef1734 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary > header > span {
+    width: 36px !important;
+    height: 36px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 9px !important;
+    background: #ffe9ed !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary > header svg {
+    width: 19px !important;
+    height: 19px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary > header strong {
+    color: #ef1734 !important;
+    font-size: 0.94rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 0 12px !important;
+    margin: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list > div {
+    position: relative !important;
+    min-height: 70px !important;
+    display: grid !important;
+    align-content: center !important;
+    gap: 5px !important;
+    border: 1px solid #e0e7f0 !important;
+    border-radius: 10px !important;
+    padding: 12px 58px 12px 16px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list dt {
+    color: #52627d !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list dd {
+    margin: 0 !important;
+    color: #081634 !important;
+    font-size: 1rem !important;
+    font-weight: 950 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list > div > span {
+    position: absolute !important;
+    top: 50% !important;
+    right: 14px !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    background: #f7f9fc !important;
+    color: #667791 !important;
+    font-size: 1rem !important;
+    font-weight: 900 !important;
+    transform: translateY(-50%) !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list .profit dt,
+.app .light-dashboard-shell .ticket-reference-summary-list .profit dd,
+.app .light-dashboard-shell .ticket-reference-summary-list .profit > span {
+    color: #0aad60 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-summary-list .profit > span {
+    background: #edf9f3 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin-top: 18px !important;
+}
+
+.app .light-dashboard-shell .reference-ticket-entry-card > .ticket-reference-actions {
+    margin-top: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-actions button {
+    width: 100% !important;
+    min-height: 54px !important;
+    border-radius: 9px !important;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-actions .submenu-primary-button {
+    border-color: #ef0b32 !important;
+    background: #ef0b32 !important;
+    color: #ffffff !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-actions .submenu-secondary-button {
+    border: 1px solid #e0e5ec !important;
+    background: #f7f8fa !important;
+    color: #52627d !important;
+}
+
+@media (max-width: 1180px) {
+    .app .light-dashboard-shell .ticket-reference-form .reference-ticket-flow-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-form .reference-ticket-sticky-summary {
+        position: static !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .ticket-reference-actions {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-summary-list {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields > label,
+    .app .light-dashboard-shell .ticket-reference-fields > .ticket-form-calendar-field {
+        grid-column: auto !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields > .ticket-form-calendar-field {
+        width: 100% !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields > .reference-date-field {
+        width: 100% !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-stake-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-return-field {
+        width: 100% !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-house-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-house-field {
+    width: 169px !important;
+    min-width: 169px !important;
+    max-width: 169px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-odd-field {
+    width: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-origin-field {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-balance-value-field,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-bonus-value-field {
+    width: 122px !important;
+    min-width: 122px !important;
+    max-width: 122px !important;
+    justify-self: start !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    gap: 22px 28px !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout.result-description-inline {
+    grid-template-columns: 185px minmax(0, 1fr) !important;
+    align-items: start !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-result-row {
+    grid-column: 1 !important;
+    width: 185px !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-description-field {
+    grid-column: 2 !important;
+}
+
+.app .light-dashboard-shell .ticket-result-description-layout.has-stake-split {
+    grid-template-columns: 1fr !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-result-row {
+    grid-column: 1 / -1 !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: end !important;
+    gap: 28px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-result-field {
+    width: 185px !important;
+    min-width: 185px !important;
+    max-width: 185px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    align-items: end !important;
+    gap: 28px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    align-items: end !important;
+    gap: 28px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row .reference-date-field {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    margin: 0 !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row .reference-calendar-picker,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row .reference-date-trigger {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+}
+
+.app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row .ticket-stake-field,
+.app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row .ticket-return-field {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+}
+
+@media (max-width: 720px) {
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-house-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-odd-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-origin-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-balance-value-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-bonus-value-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-result-row {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-result-row,
+    .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-description-field {
+        grid-column: 1 !important;
+        width: 100% !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-result-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-primary-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row .ticket-stake-field,
+    .app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row .ticket-return-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+}
+
+/* Exact shared date-card size: Dashboard and Novo bilhete. */
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-calendar-picker,
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-date-trigger {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    box-sizing: border-box !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-date-trigger {
+    padding: 0 16px !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-selector-value {
+    font-size: 0.94rem !important;
+    line-height: 1.1 !important;
+    font-weight: 850 !important;
+}
+
+.app .light-dashboard-shell .submenu-ticket-form-page .ticket-reference-fields > label.reference-date-field .reference-calendar-icon {
+    width: 17px !important;
+    height: 17px !important;
+    flex: 0 0 17px !important;
+}
+
+/* Keep the house actions menu inside the carousel's visible scroll area. */
+.app .light-dashboard-shell .dashboard-home-light .dashboard-house-card:has(.dashboard-house-menu) {
+    z-index: 60 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .dashboard-house-menu {
+    top: calc(100% + 6px) !important;
+    right: 4px !important;
+    bottom: auto !important;
+    z-index: 100 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .dashboard-house-row-fixed:has(.dashboard-house-menu) {
+    overflow: visible !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .dashboard-house-scroll-fixed:has(.dashboard-house-menu) {
+    padding-bottom: 86px !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .dashboard-house-row-fixed,
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .dashboard-house-card,
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .dashboard-house-menu-button,
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .dashboard-kpi-card,
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .cb-dashboard-secondary-grid,
+.app .light-dashboard-shell .dashboard-home-light:has(.reference-calendar-popover) .cb-dashboard-insights-grid {
+    z-index: 1 !important;
+}
