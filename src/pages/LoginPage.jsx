@@ -8,10 +8,11 @@ export default function LoginPage({ landingTheme }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { refreshSession } = useAuth();
+    const isLegacyRecoveryFlowEnabled = false;
     const initialFeedback = location.state?.message
         ? { type: "success", message: location.state.message }
         : { type: "", message: "" };
-    const [loginIdentifier, setLoginIdentifier] = useState("");
+    const [loginEmail, setLoginEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isRecoveryLoading, setIsRecoveryLoading] = useState(false);
@@ -35,14 +36,14 @@ export default function LoginPage({ landingTheme }) {
         const normalizedMessage = message.toLowerCase();
 
         if (normalizedMessage.includes("invalid login credentials")) {
-            return "E-mail ou senha inválidos. Confira os dados e tente novamente.";
+            return "E-mail ou senha invalidos. Confira os dados e tente novamente.";
         }
 
         if (normalizedMessage.includes("email not confirmed")) {
-            return "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.";
+            return "Seu e-mail ainda nao foi confirmado. Verifique sua caixa de entrada.";
         }
 
-        return "Não foi possível entrar agora. Tente novamente em instantes.";
+        return "Nao foi possivel entrar agora. Tente novamente em instantes.";
     }
 
     async function handleSubmit(event) {
@@ -50,12 +51,12 @@ export default function LoginPage({ landingTheme }) {
 
         if (isLoading) return;
 
-        const trimmedLoginIdentifier = loginIdentifier.trim();
+        const trimmedLoginEmail = loginEmail.trim();
 
-        if (!isEmail(trimmedLoginIdentifier)) {
+        if (!isEmail(trimmedLoginEmail)) {
             setFeedback({
                 type: "error",
-                message: "Login por usuário será ativado em breve. Por enquanto, entre com seu e-mail cadastrado.",
+                message: "Informe um e-mail valido para entrar.",
             });
             return;
         }
@@ -64,7 +65,7 @@ export default function LoginPage({ landingTheme }) {
         setIsLoading(true);
 
         const { error } = await supabase.auth.signInWithPassword({
-            email: trimmedLoginIdentifier,
+            email: trimmedLoginEmail,
             password,
         });
 
@@ -80,7 +81,7 @@ export default function LoginPage({ landingTheme }) {
         if (sessionError) {
             setFeedback({
                 type: "error",
-                message: "Não foi possível confirmar sua sessão. Tente entrar novamente.",
+                message: "Nao foi possivel confirmar sua sessao. Tente entrar novamente.",
             });
             return;
         }
@@ -98,7 +99,7 @@ export default function LoginPage({ landingTheme }) {
         if (!trimmedRecoveryEmail) {
             setAccessFeedback({
                 type: "error",
-                message: "Informe o e-mail cadastrado para receber as instruções de recuperação.",
+                message: "Informe o e-mail cadastrado para receber as instrucoes de recuperacao.",
             });
             return;
         }
@@ -116,22 +117,22 @@ export default function LoginPage({ landingTheme }) {
         if (error) {
             setAccessFeedback({
                 type: "error",
-                message: "Não foi possível enviar as instruções agora. Confira o e-mail e tente novamente.",
+                message: "Nao foi possivel enviar as instrucoes agora. Confira o e-mail e tente novamente.",
             });
             return;
         }
 
         setAccessFeedback({
             type: "success",
-            message: "Enviamos as instruções de recuperação. Verifique seu e-mail.",
+            message: "Enviamos as instrucoes de recuperacao. Verifique seu e-mail.",
         });
     }
 
     function handleOpenAccessRecovery() {
-        const trimmedLoginIdentifier = loginIdentifier.trim();
+        const trimmedLoginEmail = loginEmail.trim();
 
         setIsAccessRecoveryOpen(true);
-        setRecoveryEmail(isEmail(trimmedLoginIdentifier) ? trimmedLoginIdentifier : "");
+        setRecoveryEmail(isEmail(trimmedLoginEmail) ? trimmedLoginEmail : "");
         setSupportIdentifier("");
         setAccessFeedback({ type: "", message: "" });
     }
@@ -148,7 +149,7 @@ export default function LoginPage({ landingTheme }) {
 
         setAccessFeedback({
             type: "info",
-            message: "Use seu usuário ou telefone cadastrado para solicitar suporte. Em breve essa recuperação será automática.",
+            message: "Use seu usuario ou telefone cadastrado para solicitar suporte. Em breve essa recuperacao sera automatica.",
         });
     }
 
@@ -169,18 +170,19 @@ export default function LoginPage({ landingTheme }) {
                     <div className="auth-card-header">
                         <span>Bem-vindo de volta</span>
                         <h1>Entrar na sua conta</h1>
-                        <p>Acesse seu painel para acompanhar banca, apostas, movimentações e desempenho.</p>
+                        <p>Acesse seu painel para acompanhar banca, apostas, movimentacoes e desempenho.</p>
                     </div>
 
                     <form className="auth-form" onSubmit={handleSubmit}>
                         <label>
-                            E-mail ou usuário
+                            E-mail
                             <input
-                                type="text"
+                                type="email"
                                 placeholder="seu@email.com"
-                                autoComplete="username"
-                                value={loginIdentifier}
-                                onChange={(event) => setLoginIdentifier(event.target.value)}
+                                autoComplete="email"
+                                inputMode="email"
+                                value={loginEmail}
+                                onChange={(event) => setLoginEmail(event.target.value)}
                                 required
                                 disabled={isLoading}
                             />
@@ -199,16 +201,22 @@ export default function LoginPage({ landingTheme }) {
                             />
                         </label>
 
-                        <div className="auth-help-links auth-help-links-single">
-                            <button
-                                type="button"
-                                onClick={handleOpenAccessRecovery}
-                                disabled={isLoading || isRecoveryLoading}
-                                aria-expanded={isAccessRecoveryOpen}
-                            >
-                                Esqueceu seu e-mail ou senha?
-                            </button>
-                        </div>
+                        <p className="auth-credential-note">
+                            Na versao 1.0, o acesso esta disponivel somente com e-mail e senha.
+                        </p>
+
+                        {isLegacyRecoveryFlowEnabled && (
+                            <div className="auth-help-links auth-help-links-single">
+                                <button
+                                    type="button"
+                                    onClick={handleOpenAccessRecovery}
+                                    disabled={isLoading || isRecoveryLoading}
+                                    aria-expanded={isAccessRecoveryOpen}
+                                >
+                                    Esqueceu seu e-mail ou senha?
+                                </button>
+                            </div>
+                        )}
 
                         {feedback.message && (
                             <p className={`auth-message ${feedback.type === "success" ? "auth-message-success" : "auth-message-error"}`}>
@@ -222,11 +230,11 @@ export default function LoginPage({ landingTheme }) {
                     </form>
 
                     <p className="auth-switch">
-                        Não possui conta? <Link to="/cadastro">Criar conta grátis</Link>
+                        Nao possui conta? <Link to="/cadastro">Criar conta gratis</Link>
                     </p>
                 </section>
 
-                {isAccessRecoveryOpen && (
+                {isLegacyRecoveryFlowEnabled && isAccessRecoveryOpen && (
                     <div className="auth-modal-overlay" role="presentation" onMouseDown={handleModalOverlayClick}>
                         <section className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="access-recovery-title">
                             <button
@@ -234,9 +242,9 @@ export default function LoginPage({ landingTheme }) {
                                 className="auth-modal-close"
                                 onClick={handleCloseAccessRecovery}
                                 disabled={isRecoveryLoading}
-                                aria-label="Fechar recuperação de acesso"
+                                aria-label="Fechar recuperacao de acesso"
                             >
-                                ×
+                                X
                             </button>
 
                             <div className="auth-modal-header">
@@ -259,14 +267,14 @@ export default function LoginPage({ landingTheme }) {
                                         />
                                     </label>
                                     <button type="submit" className="auth-secondary-button" disabled={isRecoveryLoading}>
-                                        {isRecoveryLoading ? "Enviando..." : "Enviar instruções"}
+                                        {isRecoveryLoading ? "Enviando..." : "Enviar instrucoes"}
                                     </button>
                                 </form>
 
                                 <form className="auth-recovery-option auth-recovery-option-muted" onSubmit={handleSupportRecovery}>
-                                    <strong>Não lembro meu e-mail</strong>
+                                    <strong>Nao lembro meu e-mail</strong>
                                     <label>
-                                        Usuário ou telefone
+                                        Usuario ou telefone
                                         <input
                                             type="text"
                                             placeholder="seu.usuario ou telefone"

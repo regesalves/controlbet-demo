@@ -4,8 +4,8 @@ body:has(.light-dashboard-shell),
 .app:has(.light-dashboard-shell) {
     min-height: 100%;
     overflow-x: hidden;
-    background: #f6f8fc;
-    color: #071032;
+    background: var(--cb-background);
+    color: var(--cb-text-primary);
 }
 
 .light-dashboard-shell {
@@ -13,7 +13,7 @@ body:has(.light-dashboard-shell),
     min-height: 100vh;
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
-    background: #f6f8fc;
+    background: var(--cb-background);
     overflow-x: hidden;
 }
 
@@ -25,9 +25,9 @@ body:has(.light-dashboard-shell),
     display: flex;
     flex-direction: column;
     gap: 22px;
-    border-right: 1px solid #e2e8f0;
+    border-right: 1px solid var(--cb-border);
     padding: 24px 12px 22px;
-    background: #ffffff;
+    background: var(--cb-surface);
 }
 
 .light-sidebar-brand {
@@ -58,7 +58,7 @@ body:has(.light-dashboard-shell),
     border-radius: 12px;
     padding: 0 14px;
     background: transparent;
-    color: #40577a;
+    color: var(--cb-text-secondary);
     font: inherit;
     font-size: 0.9rem;
     font-weight: 800;
@@ -72,27 +72,27 @@ body:has(.light-dashboard-shell),
     display: inline-grid;
     place-items: center;
     border-radius: 9px;
-    background: #f1f5fb;
-    color: #486083;
+    background: var(--cb-surface-secondary);
+    color: var(--cb-text-muted);
     font-size: 0.82rem;
 }
 
 .light-sidebar-link.active {
-    border-color: #ffd7dd;
-    background: #fff1f4;
-    color: #f0142f;
+    border-color: var(--cb-primary-border);
+    background: var(--cb-primary-soft);
+    color: var(--cb-primary);
 }
 
 .light-sidebar-link.active span {
-    background: #ffe1e8;
-    color: #f0142f;
+    background: color-mix(in srgb, var(--cb-primary) 14%, transparent);
+    color: var(--cb-primary);
 }
 
 .light-sidebar-footer {
     margin-top: auto;
     display: grid;
     gap: 12px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--cb-border);
     padding-top: 18px;
 }
 
@@ -101,10 +101,10 @@ body:has(.light-dashboard-shell),
     display: flex;
     align-items: center;
     gap: 10px;
-    border: 1px solid #dbe3ef;
+    border: 1px solid var(--cb-border);
     border-radius: 12px;
     padding: 10px;
-    background: #f8fafd;
+    background: var(--cb-surface-secondary);
 }
 
 .light-sidebar-user i {
@@ -114,7 +114,7 @@ body:has(.light-dashboard-shell),
     place-items: center;
     flex: 0 0 auto;
     border-radius: 999px;
-    background: #ef1230;
+    background: var(--cb-primary);
     color: #ffffff;
     font-style: normal;
     font-size: 0.74rem;
@@ -4316,9 +4316,10 @@ body:has(.light-dashboard-shell),
 /* Bilhetes do dia: reference composition. */
 .app .light-dashboard-shell .cb-tickets-day-page { gap: 16px !important; }
 .app .light-dashboard-shell .cb-tickets-day-page .cb-tickets-toolbar {
-    grid-template-columns: minmax(180px, 1fr) 155px 140px 155px !important;
+    grid-template-columns: minmax(180px, 230px) 155px 140px 155px !important;
     gap: 16px !important;
     align-items: end !important;
+    justify-content: start !important;
     min-height: 113.48px !important;
     padding: 16px !important;
 }
@@ -4383,7 +4384,7 @@ body:has(.light-dashboard-shell),
 }
 .app .light-dashboard-shell .cb-tickets-day-layout {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 280px !important;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 360px) !important;
     gap: 16px !important;
     align-items: start !important;
 }
@@ -4718,7 +4719,7 @@ body:has(.light-dashboard-shell),
 }
 
 .app .light-dashboard-shell .cb-movement-statement-layout {
-    grid-template-columns: minmax(0, 1fr) 280px !important;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 360px) !important;
 }
 
 @media (min-width: 1181px) {

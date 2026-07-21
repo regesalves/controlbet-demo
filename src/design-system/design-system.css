@@ -1,38 +1,22 @@
 :root {
-  --color-primary: #E11D2E;
-  --color-primary-hover: #BE123C;
-  --color-primary-soft: #FFF1F2;
-  --color-primary-border: #FFE4E6;
-  --color-accent: #1769E8;
-  --color-accent-soft: #EFF6FF;
-  --color-bg: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-border: #E5E7EB;
-  --color-title: #071633;
-  --color-text: #334155;
-  --color-muted: #64748B;
-  --color-success: #16A34A;
-  --color-danger: #DC2626;
-  --color-warning: #F59E0B;
-  --radius-card: 14px;
-  --radius-input: 10px;
-  --shadow-card: 0 10px 26px rgba(15, 23, 42, 0.05);
-
-  --cb-bg: var(--color-bg);
-  --cb-bg-soft: #F9FAFB;
-  --cb-surface: var(--color-surface);
-  --cb-border: var(--color-border);
-  --cb-border-strong: #DDE3EC;
-  --cb-title: var(--color-title);
-  --cb-text: var(--color-text);
-  --cb-muted: var(--color-muted);
-  --cb-primary: var(--color-primary);
-  --cb-primary-hover: var(--color-primary-hover);
-  --cb-success: var(--color-success);
-  --cb-danger: var(--color-danger);
-  --cb-warning: var(--color-warning);
-  --cb-accent: var(--color-accent);
-  --cb-accent-soft: var(--color-accent-soft);
+  --color-primary: var(--cb-primary);
+  --color-primary-hover: var(--cb-primary-hover);
+  --color-primary-soft: var(--cb-primary-soft);
+  --color-primary-border: var(--cb-primary-border);
+  --color-accent: var(--cb-info);
+  --color-accent-soft: var(--cb-accent-soft);
+  --color-bg: var(--cb-background);
+  --color-surface: var(--cb-surface);
+  --color-border: var(--cb-border);
+  --color-title: var(--cb-text-primary);
+  --color-text: var(--cb-text-secondary);
+  --color-muted: var(--cb-text-muted);
+  --color-success: var(--cb-success);
+  --color-danger: var(--cb-danger);
+  --color-warning: var(--cb-warning);
+  --radius-card: var(--cb-radius-card);
+  --radius-input: var(--cb-radius-input);
+  --shadow-card: var(--cb-shadow);
 }
 
 html,
@@ -1632,4 +1616,70 @@ button[type="submit"]:hover,
     flex-direction: column !important;
     padding: 14px 18px !important;
   }
+}
+
+/* Page headings: Dashboard is the definitive typography reference. */
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-page-header h1,
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-header h1,
+.app .light-dashboard-shell .submenu-tickets-page .submenu-page-header h1,
+.app .light-dashboard-shell .submenu-movement-form-page .submenu-page-header h1,
+.app .light-dashboard-shell .submenu-statement-page .submenu-page-header h1,
+.app .light-dashboard-shell .premium-account-page .submenu-page-header h1,
+.app .light-dashboard-shell .reports-page .reports-page-heading h2 {
+  font-size: 1.8rem !important;
+  line-height: 1.05 !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+}
+
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-page-header p,
+.app .light-dashboard-shell .submenu-ticket-form-page .submenu-page-header p,
+.app .light-dashboard-shell .submenu-tickets-page .submenu-page-header p,
+.app .light-dashboard-shell .submenu-movement-form-page .submenu-page-header p,
+.app .light-dashboard-shell .submenu-statement-page .submenu-page-header p,
+.app .light-dashboard-shell .premium-account-page .submenu-page-header p,
+.app .light-dashboard-shell .reports-page .reports-page-heading .reports-section-context {
+  font-size: 0.92rem !important;
+  line-height: 1.25 !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Page heading position: "Novo bilhete" is the vertical reference. */
+.app .light-dashboard-shell .dashboard-home-light .cb-dashboard-page-header > div:first-child {
+  padding-top: 4.6875px !important;
+}
+
+.app .light-dashboard-shell .reports-page {
+  padding-top: 0 !important;
+}
+
+.app .light-dashboard-shell .reports-page .reports-page-heading > div {
+  display: grid !important;
+  gap: 6px !important;
+}
+
+.app .light-dashboard-shell .reports-page .reports-page-heading {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  margin-bottom: -8px !important;
+}
+
+.app .light-dashboard-shell .reports-page .reports-page-heading::before {
+  content: none !important;
+  display: none !important;
+}
+
+.app .light-dashboard-shell .reports-page .reports-page-heading .reports-section-context {
+  margin: 0 !important;
+}
+
+/* First content block: match the Dashboard's 20px gap after the subtitle. */
+.app .light-dashboard-shell .submenu-ticket-form-page > .reference-form-page,
+.app .light-dashboard-shell .submenu-tickets-page > .cb-tickets-day-layout,
+.app .light-dashboard-shell .submenu-movement-form-page > .reference-form-page,
+.app .light-dashboard-shell .submenu-statement-page > .cb-tickets-day-layout,
+.app .light-dashboard-shell .premium-account-page > .premium-account-hero,
+.app .light-dashboard-shell .reports-page .reports-top-row {
+  margin-top: -0.6875px !important;
 }

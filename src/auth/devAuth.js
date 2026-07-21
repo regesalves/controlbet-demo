@@ -6,13 +6,13 @@ export const devUser = {
     id: "dev-user",
     name: "RÃ©ges Alves",
     email: "dev@controlbet.local",
-    plan: "Plano Free",
+    plan: "free",
     user_metadata: {
         full_name: "Réges Alves",
         first_name: "Réges",
         last_name: "Alves",
         name: "Réges Alves",
-        plan: "Plano Free",
+        plan: "free",
     },
 };
 

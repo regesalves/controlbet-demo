@@ -151,16 +151,6 @@ Deno.serve(async (req) => {
       },
     });
 
-    console.log(JSON.stringify({
-      run_id: runId,
-      event: "cleanup_started",
-      started_at: startedAt,
-      dry_run: dryRun,
-      min_age_hours: minAgeHours,
-      max_delete_per_run: maxDeletePerRun,
-      require_no_last_sign_in: requireNoLastSignIn,
-    }));
-
     for (let page = 1; page <= maxScanPages && candidateCount < maxDeletePerRun; page += 1) {
       const { data, error } = await supabaseAdmin.auth.admin.listUsers({
         page,
@@ -285,11 +275,6 @@ Deno.serve(async (req) => {
       errors_count: errorsCount,
       users,
     };
-
-    console.log(JSON.stringify({
-      ...summary,
-      event: "cleanup_finished",
-    }));
 
     return Response.json(summary);
   } catch (error) {

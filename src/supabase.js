@@ -82,6 +82,10 @@ function createUnavailableQuery(error) {
 
 function createUnavailableSupabaseClient(error) {
     const authResult = async () => createUnavailableResult(error);
+    const unavailableStorageBucket = {
+        getPublicUrl: () => ({ data: { publicUrl: "" } }),
+        upload: authResult,
+    };
 
     return {
         auth: {
@@ -104,6 +108,9 @@ function createUnavailableSupabaseClient(error) {
         },
         from: () => createUnavailableQuery(error),
         rpc: () => createUnavailableQuery(error),
+        storage: {
+            from: () => unavailableStorageBucket,
+        },
     };
 }
 

@@ -2,11 +2,17 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import logo from "../assets/logo.png";
+import SidebarInfoCard from "../components/SidebarInfoCard";
 import { supabase } from "../supabase";
 import { useAuth } from "../auth/AuthContext";
 import { exportTicketsToPdf } from "../utils/ticketPdfExport";
 import { exportTicketsToExcel } from "../utils/ticketExcelExport";
 import { exportMovementsToExcel, exportMovementsToPdf } from "../utils/movementExport";
+import {
+    invalidateBankingDataCache,
+    loadBankingData,
+    readCachedBankingData,
+} from "../utils/bankingDataCache";
 import {
     AppShell as DesignAppShell,
     MetricCard as DesignMetricCard,
@@ -39,6 +45,12 @@ const KPI_TOOLTIP_TEXTS = {
     wagered: "Total apostado no período selecionado.",
     gains: "Total recebido em apostas vencedoras.",
     hitRate: "Percentual de apostas vencedoras no período.",
+};
+
+const ACCOUNT_PLAN_LABELS = {
+    free: "Plano Free",
+    premium: "Plano Premium",
+    pro: "Plano Pro",
 };
 
 const usernamePattern = /^[a-z0-9._-]+$/;
@@ -145,20 +157,6 @@ function formatDateBR(dateISO) {
     if (!dateISO) return "";
     const [year, month, day] = dateISO.split("-");
     return `${day}/${month}/${year}`;
-}
-
-function formatDateTimeBR(value) {
-    if (!value) return "Não disponível";
-    const date = typeof value === "number" ? new Date(value * 1000) : new Date(value);
-    if (Number.isNaN(date.getTime())) return "Não disponível";
-
-    return date.toLocaleString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
 }
 
 const SHORT_MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -476,10 +474,34 @@ function getAccountInitials(name = "Usuário") {
         .toUpperCase() || "U";
 }
 
+function normalizeAccountPlan(plan = "") {
+    const normalizedPlan = String(plan || "").trim().toLowerCase();
+
+    if (ACCOUNT_PLAN_LABELS[normalizedPlan]) {
+        return normalizedPlan;
+    }
+
+    if (normalizedPlan.startsWith("plano ")) {
+        const planKey = normalizedPlan.replace(/^plano\s+/, "");
+
+        if (ACCOUNT_PLAN_LABELS[planKey]) {
+            return planKey;
+        }
+    }
+
+    return "free";
+}
+
+function getAccountPlanLabel(plan = "") {
+    const normalizedPlan = normalizeAccountPlan(plan);
+    return ACCOUNT_PLAN_LABELS[normalizedPlan] || ACCOUNT_PLAN_LABELS.free;
+}
+
 function Sidebar({
     accountFirstName,
     activeItem,
     activeSubItem,
+    infoContext,
     onNavigate,
 }) {
     const [expandedGroups, setExpandedGroups] = useState(() => ({
@@ -512,11 +534,6 @@ function Sidebar({
             id: "settings",
             icon: "gear",
             label: "Configurações",
-            children: [
-                { id: "accountReal", label: "Minha conta" },
-                { id: "profileReal", label: "Preferências" },
-                { id: "system", label: "Segurança" },
-            ],
         },
     ];
 
@@ -587,12 +604,14 @@ function Sidebar({
                 })}
             </nav>
 
-            <div className="light-sidebar-help">
-                <span className="light-sidebar-help-icon" aria-hidden="true">?</span>
-                <strong>Precisa de ajuda?</strong>
-                <span>Atalhos e dicas para gerir sua banca.</span>
-                <button type="button">Ver ajuda <i aria-hidden="true">→</i></button>
-            </div>
+            <SidebarInfoCard
+                context={{
+                    activeItem,
+                    activeSubItem,
+                    onNavigate,
+                    ...infoContext,
+                }}
+            />
 
         </aside>
     );
@@ -2060,7 +2079,7 @@ function TopbarCard({
                     <i aria-hidden="true">{getAccountInitials(accountName)}</i>
                     <span>
                         <strong>{accountName}</strong>
-                        <small>Admin</small>
+                        <small>{getAccountPlanLabel(accountPlan)}</small>
                     </span>
                     <em aria-hidden="true">âŒ„</em>
                 </div>
@@ -2075,19 +2094,19 @@ function TopbarCard({
     );
 }
 
-function UserSummaryCard({ accountName = "Usuario", plan = "Plano Free" }) {
+function UserSummaryCard({ accountName = "Usuario", plan = "free" }) {
     return (
         <div className="dashboard-header-user-card" aria-label="Conta">
             <i aria-hidden="true">{getAccountInitials(accountName)}</i>
             <span>
                 <strong>{accountName || "Usuario"}</strong>
-                <small>{plan || "Plano Free"}</small>
+                <small>{getAccountPlanLabel(plan)}</small>
             </span>
         </div>
     );
 }
 
-function DashboardContentHeader({ accountName = "Usuario", accountPlan = "Plano Free" }) {
+function DashboardContentHeader({ accountName = "Usuario", accountPlan = "free" }) {
     return (
         <header className="dashboard-home-header">
             <div>
@@ -2164,7 +2183,7 @@ function DarkTopbarCard({
                 <i aria-hidden="true">{getAccountInitials(accountName)}</i>
                 <span>
                     <strong>{accountName}</strong>
-                    <small>Admin</small>
+                    <small>{getAccountPlanLabel(accountPlan)}</small>
                 </span>
             </div>
 
@@ -2999,12 +3018,11 @@ function LatestTicketsTableV2({ houses, recentTickets, getTicketResultView, onOp
     );
 }
 
-function ReferencePageHeader({ icon = "grid", title, subtitle }) {
+function ReferencePageHeader({ title, subtitle }) {
     return (
         <DesignPageHeader
             className="submenu-page-header"
             description={subtitle}
-            icon={<SidebarIcon type={icon} />}
             title={title}
         />
     );
@@ -3905,7 +3923,7 @@ function RefinedMovementPanel({ feedback, houses, isSaving, movementForm, setMov
     );
 }
 
-function RefinedStatementPanel({ deletingMovementId, editingMovementId, feedback, isSaving, movements, houses, onCancelEdit, onEdit, onDelete, onSubmitEdit, movementForm, setMovementForm }) {
+function RefinedStatementPanel({ deletingMovementId, editingMovementId, feedback, isSaving, movements, houses, onCancelEdit, onEdit, onDelete, onSubmitEdit, onSummaryChange, movementForm, setMovementForm }) {
     const [movementTypeFilter, setMovementTypeFilter] = useState("all");
     const [movementPeriodType, setMovementPeriodType] = useState("Diário");
     const [movementPeriodReference, setMovementPeriodReference] = useState(hojeISO());
@@ -3961,6 +3979,15 @@ function RefinedStatementPanel({ deletingMovementId, editingMovementId, feedback
         acc.balance += signedValue;
         return acc;
     }, { entries: 0, exits: 0, balance: 0, entryCount: 0, exitCount: 0 });
+
+    useEffect(() => {
+        onSummaryChange?.({
+            entries: statementTotals.entries,
+            exits: statementTotals.exits,
+            balance: statementTotals.balance,
+        });
+    }, [onSummaryChange, statementTotals.balance, statementTotals.entries, statementTotals.exits]);
+
     const currentBalance = scopeHouses.reduce((sum, house) => {
         const movementBalance = movements
             .filter((movement) => Number(movement.casaId) === Number(house.id))
@@ -4237,34 +4264,261 @@ function SettingsPanel({ accountEmail, accountName, accountPhone, accountUsernam
 }
 
 function PremiumSettingsPanel({
-    accountCreatedAt,
+    accountAvatarUrl,
     accountEmail,
     accountId,
-    accountLastSignInAt,
+    accountMetadata,
     accountName,
     accountPhone,
-    accountPlan,
     accountUsername,
     onEditProfile,
+    onKeepAccountPanel = () => { },
     onToggleTheme = () => { },
-    session,
+    refreshSession,
     theme = "dark",
 }) {
     const displayName = accountName || accountEmail?.split("@")[0] || "Não informado";
     const displayEmail = accountEmail || "Não disponível";
-    const activeThemeLabel = theme === "dark" ? "Escuro" : "Claro";
-    const sessionProvider = session?.user?.app_metadata?.provider || "E-mail";
+    const [avatarFeedback, setAvatarFeedback] = useState({ type: "", message: "" });
+    const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
+    const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
+    const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0, zoom: 1 });
+    const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+    const avatarDragRef = useRef(null);
+    const displayedAvatarUrl = avatarPreviewUrl || accountAvatarUrl;
+
+    useEffect(() => {
+        return () => {
+            if (avatarPreviewUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(avatarPreviewUrl);
+            }
+        };
+    }, [avatarPreviewUrl]);
+
+    function getAvatarErrorMessage(error, fallbackMessage) {
+        const message = String(error?.message || error?.error_description || "").trim();
+
+        if (!message) return fallbackMessage;
+        if (/bucket/i.test(message) && /not found|does not exist/i.test(message)) {
+            return "O armazenamento de fotos ainda não foi configurado.";
+        }
+        if (/row-level security|policy|permission|unauthorized|forbidden/i.test(message)) {
+            return "Sem permissão para salvar a foto. Verifique as políticas do Storage.";
+        }
+
+        return `${fallbackMessage} (${message})`;
+    }
+
+    function handleAvatarChange(event) {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+
+        if (!file || isAvatarUploading) return;
+
+        const acceptedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+        if (!acceptedTypes.includes(file.type)) {
+            setAvatarFeedback({ type: "error", message: "Escolha uma imagem PNG, JPG ou WebP." });
+            return;
+        }
+
+        if (file.size > 8 * 1024 * 1024) {
+            setAvatarFeedback({ type: "error", message: "A imagem deve ter no máximo 8 MB." });
+            return;
+        }
+
+        if (avatarPreviewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(avatarPreviewUrl);
+        }
+
+        setPendingAvatarFile(file);
+        setAvatarPreviewUrl(URL.createObjectURL(file));
+        setAvatarCrop({ x: 0, y: 0, zoom: 1 });
+        setAvatarFeedback({ type: "success", message: "Foto pronta para salvar." });
+    }
+
+    function handleAvatarCropPointerDown(event) {
+        if (!pendingAvatarFile || isAvatarUploading) return;
+
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        avatarDragRef.current = {
+            pointerId: event.pointerId,
+            startClientX: event.clientX,
+            startClientY: event.clientY,
+            startX: avatarCrop.x,
+            startY: avatarCrop.y,
+        };
+    }
+
+    function handleAvatarCropPointerMove(event) {
+        const dragState = avatarDragRef.current;
+        if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+        setAvatarCrop((current) => ({
+            ...current,
+            x: dragState.startX + event.clientX - dragState.startClientX,
+            y: dragState.startY + event.clientY - dragState.startClientY,
+        }));
+    }
+
+    function handleAvatarCropPointerEnd(event) {
+        if (avatarDragRef.current?.pointerId === event.pointerId) {
+            avatarDragRef.current = null;
+        }
+    }
+
+    function handleAvatarZoomChange(event) {
+        setAvatarCrop((current) => ({
+            ...current,
+            zoom: Number(event.target.value),
+        }));
+    }
+
+    async function createCroppedAvatarBlob(file) {
+        const bitmap = await createImageBitmap(file);
+        const outputSize = 768;
+        const frameSize = 280;
+        const canvas = document.createElement("canvas");
+        canvas.width = outputSize;
+        canvas.height = outputSize;
+
+        const context = canvas.getContext("2d", {
+            alpha: false,
+            desynchronized: false,
+        });
+
+        if (!context) {
+            bitmap.close?.();
+            throw new Error("Não foi possível preparar a imagem.");
+        }
+
+        const scaleToFrame = Math.max(frameSize / bitmap.width, frameSize / bitmap.height) * avatarCrop.zoom;
+        const renderedWidth = bitmap.width * scaleToFrame;
+        const renderedHeight = bitmap.height * scaleToFrame;
+        const outputScale = outputSize / frameSize;
+        const dx = ((frameSize - renderedWidth) / 2 + avatarCrop.x) * outputScale;
+        const dy = ((frameSize - renderedHeight) / 2 + avatarCrop.y) * outputScale;
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, outputSize, outputSize);
+        context.drawImage(
+            bitmap,
+            dx,
+            dy,
+            renderedWidth * outputScale,
+            renderedHeight * outputScale
+        );
+        bitmap.close?.();
+
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    resolve(blob);
+                    return;
+                }
+                reject(new Error("Não foi possível recortar a imagem."));
+            }, "image/jpeg", 0.94);
+        });
+    }
+
+    async function handleAccountUpdate() {
+        if (!pendingAvatarFile) {
+            onKeepAccountPanel();
+            setAvatarFeedback({ type: "success", message: "Dados atualizados." });
+            return;
+        }
+
+        if (!accountId) {
+            setAvatarFeedback({ type: "error", message: "Não foi possível identificar sua conta." });
+            return;
+        }
+
+        try {
+            setIsAvatarUploading(true);
+            setAvatarFeedback({ type: "", message: "" });
+
+            const croppedAvatarBlob = await createCroppedAvatarBlob(pendingAvatarFile);
+            const avatarPath = `${accountId}/avatar.jpg`;
+            const { error: uploadError } = await supabase.storage
+                .from("profile-avatars")
+                .upload(avatarPath, croppedAvatarBlob, {
+                    cacheControl: "3600",
+                    contentType: "image/jpeg",
+                    upsert: true,
+                });
+
+            if (uploadError) {
+                console.error("Profile avatar upload failed:", uploadError);
+                setAvatarFeedback({
+                    type: "error",
+                    message: getAvatarErrorMessage(uploadError, "Não foi possível enviar a foto agora."),
+                });
+                return;
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from("profile-avatars")
+                .getPublicUrl(avatarPath);
+            const publicUrl = publicUrlData?.publicUrl
+                ? `${publicUrlData.publicUrl}?v=${Date.now()}`
+                : "";
+
+            if (!publicUrl) {
+                setAvatarFeedback({ type: "error", message: "Não foi possível carregar a foto enviada." });
+                return;
+            }
+
+            const { error: profileError } = await supabase.auth.updateUser({
+                data: {
+                    ...accountMetadata,
+                    avatar_url: publicUrl,
+                },
+            });
+
+            if (profileError) {
+                console.error("Profile avatar metadata update failed:", profileError);
+                setAvatarFeedback({
+                    type: "error",
+                    message: getAvatarErrorMessage(profileError, "A foto foi enviada, mas não foi possível atualizar o perfil."),
+                });
+                return;
+            }
+
+            await refreshSession?.();
+            onKeepAccountPanel();
+            if (avatarPreviewUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(avatarPreviewUrl);
+            }
+            setPendingAvatarFile(null);
+            setAvatarPreviewUrl(publicUrl);
+            setAvatarFeedback({ type: "success", message: "Foto atualizada." });
+        } catch (error) {
+            console.error("Unexpected profile avatar upload error:", error);
+            setAvatarFeedback({
+                type: "error",
+                message: getAvatarErrorMessage(error, "Não foi possível enviar a foto agora."),
+            });
+        } finally {
+            setIsAvatarUploading(false);
+        }
+    }
 
     return (
         <section className="submenu-page submenu-account-page premium-account-page">
             <ReferencePageHeader
                 icon="gear"
-                title="Minha conta"
-                subtitle="Gerencie seus dados, segurança e preferências."
+                title="Configurações"
+                subtitle="Gerencie suas informações pessoais e preferências da conta."
             />
 
             <section className="reference-account-card premium-account-hero">
-                <span className="premium-account-avatar" aria-hidden="true">{getAccountInitials(displayName)}</span>
+                <span className="premium-account-avatar" aria-hidden={!displayedAvatarUrl}>
+                    {displayedAvatarUrl
+                        ? <img src={displayedAvatarUrl} alt={`Foto de ${displayName}`} />
+                        : getAccountInitials(displayName)}
+                </span>
                 <div>
                     <strong>{displayName}</strong>
                     <small>{displayEmail}</small>
@@ -4273,13 +4527,10 @@ function PremiumSettingsPanel({
             </section>
 
             <div className="premium-account-grid">
-                <section className="reference-account-card premium-account-card">
+                <section className="reference-account-card premium-account-card premium-account-personal-card">
                     <header>
                         <span aria-hidden="true"><SidebarIcon type="gear" /></span>
-                        <div>
-                            <h2>Dados pessoais</h2>
-                            <p>Informações vinculadas ao usuário autenticado.</p>
-                        </div>
+                        <h2>Dados pessoais</h2>
                     </header>
                     <dl>
                         <div><dt>Nome completo</dt><dd>{displayName}</dd></div>
@@ -4287,80 +4538,118 @@ function PremiumSettingsPanel({
                         <div><dt>Nome de usuário</dt><dd>{accountUsername || "Não informado"}</dd></div>
                         <div><dt>Telefone</dt><dd>{accountPhone || "Não informado"}</dd></div>
                     </dl>
-                    <button type="button" className="premium-outline-button" onClick={onEditProfile}>Atualizar dados</button>
-                </section>
-
-                <section className="reference-account-card premium-account-card">
-                    <header>
-                        <span aria-hidden="true"><SidebarIcon type="bank" /></span>
+                    <div className="premium-profile-photo-control">
+                        <span className="premium-profile-photo-preview" aria-hidden="true">
+                            {displayedAvatarUrl
+                                ? <img src={displayedAvatarUrl} alt="" />
+                                : getAccountInitials(displayName)}
+                        </span>
                         <div>
-                            <h2>Segurança</h2>
-                            <p>Controle o acesso à sua conta.</p>
+                            <strong>Foto do perfil</strong>
+                            <small>PNG, JPG ou WebP · até 8 MB</small>
+                            {avatarFeedback.message && (
+                                <small className={avatarFeedback.type} role="status">{avatarFeedback.message}</small>
+                            )}
                         </div>
-                    </header>
-                    <div className="premium-account-action">
-                        <div>
-                            <strong>Senha da conta</strong>
-                            <p>Use a recuperação de senha para trocar credenciais com segurança.</p>
-                        </div>
-                        <button type="button" className="premium-outline-button">Alterar senha</button>
+                        <label className={`premium-photo-picker${isAvatarUploading ? " disabled" : ""}`}>
+                            <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp"
+                                aria-label="Escolher foto do perfil"
+                                disabled={isAvatarUploading}
+                                onChange={handleAvatarChange}
+                            />
+                            {isAvatarUploading ? "Enviando..." : displayedAvatarUrl ? "Alterar foto" : "Escolher foto"}
+                        </label>
                     </div>
-                    <div className="premium-account-action danger-zone">
-                        <div>
-                            <strong>Desativar conta</strong>
-                            <p>Remove o acesso à conta e interrompe o uso do painel.</p>
+                    {pendingAvatarFile && (
+                        <div className="premium-avatar-crop-panel">
+                            <div
+                                className="premium-avatar-crop-frame"
+                                onPointerDown={handleAvatarCropPointerDown}
+                                onPointerMove={handleAvatarCropPointerMove}
+                                onPointerUp={handleAvatarCropPointerEnd}
+                                onPointerCancel={handleAvatarCropPointerEnd}
+                            >
+                                <img
+                                    src={avatarPreviewUrl}
+                                    alt=""
+                                    draggable="false"
+                                    style={{
+                                        transform: `translate(-50%, -50%) translate(${avatarCrop.x}px, ${avatarCrop.y}px) scale(${avatarCrop.zoom})`,
+                                    }}
+                                />
+                            </div>
+                            <label className="premium-avatar-zoom-control">
+                                <span>Zoom</span>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="3"
+                                    step="0.01"
+                                    value={avatarCrop.zoom}
+                                    disabled={isAvatarUploading}
+                                    onChange={handleAvatarZoomChange}
+                                />
+                            </label>
                         </div>
-                        <button type="button" className="premium-danger-button">Desativar conta</button>
-                    </div>
-                </section>
-
-                <section className="reference-account-card premium-account-card">
-                    <header>
-                        <span aria-hidden="true"><SidebarIcon type="sync" /></span>
-                        <div>
-                            <h2>Sessões ativas</h2>
-                            <p>Sessão autenticada atualmente neste navegador.</p>
-                        </div>
-                    </header>
-                    <dl>
-                        <div><dt>Provedor</dt><dd>{sessionProvider}</dd></div>
-                        <div><dt>Último login</dt><dd>{formatDateTimeBR(accountLastSignInAt)}</dd></div>
-                        <div><dt>Expira em</dt><dd>{formatDateTimeBR(session?.expires_at)}</dd></div>
-                    </dl>
-                    <button type="button" className="premium-outline-button">Encerrar outras sessões</button>
-                </section>
-
-                <section className="reference-account-card premium-account-card">
-                    <header>
-                        <span aria-hidden="true"><ThemeToggleIcon theme={theme} /></span>
-                        <div>
-                            <h2>Preferências</h2>
-                            <p>Ajustes de experiência do painel.</p>
-                        </div>
-                    </header>
-                    <dl>
-                        <div><dt>Tema</dt><dd>{activeThemeLabel}</dd></div>
-                        <div><dt>Idioma</dt><dd>Não configurado</dd></div>
-                    </dl>
-                    <button type="button" className="premium-outline-button" onClick={onToggleTheme}>
-                        {theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+                    )}
+                    <button
+                        type="button"
+                        className="premium-outline-button"
+                        disabled={isAvatarUploading}
+                        onClick={handleAccountUpdate}
+                    >
+                        {isAvatarUploading ? "Atualizando..." : "Atualizar dados"}
                     </button>
                 </section>
 
-                <section className="reference-account-card premium-account-card premium-account-system-card">
-                    <header>
-                        <span aria-hidden="true"><SidebarIcon type="chart" /></span>
-                        <div>
-                            <h2>Sistema</h2>
-                            <p>Dados reais carregados da autenticação.</p>
+                <div className="premium-account-side-stack">
+                    <section className="reference-account-card premium-account-card premium-account-security-card">
+                        <header>
+                            <span aria-hidden="true"><SidebarIcon type="bank" /></span>
+                            <h2>Segurança</h2>
+                        </header>
+                        <div className="premium-account-action">
+                            <strong>Alterar senha</strong>
+                            <button type="button" className="premium-outline-button">Alterar senha</button>
                         </div>
-                    </header>
-                    <dl>
-                        <div><dt>Plano</dt><dd>{accountPlan || "Não informado"}</dd></div>
-                        <div><dt>ID da conta</dt><dd>{accountId || "Não disponível"}</dd></div>
-                        <div><dt>Conta criada em</dt><dd>{formatDateTimeBR(accountCreatedAt)}</dd></div>
-                    </dl>
-                </section>
+                        <div className="premium-account-action danger-zone">
+                            <strong>Excluir conta</strong>
+                            <button type="button" className="premium-danger-button">Excluir conta</button>
+                        </div>
+                    </section>
+
+                    <section className="reference-account-card premium-account-card premium-account-preferences-card">
+                        <header>
+                            <span aria-hidden="true"><ThemeToggleIcon theme={theme} /></span>
+                            <h2>Preferências</h2>
+                        </header>
+                        <fieldset className="premium-theme-options">
+                            <legend>Tema</legend>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="account-theme"
+                                    value="light"
+                                    checked={theme === "light"}
+                                    onChange={() => theme !== "light" && onToggleTheme()}
+                                />
+                                <span>Claro</span>
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="account-theme"
+                                    value="dark"
+                                    checked={theme === "dark"}
+                                    onChange={() => theme !== "dark" && onToggleTheme()}
+                                />
+                                <span>Escuro</span>
+                            </label>
+                        </fieldset>
+                    </section>
+                </div>
             </div>
         </section>
     );
@@ -4538,6 +4827,7 @@ function DashboardActionPanels(props) {
 }
 
 function VisualDashboardHome({
+    accountAvatarUrl,
     accountName,
     accountPlan,
     allHitRate,
@@ -4744,6 +5034,7 @@ function VisualDashboardHome({
             onHouseChange((prev) => ({
                 ...prev,
                 logoDataUrl: String(reader.result || ""),
+                logoFile: file,
                 logoName: file.name,
                 logoError: "",
             }));
@@ -4761,6 +5052,7 @@ function VisualDashboardHome({
         onHouseChange((prev) => ({
             ...prev,
             logoDataUrl: "",
+            logoFile: null,
             logoName: "",
             logoError: "",
         }));
@@ -4852,10 +5144,14 @@ function VisualDashboardHome({
                         />
                     </section>
                     <div className="cb-dashboard-user-menu" aria-label="Conta do usuário">
-                        <span className="cb-dashboard-user-avatar" aria-hidden="true">{getAccountInitials(accountName)}</span>
+                        <span className="cb-dashboard-user-avatar" aria-hidden="true">
+                            {accountAvatarUrl
+                                ? <img src={accountAvatarUrl} alt="" />
+                                : getAccountInitials(accountName)}
+                        </span>
                         <span className="cb-dashboard-user-text">
                             <strong>{accountName || "Usuário"}</strong>
-                            <small>Admin</small>
+                            <small>{getAccountPlanLabel(accountPlan)}</small>
                         </span>
                         <button
                             type="button"
@@ -4955,7 +5251,7 @@ function VisualDashboardHome({
                 <article className="cb-panel cb-dashboard-latest-panel">
                     <header className="cb-panel-header">
                         <div>
-                            <h2><span aria-hidden="true"><KpiIcon type="trend" /></span>Últimos bilhetes do dia</h2>
+                            <h2>Últimos bilhetes do dia</h2>
                         </div>
                     </header>
                     <div className="cb-dashboard-latest-list">
@@ -4990,7 +5286,7 @@ function VisualDashboardHome({
                 <article className="cb-panel cb-dashboard-quick-panel">
                     <header className="cb-panel-header">
                         <div>
-                            <h2><span aria-hidden="true"><KpiIcon type="trend" /></span>Resumo rápido</h2>
+                            <h2>Resumo rápido</h2>
                         </div>
                     </header>
                     <div className="cb-dashboard-quick-list">
@@ -5205,12 +5501,14 @@ export function DashboardShell({
     onToggleTheme = () => { },
     quickActions,
     selectedHouseLabel = "Todas as casas",
+    sidebarInfoContext = {},
 }) {
     const sidebar = (
         <Sidebar
             accountFirstName={accountFirstName}
             activeItem={activeNavItem}
             activeSubItem={activeSubItem}
+            infoContext={sidebarInfoContext}
             monthlyResult={monthlyResult}
             onNavigate={onSidebarNavigate}
             onLogoutRequest={onLogoutRequest}
@@ -5507,6 +5805,7 @@ const initialHouseForm = {
     nome: "",
     bancaInicial: "",
     logoDataUrl: "",
+    logoFile: null,
     logoName: "",
     moeda: "BRL",
     observacoes: "",
@@ -5515,6 +5814,18 @@ const initialHouseForm = {
 const HOUSE_DETAILS_STORAGE_KEY = "controlbet_house_details_v1";
 const HOUSE_LOGO_MAX_BYTES = 2 * 1024 * 1024;
 const HOUSE_LOGO_ALLOWED_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
+
+function getHouseLogoExtension(file) {
+    if (file?.type === "image/png") return "png";
+    if (file?.type === "image/svg+xml") return "svg";
+    return "jpg";
+}
+
+function getHouseLogoExtensionFromMimeType(mimeType) {
+    if (mimeType === "image/png") return "png";
+    if (mimeType === "image/svg+xml") return "svg";
+    return "jpg";
+}
 
 function readStoredHouseDetails(userId) {
     if (typeof window === "undefined" || !userId) return {};
@@ -5554,6 +5865,59 @@ function saveStoredHouseDetails(userId, houseId, details) {
     }
 }
 
+function formatDashboardBankingData(data, userId) {
+    const formattedHouses = (data?.houses || []).map((house) => ({
+        id: house.id,
+        nome: house.nome,
+        bancaInicial: Number(house.banca_inicial || 0),
+        ...getStoredHouseDetails(userId, house.id),
+        logoDataUrl: house.logo_url || getStoredHouseDetails(userId, house.id).logoDataUrl || "",
+    }));
+    const registeredHouseIds = new Set(formattedHouses.map((house) => Number(house.id)));
+    const onlyRegisteredHouseData = (item) => registeredHouseIds.has(Number(item.casaId));
+
+    const formattedTickets = (data?.tickets || []).map((ticket) => ({
+        id: ticket.id,
+        data: ticket.data,
+        casaId: Number(ticket.casa_id),
+        categoria: ticket.categoria,
+        odd: Number(ticket.odd || 0),
+        stake: Number(ticket.stake || 0),
+        retorno: Number(ticket.retorno || 0),
+        origemStake: normalizeStakeOrigin(ticket.origem_stake),
+        stakeSaldo: Number(ticket.stake_saldo || 0),
+        stakeDeposito: Number(ticket.stake_deposito || 0),
+        stakeBonus: Number(ticket.stake_bonus || 0),
+        resultado: ticket.resultado || "Pendente",
+        observacoes: ticket.observacoes || "",
+        lucro: Number(ticket.lucro || 0),
+        stakeReal: Number(ticket.stake_real || 0),
+        recoveredReal: Number(ticket.recovered_real || 0),
+        recoveredBonus: Number(ticket.recovered_bonus || 0),
+        perdaReal: Number(ticket.perda_real || 0),
+        perdaBonus: Number(ticket.perda_bonus || 0),
+        lucroReal: Number(ticket.lucro_real || 0),
+        numeroBilhete: Number(ticket.numero_bilhete || 0),
+        nomeBilhete: ticket.nome_bilhete || "",
+    }));
+
+    const formattedMovements = (data?.movements || []).map((movement) => ({
+        id: movement.id,
+        data: movement.data,
+        casaId: Number(movement.casa_id),
+        tipo: movement.tipo,
+        valor: Number(movement.valor || 0),
+        metodo: movement.metodo || "PIX",
+        observacoes: movement.observacoes || "",
+    }));
+
+    return {
+        houses: formattedHouses,
+        tickets: formattedTickets.filter(onlyRegisteredHouseData),
+        movements: formattedMovements.filter(onlyRegisteredHouseData),
+    };
+}
+
 const initialMovementForm = {
     data: hojeISO(),
     casaId: "",
@@ -5563,23 +5927,37 @@ const initialMovementForm = {
     observacoes: "",
 };
 
+function getDefaultBottomPanel(navItem, requestedPanel = null) {
+    if (requestedPanel) return requestedPanel;
+    if (navItem === "tickets") return "ticketsDay";
+    if (navItem === "movements") return "extract";
+    if (navItem === "settings") return "accountReal";
+    return null;
+}
+
 export default function DashboardPage({ landingTheme = "dark", onToggleTheme = () => { } }) {
     const { clearSession, refreshSession, session, signOut, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const userId = user?.id;
+    const initialDashboardData = useMemo(() => {
+        const initialBankingData = readCachedBankingData(userId);
+        return initialBankingData
+            ? formatDashboardBankingData(initialBankingData, userId)
+            : null;
+    }, [userId]);
     const controlPanelRef = useRef(null);
     const analyticsSectionRef = useRef(null);
-    const [houses, setHouses] = useState([]);
+    const [houses, setHouses] = useState(() => initialDashboardData?.houses || []);
 
-    const [tickets, setTickets] = useState([]);
+    const [tickets, setTickets] = useState(() => initialDashboardData?.tickets || []);
 
-    const [movements, setMovements] = useState([]);
+    const [movements, setMovements] = useState(() => initialDashboardData?.movements || []);
 
     const [ticketForm, setTicketForm] = useState(initialTicketForm);
     const [houseForm, setHouseForm] = useState(initialHouseForm);
     const [movementForm, setMovementForm] = useState(initialMovementForm);
-    const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+    const [isDashboardLoading, setIsDashboardLoading] = useState(() => !initialDashboardData);
     const [dashboardLoadError, setDashboardLoadError] = useState(null);
 
     const [editingTicketId, setEditingTicketId] = useState(null);
@@ -5610,6 +5988,20 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         type: "",
         message: "",
     });
+    const [statementSidebarSummary, setStatementSidebarSummary] = useState({
+        entries: 0,
+        exits: 0,
+        balance: 0,
+    });
+    const handleStatementSidebarSummaryChange = useCallback((summary) => {
+        setStatementSidebarSummary((current) => (
+            current.entries === summary.entries &&
+            current.exits === summary.exits &&
+            current.balance === summary.balance
+                ? current
+                : summary
+        ));
+    }, []);
 
     useEffect(() => {
         if (!ticketFeedback.message) return undefined;
@@ -5623,19 +6015,25 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
     const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
 
     const shouldUseInitialNavigationState = location.state?.navigationIntent === true;
+    const initialNavItem = shouldUseInitialNavigationState
+        ? location.state?.activeNavItem || "dashboard"
+        : "dashboard";
     const [activeBottomPanel, setActiveBottomPanel] = useState(
-        shouldUseInitialNavigationState ? location.state?.activeBottomPanel || null : null
+        shouldUseInitialNavigationState
+            ? getDefaultBottomPanel(initialNavItem, location.state?.activeBottomPanel)
+            : null
     );
     const [activeNavItem, setActiveNavItem] = useState(
-        shouldUseInitialNavigationState ? location.state?.activeNavItem || "dashboard" : "dashboard"
+        initialNavItem
     );
 
     useEffect(() => {
         if (location.state?.navigationIntent !== true) return;
         if (!location.state?.activeNavItem) return;
 
-        setActiveNavItem(location.state.activeNavItem);
-        setActiveBottomPanel(location.state.activeBottomPanel || null);
+        const nextNavItem = location.state.activeNavItem;
+        setActiveNavItem(nextNavItem);
+        setActiveBottomPanel(getDefaultBottomPanel(nextNavItem, location.state.activeBottomPanel));
         navigate(location.pathname, { replace: true, state: null });
     }, [location.pathname, location.state?.activeBottomPanel, location.state?.activeNavItem, location.state?.navigationIntent, navigate]);
 
@@ -5714,152 +6112,71 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
 
     useEffect(() => {
+        let isCancelled = false;
+
+        function applyBankingData(data) {
+            const formattedData = formatDashboardBankingData(data, userId);
+            setHouses(formattedData.houses);
+            setTickets(formattedData.tickets);
+            setMovements(formattedData.movements);
+        }
+
         async function loadInitialData() {
-            setIsDashboardLoading(true);
             setDashboardLoadError(null);
 
             if (!userId) {
                 setHouses([]);
                 setTickets([]);
                 setMovements([]);
-                setDashboardLoadError(null);
                 setIsDashboardLoading(false);
                 return;
             }
 
+            const cachedData = dashboardReloadKey === 0
+                ? readCachedBankingData(userId)
+                : null;
+
+            if (cachedData) {
+                applyBankingData(cachedData);
+                setIsDashboardLoading(false);
+                return;
+            }
+
+            setIsDashboardLoading(true);
+
             try {
-                let effectiveUserId = userId;
+                const data = await loadBankingData(userId, {
+                    force: dashboardReloadKey > 0,
+                });
 
-                let housesQuery = supabase
-                    .from("houses")
-                    .select("*")
-                    .order("id", { ascending: true });
-                if (effectiveUserId) housesQuery = housesQuery.eq("user_id", effectiveUserId);
-
-                const { data: housesData, error: housesError } = await housesQuery;
-
-                if (housesError) {
-                    console.error("Erro ao carregar casas do Supabase:", housesError);
-                    if (isSupabaseAuthError(housesError)) {
-                        handleAuthFailure();
-                        return;
-                    }
-                    setDashboardLoadError("Não foi possível carregar todos os dados da dashboard.");
-                    setHouses([]);
-                    setTickets([]);
-                    setMovements([]);
-                    return;
-                }
-
-                const formattedHouses = (housesData || []).map((house) => ({
-                    id: house.id,
-                    nome: house.nome,
-                    bancaInicial: Number(house.banca_inicial || 0),
-                    ...getStoredHouseDetails(userId, house.id),
-                }));
-                const registeredHouseIds = new Set(formattedHouses.map((house) => Number(house.id)));
-                const onlyRegisteredHouseData = (item) => registeredHouseIds.has(Number(item.casaId));
-
-                setHouses(formattedHouses);
-
-                let ticketsQuery = supabase
-                    .from("tickets")
-                    .select("*")
-                    .order("id", { ascending: false });
-                if (effectiveUserId) ticketsQuery = ticketsQuery.eq("user_id", effectiveUserId);
-
-                const { data: ticketsData, error: ticketsError } = await ticketsQuery;
-
-                console.log("ticketsData:", ticketsData);
-                console.log("ticketsError:", ticketsError);
-
-                if (ticketsError) {
-                    console.error("Erro ao carregar bilhetes do Supabase:", ticketsError);
-                    if (isSupabaseAuthError(ticketsError)) {
-                        handleAuthFailure();
-                        return;
-                    }
-                    setDashboardLoadError("Não foi possível carregar todos os dados da dashboard.");
-                    setTickets([]);
-                } else {
-                    const formattedTickets = (ticketsData || []).map((ticket) => ({
-                        id: ticket.id,
-                        data: ticket.data,
-                        casaId: Number(ticket.casa_id),
-                        categoria: ticket.categoria,
-                        odd: Number(ticket.odd || 0),
-                        stake: Number(ticket.stake || 0),
-                        retorno: Number(ticket.retorno || 0),
-                        origemStake: normalizeStakeOrigin(ticket.origem_stake),
-                        stakeSaldo: Number(ticket.stake_saldo || 0),
-                        stakeDeposito: Number(ticket.stake_deposito || 0),
-                        stakeBonus: Number(ticket.stake_bonus || 0),
-                        resultado: ticket.resultado || "Pendente",
-                        observacoes: ticket.observacoes || "",
-                        lucro: Number(ticket.lucro || 0),
-                        stakeReal: Number(ticket.stake_real || 0),
-                        recoveredReal: Number(ticket.recovered_real || 0),
-                        recoveredBonus: Number(ticket.recovered_bonus || 0),
-                        perdaReal: Number(ticket.perda_real || 0),
-                        perdaBonus: Number(ticket.perda_bonus || 0),
-                        lucroReal: Number(ticket.lucro_real || 0),
-                        numeroBilhete: Number(ticket.numero_bilhete || 0),
-                        nomeBilhete: ticket.nome_bilhete || "",
-                    }));
-
-                    console.log("formattedTickets:", formattedTickets);
-                    setTickets(formattedTickets.filter(onlyRegisteredHouseData));
-                }
-
-                let movementsQuery = supabase
-                    .from("movements")
-                    .select("*")
-                    .order("id", { ascending: false });
-                if (effectiveUserId) movementsQuery = movementsQuery.eq("user_id", effectiveUserId);
-
-                const { data: movementsData, error: movementsError } = await movementsQuery;
-
-                console.log("movementsData:", movementsData);
-                console.log("movementsError:", movementsError);
-
-                if (movementsError) {
-                    console.error("Erro ao carregar movimentações:", movementsError);
-                    if (isSupabaseAuthError(movementsError)) {
-                        handleAuthFailure();
-                        return;
-                    }
-                    setDashboardLoadError("Não foi possível carregar todos os dados da dashboard.");
-                    setMovements([]);
-                } else {
-                    const formattedMovements = (movementsData || []).map((movement) => ({
-                        id: movement.id,
-                        data: movement.data,
-                        casaId: Number(movement.casa_id),
-                        tipo: movement.tipo,
-                        valor: Number(movement.valor || 0),
-                        metodo: movement.metodo || "PIX",
-                        observacoes: movement.observacoes || "",
-                    }));
-
-                    setMovements(formattedMovements.filter(onlyRegisteredHouseData));
-                    console.log("formattedMovements:", formattedMovements);
+                if (!isCancelled) {
+                    applyBankingData(data);
                 }
             } catch (error) {
+                if (isCancelled) return;
+
                 console.error("Erro ao carregar dados iniciais:", error);
                 if (isSupabaseAuthError(error)) {
                     handleAuthFailure();
                     return;
                 }
+
                 setDashboardLoadError("Não foi possível carregar os dados da dashboard.");
                 setHouses([]);
                 setTickets([]);
                 setMovements([]);
             } finally {
-                setIsDashboardLoading(false);
+                if (!isCancelled) {
+                    setIsDashboardLoading(false);
+                }
             }
         }
 
         loadInitialData();
+
+        return () => {
+            isCancelled = true;
+        };
     }, [dashboardReloadKey, handleAuthFailure, userId]);
 
     const dailyReferences = useMemo(() => {
@@ -6675,8 +6992,10 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             }
 
             if (editingHouseId) {
+                const logoUrl = await uploadHouseLogoIfNeeded(editingHouseId);
                 const houseDetails = {
-                    logoDataUrl: houseForm.logoDataUrl || "",
+                    logoDataUrl: logoUrl,
+                    logoFile: null,
                     logoName: houseForm.logoName || "",
                     moeda: houseForm.moeda || "BRL",
                     observacoes: String(houseForm.observacoes || "").slice(0, 200),
@@ -6686,6 +7005,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                     .update({
                         nome: name,
                         banca_inicial: initialBank,
+                        logo_url: logoUrl,
                     })
                     .eq("id", editingHouseId)
                     .eq("user_id", userId);
@@ -6701,6 +7021,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                     return;
                 }
 
+                invalidateBankingDataCache(userId);
                 setHouses((prev) =>
                     prev.map((house) =>
                         house.id === editingHouseId
@@ -6725,11 +7046,14 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 return;
             }
 
+            const newHouseId = createPersistentId(houses.map((house) => house.id));
+            const logoUrl = await uploadHouseLogoIfNeeded(newHouseId);
             const newHouse = {
-                id: createPersistentId(houses.map((house) => house.id)),
+                id: newHouseId,
                 nome: name,
                 bancaInicial: initialBank,
-                logoDataUrl: houseForm.logoDataUrl || "",
+                logoDataUrl: logoUrl,
+                logoFile: null,
                 logoName: houseForm.logoName || "",
                 moeda: houseForm.moeda || "BRL",
                 observacoes: String(houseForm.observacoes || "").slice(0, 200),
@@ -6740,6 +7064,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                     id: newHouse.id,
                     nome: newHouse.nome,
                     banca_inicial: newHouse.bancaInicial,
+                    logo_url: newHouse.logoDataUrl,
                     user_id: userId,
                 },
             ]);
@@ -6755,6 +7080,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 return;
             }
 
+            invalidateBankingDataCache(userId);
             setHouses((prev) => [...prev, newHouse]);
             saveStoredHouseDetails(userId, newHouse.id, newHouse);
             setEditingHouseId(null);
@@ -6783,6 +7109,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             nome: house.nome,
             bancaInicial: formatMoney(house.bancaInicial),
             logoDataUrl: house.logoDataUrl || "",
+            logoFile: null,
             logoName: house.logoName || "",
             moeda: house.moeda || "BRL",
             observacoes: house.observacoes || "",
@@ -6827,6 +7154,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
+        invalidateBankingDataCache(userId);
         setHouses((prev) => prev.filter((house) => Number(house.id) !== Number(housePendingDelete.id)));
         setTickets((prev) => prev.filter((ticket) => Number(ticket.casaId) !== Number(housePendingDelete.id)));
         setMovements((prev) => prev.filter((movement) => Number(movement.casaId) !== Number(housePendingDelete.id)));
@@ -6863,6 +7191,46 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         });
         setEditingMovementId(null);
         setMovementFeedback({ type: "", message: "" });
+    }
+
+    async function uploadHouseLogoIfNeeded(houseId) {
+        let uploadFile = houseForm.logoFile;
+
+        if (!uploadFile && String(houseForm.logoDataUrl || "").startsWith("data:")) {
+            const response = await fetch(houseForm.logoDataUrl);
+            uploadFile = await response.blob();
+        }
+
+        if (!uploadFile) {
+            return houseForm.logoDataUrl || "";
+        }
+
+        const extension = houseForm.logoFile
+            ? getHouseLogoExtension(houseForm.logoFile)
+            : getHouseLogoExtensionFromMimeType(uploadFile.type);
+        const logoPath = `${userId}/${houseId}/logo.${extension}`;
+        const { error: uploadError } = await supabase.storage
+            .from("house-logos")
+            .upload(logoPath, uploadFile, {
+                cacheControl: "3600",
+                contentType: uploadFile.type,
+                upsert: true,
+            });
+
+        if (uploadError) {
+            console.error("Erro ao enviar logo da casa:", uploadError);
+            throw new Error("Não foi possível enviar a logo da casa.");
+        }
+
+        const { data: publicUrlData } = supabase.storage
+            .from("house-logos")
+            .getPublicUrl(logoPath);
+
+        if (!publicUrlData?.publicUrl) {
+            throw new Error("Não foi possível carregar a logo enviada.");
+        }
+
+        return `${publicUrlData.publicUrl}?v=${Date.now()}`;
     }
 
     async function handleSaveTicket(event) {
@@ -7026,6 +7394,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 return;
             }
 
+            invalidateBankingDataCache(userId);
             const updated = tickets.map((ticket) => {
                 if (ticket.id !== editingTicketId) return ticket;
 
@@ -7102,6 +7471,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
+        invalidateBankingDataCache(userId);
         setTickets((prev) => reorderTickets([newTicket, ...prev]));
         resetTicketForm();
         setActiveNavItem("tickets");
@@ -7177,7 +7547,6 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                     casa_id: payload.casaId,
                     tipo: payload.tipo,
                     valor: payload.valor,
-                    metodo: payload.metodo || "PIX",
                     observacoes: payload.observacoes,
                 })
                 .eq("id", editingMovementId)
@@ -7193,6 +7562,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 return;
             }
 
+            invalidateBankingDataCache(userId);
             setMovements((prev) =>
                 prev.map((movement) =>
                     Number(movement.id) === Number(editingMovementId)
@@ -7212,8 +7582,6 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             ...payload,
         };
 
-        console.log("movimento que vou salvar:", newMovement);
-
         const { error } = await supabase.from("movements").insert([
             {
                 id: newMovement.id,
@@ -7221,13 +7589,10 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 casa_id: newMovement.casaId,
                 tipo: newMovement.tipo,
                 valor: newMovement.valor,
-                metodo: newMovement.metodo || "PIX",
                 observacoes: newMovement.observacoes,
                 user_id: userId,
             },
         ]);
-
-        console.log("erro movement:", error);
 
         if (error) {
             console.error("Erro Supabase movimentação completo:", error);
@@ -7239,6 +7604,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
+        invalidateBankingDataCache(userId);
         setMovements((prev) => [newMovement, ...prev]);
         resetMovementForm();
         setActiveNavItem("movements");
@@ -7330,6 +7696,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
+        invalidateBankingDataCache(userId);
         setTickets((prev) => prev.filter((ticket) => ticket.id !== ticketId));
         setDeletingTicketId(null);
 
@@ -7417,6 +7784,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
+        invalidateBankingDataCache(userId);
         setMovements((prev) =>
             prev.filter((movement) => movement.id !== movementId)
         );
@@ -7623,7 +7991,8 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
     const accountEmail = user?.email || "E-mail não disponível";
     const accountUsername = metadata.username || "";
     const accountPhone = formatBrazilianPhone(metadata.phone || "");
-    const accountPlan = metadata.plan || metadata.plano || user?.plan || "Plano Free";
+    const accountAvatarUrl = metadata.avatar_url || metadata.picture || "";
+    const accountPlan = normalizeAccountPlan(metadata.plan || metadata.plano || user?.plan);
     const dashboardDayMarkers = buildDayMarkers(tickets, movements);
     const referenceMetrics = topMetricPages[0] || [];
     const referenceReferences =
@@ -7768,6 +8137,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                     onEdit={handleStartEditMovement}
                     onDelete={handleDeleteMovement}
                     onSubmitEdit={handleSaveMovement}
+                    onSummaryChange={handleStatementSidebarSummaryChange}
                     movementForm={movementForm}
                     setMovementForm={setMovementForm}
                 />
@@ -7807,17 +8177,20 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         if (activeNavItem === "settings" && activeBottomPanel === "accountReal") {
             return (
                 <PremiumSettingsPanel
-                    accountCreatedAt={user?.created_at}
+                    accountAvatarUrl={accountAvatarUrl}
                     accountEmail={accountEmail}
                     accountId={user?.id}
-                    accountLastSignInAt={user?.last_sign_in_at}
+                    accountMetadata={metadata}
                     accountName={accountName}
                     accountPhone={accountPhone}
-                    accountPlan={accountPlan}
                     accountUsername={accountUsername}
                     onEditProfile={() => setActiveBottomPanel("profileReal")}
+                    onKeepAccountPanel={() => {
+                        setActiveNavItem("settings");
+                        setActiveBottomPanel("accountReal");
+                    }}
                     onToggleTheme={onToggleTheme}
-                    session={session}
+                    refreshSession={refreshSession}
                     theme={landingTheme}
                 />
             );
@@ -7867,6 +8240,10 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 onToggleTheme={onToggleTheme}
                 quickActions={referenceActions}
                 selectedHouseLabel={dashboardSelectedHouseLabel}
+                sidebarInfoContext={{
+                    financialSummary: statementSidebarSummary,
+                    tickets,
+                }}
                 theme={landingTheme}
             >
                 <LogoutConfirmDialog
@@ -7905,6 +8282,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                         )}
 
                         <VisualDashboardHome
+                            accountAvatarUrl={accountAvatarUrl}
                             accountName={accountName}
                             accountPlan={accountPlan}
                             allHitRate={allHitRate}

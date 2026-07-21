@@ -6,6 +6,7 @@ import { isDevAuthBypassEnabled } from "../auth/devAuth";
 import logo from "../assets/logo.png";
 import { supabase } from "../supabase";
 import { exportReportToExcel, exportReportToPdf } from "../utils/reportExport";
+import { loadBankingData, readCachedBankingData } from "../utils/bankingDataCache";
 import {
   Area,
   AreaChart,
@@ -171,6 +172,42 @@ function isSupabaseAuthError(error) {
   );
 }
 
+function formatReportsBankingData(data) {
+  return {
+    houses: (data?.houses || []).map((house) => ({
+      id: house.id,
+      nome: house.nome,
+      bancaInicial: Number(house.banca_inicial || 0),
+      logoDataUrl: house.logo_url || "",
+    })),
+    tickets: (data?.tickets || []).map((ticket) => ({
+      id: ticket.id,
+      data: ticket.data,
+      casaId: Number(ticket.casa_id),
+      categoria: ticket.categoria || "",
+      odd: Number(ticket.odd || 0),
+      stake: Number(ticket.stake || 0),
+      stakeReal: Number(ticket.stake_real || 0),
+      retorno: Number(ticket.retorno || 0),
+      resultado: ticket.resultado || "Pendente",
+      lucro: Number(ticket.lucro || 0),
+      lucroReal: Number(ticket.lucro_real || 0),
+      perdaReal: Number(ticket.perda_real || 0),
+      numeroBilhete: ticket.numero_bilhete || "",
+      nomeBilhete: ticket.nome_bilhete || "",
+      observacoes: ticket.observacoes || "",
+    })),
+    movements: (data?.movements || []).map((movement) => ({
+      id: movement.id,
+      data: movement.data,
+      casaId: Number(movement.casa_id),
+      tipo: movement.tipo,
+      valor: Number(movement.valor || 0),
+      observacoes: movement.observacoes || "",
+    })),
+  };
+}
+
 function ReportsAdvancedResultCard({ houseName, ticket, title, tone }) {
   return (
     <article className={`reports-advanced-result-card ${tone}`}>
@@ -206,6 +243,12 @@ export default function ReportsPage({ landingTheme = "dark" }) {
   const navigate = useNavigate();
   const { clearSession, user } = useAuth();
   const userId = user?.id;
+  const initialReportsData = useMemo(() => {
+    const initialBankingData = readCachedBankingData(userId);
+    return initialBankingData
+      ? formatReportsBankingData(initialBankingData)
+      : null;
+  }, [userId]);
   const metadata = user?.user_metadata || {};
   const accountFirstName =
     metadata.first_name ||
@@ -215,13 +258,14 @@ export default function ReportsPage({ landingTheme = "dark" }) {
     "";
 
   const [activeReportsTab, setActiveReportsTab] = useState("overview");
-  const [houses, setHouses] = useState([]);
-  const [tickets, setTickets] = useState([]);
-  const [movements, setMovements] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [houses, setHouses] = useState(() => initialReportsData?.houses || []);
+  const [tickets, setTickets] = useState(() => initialReportsData?.tickets || []);
+  const [movements, setMovements] = useState(() => initialReportsData?.movements || []);
+  const [isLoading, setIsLoading] = useState(() => !initialReportsData);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [loadRetryToken, setLoadRetryToken] = useState(0);
   const [houseScope, setHouseScope] = useState(null);
   const [periodType, setPeriodType] = useState("Mensal");
   const bankChartScrollRef = useRef(null);
@@ -234,14 +278,25 @@ export default function ReportsPage({ landingTheme = "dark" }) {
   const [periodReference, setPeriodReference] = useState(() =>
     getReferenceForPeriod("Mensal", todayISO())
   );
-  useEffect(() => {
-    if (!userId) {
-      setIsLoading(false);
+
+  function handleRetryLoadReports() {
+    if (isLoading) {
       return;
     }
 
+    setIsLoading(true);
+    setLoadError("");
+    setLoadRetryToken((currentValue) => currentValue + 1);
+  }
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (!userId) {
+      return undefined;
+    }
+
     async function loadReportsData() {
-      setIsLoading(true);
       setLoadError("");
 
       let effectiveUserId = userId;
@@ -251,77 +306,50 @@ export default function ReportsPage({ landingTheme = "dark" }) {
         effectiveUserId = currentAuthData?.session?.user?.id || userId;
       }
 
-      let housesQuery = supabase.from("houses").select("*").order("id", { ascending: true });
-      let ticketsQuery = supabase.from("tickets").select("*").order("id", { ascending: false });
-      let movementsQuery = supabase.from("movements").select("*").order("id", { ascending: false });
-
-      if (effectiveUserId) {
-        housesQuery = housesQuery.eq("user_id", effectiveUserId);
-        ticketsQuery = ticketsQuery.eq("user_id", effectiveUserId);
-        movementsQuery = movementsQuery.eq("user_id", effectiveUserId);
+      const cachedData = readCachedBankingData(effectiveUserId);
+      if (cachedData) {
+        if (!isCancelled) {
+          const formattedData = formatReportsBankingData(cachedData);
+          setHouses(formattedData.houses);
+          setTickets(formattedData.tickets);
+          setMovements(formattedData.movements);
+          setIsLoading(false);
+        }
+        return;
       }
 
-      const [housesResult, ticketsResult, movementsResult] = await Promise.all([
-        housesQuery,
-        ticketsQuery,
-        movementsQuery,
-      ]);
+      setIsLoading(true);
 
-      if (housesResult.error || ticketsResult.error || movementsResult.error) {
-        const error = housesResult.error || ticketsResult.error || movementsResult.error;
+      try {
+        const data = await loadBankingData(effectiveUserId);
+        if (isCancelled) return;
+
+        const formattedData = formatReportsBankingData(data);
+        setHouses(formattedData.houses);
+        setTickets(formattedData.tickets);
+        setMovements(formattedData.movements);
+      } catch (error) {
+        if (isCancelled) return;
 
         if (isSupabaseAuthError(error)) {
           clearSession();
-          setIsLoading(false);
           return;
         }
 
         setLoadError("Não foi possível carregar os dados dos relatórios.");
-        setIsLoading(false);
-        return;
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
-
-      setHouses(
-        (housesResult.data || []).map((house) => ({
-          id: house.id,
-          nome: house.nome,
-          bancaInicial: Number(house.banca_inicial || 0),
-        }))
-      );
-      setTickets(
-        (ticketsResult.data || []).map((ticket) => ({
-          id: ticket.id,
-          data: ticket.data,
-          casaId: Number(ticket.casa_id),
-          categoria: ticket.categoria || "",
-          odd: Number(ticket.odd || 0),
-          stake: Number(ticket.stake || 0),
-          stakeReal: Number(ticket.stake_real || 0),
-          retorno: Number(ticket.retorno || 0),
-          resultado: ticket.resultado || "Pendente",
-          lucro: Number(ticket.lucro || 0),
-          lucroReal: Number(ticket.lucro_real || 0),
-          perdaReal: Number(ticket.perda_real || 0),
-          numeroBilhete: ticket.numero_bilhete || "",
-          nomeBilhete: ticket.nome_bilhete || "",
-          observacoes: ticket.observacoes || "",
-        }))
-      );
-      setMovements(
-        (movementsResult.data || []).map((movement) => ({
-          id: movement.id,
-          data: movement.data,
-          casaId: Number(movement.casa_id),
-          tipo: movement.tipo,
-          valor: Number(movement.valor || 0),
-          observacoes: movement.observacoes || "",
-        }))
-      );
-      setIsLoading(false);
     }
 
     loadReportsData();
-  }, [clearSession, userId]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [clearSession, loadRetryToken, userId]);
 
   const periodInterval = useMemo(
     () => getPeriodInterval(periodType, periodReference),
@@ -1312,7 +1340,14 @@ export default function ReportsPage({ landingTheme = "dark" }) {
       >
         <section className="reports-page">
           {isLoading ? <section className="reference-loading-panel">Carregando relatórios...</section> : null}
-          {loadError ? <section className="reference-load-error-panel">{loadError}</section> : null}
+          {loadError ? (
+            <section className="reference-load-error-panel" role="alert">
+              <span>{loadError}</span>
+              <button type="button" onClick={handleRetryLoadReports} disabled={isLoading}>
+                Tentar novamente
+              </button>
+            </section>
+          ) : null}
 
           {!isLoading && !loadError ? (
             <section className="reports-section" aria-labelledby="reports-page-title">
@@ -1546,7 +1581,16 @@ export default function ReportsPage({ landingTheme = "dark" }) {
                     </div>
                     {houseReportRows.map((row) => (
                       <div className="reports-house-table-row" key={row.house.id}>
-                        <strong><i aria-hidden="true">{String(row.house.nome || "?").slice(0, 1)}</i>{row.house.nome}</strong>
+                        <strong>
+                          <i aria-hidden="true">
+                            {row.house.logoDataUrl ? (
+                              <img src={row.house.logoDataUrl} alt="" loading="lazy" />
+                            ) : (
+                              String(row.house.nome || "?").slice(0, 1)
+                            )}
+                          </i>
+                          {row.house.nome}
+                        </strong>
                         <span>{formatMoney(row.wagered)}</span>
                         <span>{formatMoney(row.returnValue)}</span>
                         <span className={row.profit >= 0 ? "positive" : "negative"}>{formatSignedMoney(row.profit)}</span>
@@ -1699,7 +1743,16 @@ export default function ReportsPage({ landingTheme = "dark" }) {
                       </div>
                       {advancedHouseRows.map((row) => (
                         <div className="reports-advanced-house-row" key={row.house.id}>
-                          <strong><i aria-hidden="true">{String(row.house.nome || "?").slice(0, 1)}</i>{row.house.nome}</strong>
+                          <strong>
+                            <i aria-hidden="true">
+                              {row.house.logoDataUrl ? (
+                                <img src={row.house.logoDataUrl} alt="" loading="lazy" />
+                              ) : (
+                                String(row.house.nome || "?").slice(0, 1)
+                              )}
+                            </i>
+                            {row.house.nome}
+                          </strong>
                           <span>{formatCount(row.tickets)}</span>
                           <span className={row.profit > 0 ? "positive" : row.profit < 0 ? "negative" : ""}>{formatSignedMoney(row.profit)}</span>
                           <span className={row.roi > 0 ? "positive" : row.roi < 0 ? "negative" : ""}>{formatSignedPercent(row.roi)}</span>

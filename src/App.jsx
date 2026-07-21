@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import "./App.css";
 import "./dashboard-home.css";
 import "./design-system/design-system.css";
@@ -15,26 +15,17 @@ import RouteErrorBoundary from "./RouteErrorBoundary";
 import { AuthProvider } from "./auth/AuthProvider";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
-const ReportsPage = lazy(() => import("./pages/ReportsPage"));
-
-const THEME_STORAGE_KEY = "controlbet_theme";
-
-function getInitialLandingTheme() {
-    if (typeof window === "undefined") return "light";
-
-    const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-
-    if (savedTheme === "light" || savedTheme === "dark") {
-        return savedTheme;
-    }
-
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
+const loadReportsPage = () => import("./pages/ReportsPage");
+const ReportsPage = lazy(loadReportsPage);
+const canUseDevelopmentTools = import.meta.env.DEV;
+const DevelopmentTools = canUseDevelopmentTools
+    ? lazy(() => import("./dev/DevelopmentTools"))
+    : null;
 
 function RouteLoadingFallback() {
     return (
         <div className="auth-route-loading" role="status">
-            Carregando dashboard...
+            Carregando página...
         </div>
     );
 }
@@ -50,20 +41,31 @@ function RouteErrorFallback() {
     );
 }
 
-export default function App() {
-    const [landingTheme, setLandingTheme] = useState(getInitialLandingTheme);
+function AppRoutes() {
     const location = useLocation();
+    const [landingTheme, setLandingTheme] = useState("light");
+    const toggleLandingTheme = () => {
+        setLandingTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"));
+    };
 
-    function toggleLandingTheme() {
-        setLandingTheme((currentTheme) => {
-            const nextTheme = currentTheme === "light" ? "dark" : "light";
-            window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-            return nextTheme;
-        });
-    }
+    useEffect(() => {
+        const preloadReports = () => {
+            loadReportsPage().catch(() => {
+                // O fallback da rota continua responsável por uma nova tentativa.
+            });
+        };
+
+        if (typeof window.requestIdleCallback === "function") {
+            const idleId = window.requestIdleCallback(preloadReports);
+            return () => window.cancelIdleCallback(idleId);
+        }
+
+        const timeoutId = window.setTimeout(preloadReports, 400);
+        return () => window.clearTimeout(timeoutId);
+    }, []);
 
     return (
-        <AuthProvider>
+        <>
             <ScrollToTop />
             <Routes>
                 <Route
@@ -120,6 +122,19 @@ export default function App() {
                 />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            {canUseDevelopmentTools && DevelopmentTools ? (
+                <Suspense fallback={null}>
+                    <DevelopmentTools />
+                </Suspense>
+            ) : null}
+        </>
+    );
+}
+
+export default function App() {
+    return (
+        <AuthProvider>
+            <AppRoutes />
         </AuthProvider>
     );
 }
