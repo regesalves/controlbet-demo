@@ -49576,7 +49576,7 @@ textarea:focus,
 /* Avatar principal da conta no canto superior direito */
 .app .light-dashboard-shell .reference-user-pill.reference-user-pill-compact {
   height: 64px !important;
-  min-width: 190px !important;
+  min-width: 150px !important;
   grid-template-columns: 64px minmax(0, 1fr) !important;
   gap: 14px !important;
 }
@@ -51025,8 +51025,7 @@ textarea:focus,
   accent-color: #1769e8 !important;
 }
 
-.premium-account-page .premium-account-security-card,
-.premium-account-page .premium-account-preferences-card {
+.premium-account-page .premium-account-security-card {
   gap: 14px !important;
 }
 
@@ -51094,13 +51093,781 @@ textarea:focus,
   accent-color: #1769e8 !important;
 }
 
-.premium-account-page .premium-account-preferences-card .premium-app-info-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 10px !important;
+.premium-account-page .premium-history-management-card {
+  gap: 12px !important;
 }
 
-.premium-account-page .premium-account-preferences-card .premium-app-info-grid .premium-app-copyright {
-  grid-column: 1 / -1 !important;
+.premium-account-page .premium-history-management-card > header > span,
+.premium-history-modal-header > div > span {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  flex: 0 0 32px;
+  border-radius: 9px;
+  background: #fff1f2;
+  color: #e11d2e;
+}
+
+.premium-account-page .premium-history-management-card > header > span svg,
+.premium-history-modal-header > div > span svg {
+  color: currentColor;
+  stroke: currentColor;
+}
+
+.premium-account-page .premium-history-management-card > p {
+  margin: 0 !important;
+  color: #64748b !important;
+  font-size: 0.82rem !important;
+  line-height: 1.45 !important;
+}
+
+.premium-account-page .premium-history-trigger {
+  justify-self: start;
+  margin-top: 2px;
+}
+
+.premium-account-page .premium-account-footer {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin: 28px 0 4px;
+  color: #64748b;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.premium-account-page .premium-account-footer p {
+  margin: 0;
+}
+
+.premium-account-page .premium-inline-profile-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0;
+}
+
+.premium-account-page .premium-inline-profile-row {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.premium-account-page .premium-inline-profile-row > span {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.premium-account-page .premium-inline-profile-name-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.premium-account-page .premium-inline-profile-form > label {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.premium-account-page .premium-inline-profile-form > label input {
+  width: 100%;
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid #cbd8e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17233d;
+  font: inherit;
+}
+
+.premium-account-page .premium-inline-profile-row input {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0 9px;
+  border: 1px solid #cbd8e8;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #17233d;
+  font: inherit;
+}
+
+.premium-account-page .premium-inline-profile-form .reference-operation-feedback,
+.premium-account-page .premium-inline-profile-form .premium-inline-profile-actions {
+  grid-column: 1 / -1;
+}
+
+.premium-account-page .premium-inline-profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .premium-account-page .premium-inline-profile-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
+
+.premium-history-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.premium-history-modal {
+  width: min(560px, 100%);
+  max-height: min(720px, calc(100vh - 40px));
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid #dbe4ef;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #17233d;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+}
+
+.premium-history-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.premium-history-modal-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.premium-history-modal-header h2,
+.premium-history-preview h3 {
+  margin: 0;
+  color: #17233d;
+  font-size: 1.05rem;
+}
+
+.premium-history-close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.premium-history-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.premium-history-group h3 {
+  grid-column: 1 / -1;
+  margin: 0 0 2px;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.premium-history-check,
+.premium-history-radio {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.premium-history-check input,
+.premium-history-radio input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #2563eb;
+}
+
+.premium-history-date-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  grid-column: 1 / -1;
+  max-height: 0;
+  margin-top: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: max-height 180ms ease, margin-top 180ms ease, opacity 140ms ease;
+}
+
+.premium-history-date-grid.is-visible {
+  max-height: 96px;
+  margin-top: 4px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.premium-history-date-grid .reference-date-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.premium-history-date-grid .reference-date-field > span {
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.premium-history-date-grid .reference-date-trigger {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17233d;
+  font: inherit;
+}
+
+.premium-history-error,
+.premium-history-empty,
+.premium-history-warning {
+  margin: 0 0 16px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.premium-history-error,
+.premium-history-warning {
+  color: #b91c1c;
+}
+
+.premium-history-empty {
+  color: #64748b;
+}
+
+.premium-history-preview {
+  margin-top: 2px;
+}
+
+.premium-history-preview p {
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 0.84rem;
+}
+
+.premium-history-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.premium-history-complete {
+  display: grid;
+  gap: 10px;
+  color: #334155;
+}
+
+.premium-history-complete p {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 640px) {
+  .premium-history-modal-backdrop {
+    padding: 12px;
+  }
+
+  .premium-history-modal {
+    padding: 18px;
+  }
+
+  .premium-history-group,
+  .premium-history-date-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-history-date-grid {
+    grid-column: auto;
+  }
+
+  .premium-history-date-grid.is-visible {
+    max-height: 180px;
+  }
+
+  .premium-history-date-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-history-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .premium-history-modal-actions button {
+    width: 100%;
+  }
+}
+
+.premium-history-modal .premium-outline-button {
+  border: 1px solid #cbd8e8 !important;
+  background: #ffffff !important;
+  color: #30415d !important;
+}
+
+.premium-history-modal .premium-outline-button:hover {
+  border-color: #1769e8 !important;
+  color: #1769e8 !important;
+}
+
+.premium-account-page .premium-history-trigger,
+.premium-history-modal .premium-danger-button {
+  border: 1px solid #e11d2e !important;
+  background: #e11d2e !important;
+  color: #ffffff !important;
+}
+
+.premium-account-page .premium-history-trigger:hover,
+.premium-history-modal .premium-danger-button:hover {
+  border-color: #be123c !important;
+  background: #be123c !important;
+}
+
+.premium-account-page .premium-security-history-card {
+  gap: 0 !important;
+  padding: 22px !important;
+}
+
+.premium-account-page .premium-security-history-card > header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.premium-account-page .premium-security-history-card > header > div {
+  min-width: 0;
+}
+
+.premium-account-page .premium-security-history-card > header p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.premium-account-page .premium-security-history-card > header > span {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1769e8;
+}
+
+.premium-account-page .premium-security-history-card > header h2 {
+  margin: 0;
+  color: #17233d;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.premium-account-page .premium-security-history-action {
+  display: grid;
+  gap: 0;
+}
+
+.premium-account-page .premium-security-history-action .premium-account-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.premium-account-page .premium-security-history-action .premium-account-action > strong {
+  color: #17233d;
+  font-size: 0.88rem;
+}
+
+.premium-account-page .premium-security-history-action .premium-account-action > p {
+  margin: 0;
+  max-width: 430px;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.premium-account-page .premium-security-history-action .premium-account-action > button {
+  margin-top: 3px;
+}
+
+.premium-account-page .premium-security-history-divider {
+  height: 1px;
+  margin: 17px 0;
+  background: #e2e8f0;
+}
+
+.premium-account-page .premium-history-management-inline .premium-history-management-card-embedded {
+  gap: 8px !important;
+}
+
+.premium-account-page .premium-history-management-inline .premium-history-management-card-embedded > p {
+  margin: 4px 0 2px !important;
+  color: #64748b !important;
+  font-size: 0.78rem !important;
+  line-height: 1.4 !important;
+}
+
+.premium-account-page .premium-history-management-inline .premium-history-management-card-embedded {
+  display: contents;
+}
+
+.premium-account-page .premium-history-management-inline .premium-history-trigger,
+.premium-account-page .premium-history-management-inline .premium-history-trigger:hover {
+  width: fit-content;
+  border: 1px solid #cbd8e8 !important;
+  background: #ffffff !important;
+  color: #30415d !important;
+}
+
+.premium-account-page .premium-history-management-inline .premium-history-trigger:hover {
+  border-color: #1769e8 !important;
+  color: #1769e8 !important;
+}
+
+/* Segurança e Histórico: composição visual dedicada, sem layout de tabela. */
+.premium-account-page .premium-security-history-redesign {
+  display: grid !important;
+  gap: 0 !important;
+  padding: 22px !important;
+  background: #ffffff !important;
+}
+
+.premium-account-page .premium-security-history-redesign > header {
+  margin: 0 0 18px !important;
+  padding: 0 !important;
+}
+
+.premium-account-page .premium-account-personal-card > header > div > p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.premium-account-page .premium-personal-header-avatar {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1769e8;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.premium-account-page .premium-personal-header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.premium-account-page .premium-personal-edit-button {
+  justify-self: end;
+  align-self: end;
+}
+
+@media (min-width: 981px) {
+  .premium-account-page .premium-account-grid > .premium-account-side-stack {
+    height: 100% !important;
+    align-self: stretch !important;
+  }
+
+  .premium-account-page .premium-account-grid > .premium-account-side-stack > .premium-security-history-card {
+    height: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .premium-account-page .premium-account-grid > .premium-account-personal-card {
+    height: calc(100% - 18px) !important;
+    align-self: start !important;
+  }
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 15px 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  box-sizing: border-box !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section + .premium-security-history-divider {
+  width: 100% !important;
+  height: 1px !important;
+  margin: 10px 0 !important;
+  background: #e2e8f0 !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-account-action {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  gap: 7px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-account-action > strong {
+  color: #17233d !important;
+  font-size: 0.9rem !important;
+  line-height: 1.2 !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-account-action > p {
+  max-width: 480px !important;
+  margin: 0 !important;
+  color: #64748b !important;
+  font-size: 0.78rem !important;
+  line-height: 1.45 !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-account-action > button {
+  width: auto !important;
+  min-width: 132px !important;
+  margin-top: 4px !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-danger-section {
+  border-color: #fee2e2 !important;
+  background: #fffafa !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-account-action > strong {
+  display: block !important;
+  line-height: 1.45 !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-account-action > strong em {
+  color: #64748b !important;
+  font-size: 0.78rem !important;
+  font-style: normal !important;
+  font-weight: 650 !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section {
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 16px !important;
+  flex-direction: initial !important;
+}
+
+.premium-account-page .premium-security-history-item-icon {
+  display: inline-grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  background: #eff6ff;
+  color: #1769e8;
+}
+
+.premium-account-page .premium-security-history-item-icon svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-danger-section .premium-security-history-item-icon {
+  background: #fff1f2;
+  color: #e11d2e;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-account-action {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-history-management-card-embedded {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  justify-self: start;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
+  min-width: 190px !important;
+  min-height: 48px !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger {
+  min-width: 150px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  box-sizing: border-box !important;
+  padding-inline: 14px !important;
+  font-size: 0.82rem !important;
+}
+
+@media (min-width: 641px) {
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+  }
+
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+  }
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger {
+  min-width: 150px !important;
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  border: 1px solid #e11d2e !important;
+  border-radius: 8px !important;
+  background: #e11d2e !important;
+  color: #ffffff !important;
+  font-size: 0.82rem !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button:hover,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button:hover,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger:hover {
+  border-color: #be123c !important;
+  background: #be123c !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger {
+  border-color: #1769e8 !important;
+  background: #1769e8 !important;
+  color: #ffffff !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button:hover,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger:hover {
+  border-color: #1258c7 !important;
+  background: #1258c7 !important;
+}
+
+@media (min-width: 641px) {
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button,
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+  }
+}
+
+@media (min-width: 981px) {
+  .premium-account-page .premium-account-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(370px, 1fr) !important;
+  }
+}
+
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+.premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button {
+  min-width: 150px !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  max-height: 40px !important;
+  padding-inline: 18px !important;
+}
+
+.premium-account-page .premium-security-history-redesign .premium-history-management-card-embedded {
+  display: contents !important;
+}
+
+@media (max-width: 640px) {
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .premium-account-page .premium-security-history-item-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button,
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-history-management-card-embedded {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: stretch;
+  }
+
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section .premium-history-management-card-embedded .premium-history-trigger {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: stretch;
+    width: 100% !important;
+  }
+
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-outline-button,
+  .premium-account-page .premium-security-history-redesign .premium-security-history-section > .premium-danger-button {
+    width: 100% !important;
+  }
 }
 
 .premium-account-page .premium-account-security-card .premium-security-actions-grid {
@@ -51125,17 +51892,6 @@ textarea:focus,
 
 .premium-account-page .premium-account-security-card .premium-account-action .premium-outline-button {
   border: 1px solid #cbd8e8 !important;
-}
-
-@media (max-width: 720px) {
-  .premium-account-page .premium-account-preferences-card .premium-app-info-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .premium-account-page .premium-account-preferences-card .premium-app-info-grid .premium-app-copyright {
-    grid-column: auto !important;
-  }
-
 }
 
 @media (max-width: 980px) {

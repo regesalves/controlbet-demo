@@ -53,6 +53,11 @@ const ACCOUNT_PLAN_LABELS = {
     pro: "Plano Pro",
 };
 
+const HISTORY_DATASET_CONFIG = {
+    tickets: { label: "Bilhetes", table: "tickets", dateColumn: "data" },
+    movements: { label: "Movimentações", table: "movements", dateColumn: "data" },
+};
+
 const usernamePattern = /^[a-z0-9._-]+$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -412,6 +417,20 @@ function SidebarIcon({ type }) {
                 <path d="M14 10v8" />
                 <path d="M18 10v8" />
                 <path d="M4 19h16" />
+            </>
+        ),
+        lock: (
+            <>
+                <rect x="5" y="10" width="14" height="10" rx="2" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </>
+        ),
+        delete: (
+            <>
+                <path d="M5 7h14" />
+                <path d="M9 7V4h6v3" />
+                <path d="M7 7l1 13h8l1-13" />
+                <path d="M10 11v5M14 11v5" />
             </>
         ),
         gear: (
@@ -2379,7 +2398,7 @@ function BettingHouseCarousel({
                                     )}
                                 </span>
                                 <span className="dashboard-house-card-copy">
-                                    <strong>{houseName}</strong>
+                                    <strong>{String(houseName).length > 10 ? `${String(houseName).slice(0, 7)}...` : String(houseName)}</strong>
                                     <small>{ticketsCount} {ticketsCount === 1 ? "bilhete" : "bilhetes"}</small>
                                 </span>
                             </button>
@@ -4263,15 +4282,189 @@ function SettingsPanel({ accountEmail, accountName, accountPhone, accountUsernam
     );
 }
 
+function HistoryManagementSection({ embedded = false, hideDescription = false, onPreviewHistory = async () => null, onDeleteHistory = async () => null }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedTypes, setSelectedTypes] = useState(["tickets", "movements"]);
+    const [periodMode, setPeriodMode] = useState("all");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [preview, setPreview] = useState(null);
+    const [error, setError] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [completed, setCompleted] = useState(false);
+
+    function openModal() {
+        setSelectedTypes(["tickets", "movements"]);
+        setPeriodMode("all");
+        setStartDate("");
+        setEndDate("");
+        setPreview(null);
+        setError("");
+        setCompleted(false);
+        setIsOpen(true);
+    }
+
+    function closeModal() {
+        if (!busy) setIsOpen(false);
+    }
+
+    function buildFilters() {
+        if (!selectedTypes.length) return { error: "Selecione pelo menos um tipo de dado." };
+        if (periodMode === "custom" && (!startDate || !endDate)) {
+            return { error: "Informe a data inicial e a data final." };
+        }
+        if (periodMode === "custom" && startDate > endDate) {
+            return { error: "A data inicial deve ser anterior à data final." };
+        }
+        return { filters: { types: selectedTypes, periodMode, startDate, endDate } };
+    }
+
+    async function handlePreview() {
+        const result = buildFilters();
+        setError(result.error || "");
+        if (result.error) return;
+        setBusy(true);
+        try {
+            setPreview(await onPreviewHistory(result.filters));
+        } catch (previewError) {
+            setError(previewError.message || "Não foi possível consultar o histórico agora.");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function handleDelete() {
+        const result = buildFilters();
+        setError(result.error || "");
+        if (result.error) return;
+        setBusy(true);
+        try {
+            await onDeleteHistory(result.filters);
+            setCompleted(true);
+        } catch (deleteError) {
+            setError(deleteError.message || "Não foi possível excluir o histórico agora.");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    const total = preview?.total || 0;
+    const periodLabel = preview?.periodLabel || "";
+    const historyTrigger = (
+        <>
+            {!embedded && <header>
+                <span aria-hidden="true"><SidebarIcon type="delete" /></span>
+                <h2>Gerenciamento de Histórico</h2>
+            </header>}
+            {!hideDescription && <p>Exclua bilhetes e movimentações da sua conta por período.</p>}
+            <button type="button" className="premium-outline-button premium-history-trigger" onClick={openModal}>
+                Gerenciar histórico
+            </button>
+        </>
+    );
+
+    return (
+        <>
+            {embedded ? (
+                <div className="premium-history-management-card premium-history-management-card-embedded">{historyTrigger}</div>
+            ) : (
+                <section className="reference-account-card premium-account-card premium-history-management-card">{historyTrigger}</section>
+            )}
+
+            {isOpen && createPortal(
+                <div className="premium-history-modal-backdrop" role="presentation" onMouseDown={(event) => {
+                    if (event.target === event.currentTarget) closeModal();
+                }}>
+                    <section className="premium-history-modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
+                        <header className="premium-history-modal-header">
+                            <div>
+                                <span aria-hidden="true"><SidebarIcon type="delete" /></span>
+                                <h2 id="history-modal-title">Excluir Histórico</h2>
+                            </div>
+                            <button type="button" className="premium-history-close" onClick={closeModal} disabled={busy} aria-label="Fechar">×</button>
+                        </header>
+
+                        {completed ? (
+                            <div className="premium-history-complete" role="status">
+                                <strong>Histórico excluído com sucesso.</strong>
+                                <p>Os dados selecionados foram removidos apenas da sua conta.</p>
+                                <button type="button" className="premium-outline-button" onClick={closeModal}>Fechar</button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="premium-history-group">
+                                    <h3>Dados que serão excluídos</h3>
+                                    {Object.entries(HISTORY_DATASET_CONFIG).map(([type, config]) => (
+                                        <label key={type} className="premium-history-check">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedTypes.includes(type)}
+                                                onChange={() => setSelectedTypes((current) => current.includes(type)
+                                                    ? current.filter((item) => item !== type)
+                                                    : [...current, type])}
+                                            />
+                                            <span>{config.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+
+                                <div className="premium-history-group">
+                                    <h3>Período</h3>
+                                    <label className="premium-history-radio">
+                                        <input type="radio" name="history-period" checked={periodMode === "all"} onChange={() => setPeriodMode("all")} />
+                                        <span>Todo o histórico</span>
+                                    </label>
+                                    <label className="premium-history-radio">
+                                        <input type="radio" name="history-period" checked={periodMode === "custom"} onChange={() => setPeriodMode("custom")} />
+                                        <span>Intervalo personalizado</span>
+                                    </label>
+                                    <div className={`premium-history-date-grid${periodMode === "custom" ? " is-visible" : ""}`} aria-hidden={periodMode !== "custom"} inert={periodMode !== "custom"}>
+                                        <ReferenceDatePicker label="Data inicial" value={startDate} onChange={setStartDate} />
+                                        <ReferenceDatePicker label="Data final" value={endDate} onChange={setEndDate} />
+                                    </div>
+                                </div>
+
+                                {error && <p className="premium-history-error" role="alert">{error}</p>}
+
+                                {!preview ? (
+                                    <div className="premium-history-modal-actions">
+                                        <button type="button" className="premium-outline-button" onClick={closeModal} disabled={busy}>Cancelar</button>
+                                        <button type="button" className="premium-outline-button" onClick={handlePreview} disabled={busy}>{busy ? "Consultando..." : "Consultar dados"}</button>
+                                    </div>
+                                ) : (
+                                    <div className="premium-history-preview">
+                                        <h3>Serão excluídos:</h3>
+                                        {selectedTypes.map((type) => <p key={type}>• {preview.counts?.[type] || 0} {HISTORY_DATASET_CONFIG[type].label.toLowerCase()}</p>)}
+                                        <p><strong>Período:</strong> {periodLabel}</p>
+                                        {total === 0 ? <p className="premium-history-empty">Nenhum dado encontrado para os filtros informados.</p> : <p className="premium-history-warning">Esta ação é irreversível.<br />Deseja realmente excluir estes dados?</p>}
+                                        <div className="premium-history-modal-actions">
+                                            <button type="button" className="premium-outline-button" onClick={closeModal} disabled={busy}>Cancelar</button>
+                                            <button type="button" className="premium-danger-button" onClick={handleDelete} disabled={busy || total === 0}>{busy ? "Excluindo..." : "Excluir definitivamente"}</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </section>
+                </div>,
+                document.body
+            )}
+        </>
+    );
+}
+
 function PremiumSettingsPanel({
     accountAvatarUrl,
     accountEmail,
+    accountFirstName,
+    accountLastName,
     accountId,
     accountMetadata,
     accountName,
     accountPhone,
     accountUsername,
-    onEditProfile,
+    onPreviewHistory = async () => null,
+    onDeleteHistory = async () => null,
     onKeepAccountPanel = () => { },
     onToggleTheme = () => { },
     refreshSession,
@@ -4284,6 +4477,7 @@ function PremiumSettingsPanel({
     const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
     const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0, zoom: 1 });
     const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
     const avatarDragRef = useRef(null);
     const displayedAvatarUrl = avatarPreviewUrl || accountAvatarUrl;
 
@@ -4513,130 +4707,163 @@ function PremiumSettingsPanel({
                 subtitle="Gerencie suas informações pessoais e preferências da conta."
             />
 
-            <section className="reference-account-card premium-account-hero">
-                <span className="premium-account-avatar" aria-hidden={!displayedAvatarUrl}>
-                    {displayedAvatarUrl
-                        ? <img src={displayedAvatarUrl} alt={`Foto de ${displayName}`} />
-                        : getAccountInitials(displayName)}
-                </span>
-                <div>
-                    <strong>{displayName}</strong>
-                    <small>{displayEmail}</small>
-                </div>
-                <button type="button" className="premium-outline-button" onClick={onEditProfile}>Editar perfil</button>
-            </section>
-
             <div className="premium-account-grid">
                 <section className="reference-account-card premium-account-card premium-account-personal-card">
                     <header>
-                        <span aria-hidden="true"><SidebarIcon type="gear" /></span>
-                        <h2>Dados pessoais</h2>
-                    </header>
-                    <dl>
-                        <div><dt>Nome completo</dt><dd>{displayName}</dd></div>
-                        <div><dt>E-mail</dt><dd>{displayEmail}</dd></div>
-                        <div><dt>Nome de usuário</dt><dd>{accountUsername || "Não informado"}</dd></div>
-                        <div><dt>Telefone</dt><dd>{accountPhone || "Não informado"}</dd></div>
-                    </dl>
-                    <div className="premium-profile-photo-control">
-                        <span className="premium-profile-photo-preview" aria-hidden="true">
+                        <span className="premium-personal-header-avatar" aria-hidden="true">
                             {displayedAvatarUrl
                                 ? <img src={displayedAvatarUrl} alt="" />
                                 : getAccountInitials(displayName)}
                         </span>
                         <div>
-                            <strong>Foto do perfil</strong>
-                            <small>PNG, JPG ou WebP · até 8 MB</small>
-                            {avatarFeedback.message && (
-                                <small className={avatarFeedback.type} role="status">{avatarFeedback.message}</small>
-                            )}
+                            <h2>Dados pessoais</h2>
+                            <p>Visualize e atualize suas informações pessoais.</p>
                         </div>
-                        <label className={`premium-photo-picker${isAvatarUploading ? " disabled" : ""}`}>
-                            <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/webp"
-                                aria-label="Escolher foto do perfil"
-                                disabled={isAvatarUploading}
-                                onChange={handleAvatarChange}
-                            />
-                            {isAvatarUploading ? "Enviando..." : displayedAvatarUrl ? "Alterar foto" : "Escolher foto"}
-                        </label>
-                    </div>
-                    {pendingAvatarFile && (
-                        <div className="premium-avatar-crop-panel">
-                            <div
-                                className="premium-avatar-crop-frame"
-                                onPointerDown={handleAvatarCropPointerDown}
-                                onPointerMove={handleAvatarCropPointerMove}
-                                onPointerUp={handleAvatarCropPointerEnd}
-                                onPointerCancel={handleAvatarCropPointerEnd}
-                            >
-                                <img
-                                    src={avatarPreviewUrl}
-                                    alt=""
-                                    draggable="false"
-                                    style={{
-                                        transform: `translate(-50%, -50%) translate(${avatarCrop.x}px, ${avatarCrop.y}px) scale(${avatarCrop.zoom})`,
-                                    }}
-                                />
-                            </div>
-                            <label className="premium-avatar-zoom-control">
-                                <span>Zoom</span>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="3"
-                                    step="0.01"
-                                    value={avatarCrop.zoom}
-                                    disabled={isAvatarUploading}
-                                    onChange={handleAvatarZoomChange}
-                                />
-                            </label>
-                        </div>
+                    </header>
+                    {isEditingProfile ? (
+                        <ProfileEditPanel
+                            embedded
+                            accountEmail={accountEmail}
+                            accountFirstName={accountFirstName}
+                            accountLastName={accountLastName}
+                            accountMetadata={accountMetadata}
+                            accountPhone={accountPhone}
+                            accountUsername={accountUsername}
+                            onCancel={() => setIsEditingProfile(false)}
+                            onSaved={() => setIsEditingProfile(false)}
+                            refreshSession={refreshSession}
+                        />
+                    ) : (
+                        <dl>
+                            <div><dt>Nome completo</dt><dd>{displayName}</dd></div>
+                            <div><dt>E-mail</dt><dd>{displayEmail}</dd></div>
+                            <div><dt>Nome de usuário</dt><dd>{accountUsername || "Não informado"}</dd></div>
+                            <div><dt>Telefone</dt><dd>{accountPhone || "Não informado"}</dd></div>
+                        </dl>
                     )}
-                    <button
-                        type="button"
-                        className="premium-outline-button"
-                        disabled={isAvatarUploading}
-                        onClick={handleAccountUpdate}
-                    >
-                        {isAvatarUploading ? "Atualizando..." : "Atualizar dados"}
-                    </button>
+                    {isEditingProfile && (
+                        <>
+                            <div className="premium-profile-photo-control">
+                                <span className="premium-profile-photo-preview" aria-hidden="true">
+                                    {displayedAvatarUrl
+                                        ? <img src={displayedAvatarUrl} alt="" />
+                                        : getAccountInitials(displayName)}
+                                </span>
+                                <div>
+                                    <strong>Foto do perfil</strong>
+                                    <small>PNG, JPG ou WebP · até 8 MB</small>
+                                    {avatarFeedback.message && (
+                                        <small className={avatarFeedback.type} role="status">{avatarFeedback.message}</small>
+                                    )}
+                                </div>
+                                <label className={`premium-photo-picker${isAvatarUploading ? " disabled" : ""}`}>
+                                    <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/webp"
+                                        aria-label="Escolher foto do perfil"
+                                        disabled={isAvatarUploading}
+                                        onChange={handleAvatarChange}
+                                    />
+                                    {isAvatarUploading ? "Enviando..." : displayedAvatarUrl ? "Alterar foto" : "Escolher foto"}
+                                </label>
+                            </div>
+                            {pendingAvatarFile && (
+                                <div className="premium-avatar-crop-panel">
+                                    <div
+                                        className="premium-avatar-crop-frame"
+                                        onPointerDown={handleAvatarCropPointerDown}
+                                        onPointerMove={handleAvatarCropPointerMove}
+                                        onPointerUp={handleAvatarCropPointerEnd}
+                                        onPointerCancel={handleAvatarCropPointerEnd}
+                                    >
+                                        <img
+                                            src={avatarPreviewUrl}
+                                            alt=""
+                                            draggable="false"
+                                            style={{
+                                                transform: `translate(-50%, -50%) translate(${avatarCrop.x}px, ${avatarCrop.y}px) scale(${avatarCrop.zoom})`,
+                                            }}
+                                        />
+                                    </div>
+                                    <label className="premium-avatar-zoom-control">
+                                        <span>Zoom</span>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="3"
+                                            step="0.01"
+                                            value={avatarCrop.zoom}
+                                            disabled={isAvatarUploading}
+                                            onChange={handleAvatarZoomChange}
+                                        />
+                                    </label>
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                className="premium-outline-button"
+                                disabled={isAvatarUploading}
+                                onClick={handleAccountUpdate}
+                            >
+                                {isAvatarUploading ? "Atualizando..." : "Atualizar dados"}
+                            </button>
+                        </>
+                    )}
+                    {!isEditingProfile && (
+                        <button
+                            type="button"
+                            className="premium-outline-button premium-personal-edit-button"
+                            onClick={() => setIsEditingProfile(true)}
+                        >
+                            Editar perfil
+                        </button>
+                    )}
                 </section>
 
                 <div className="premium-account-side-stack">
-                    <section className="reference-account-card premium-account-card premium-account-security-card">
+                    <section className="reference-account-card premium-account-card premium-security-history-card premium-security-history-redesign">
                         <header>
                             <span aria-hidden="true"><SidebarIcon type="bank" /></span>
-                            <h2>Segurança</h2>
+                            <div>
+                                <h2>Segurança e Privacidade</h2>
+                                <p>Gerencie a segurança, privacidade e os dados da sua conta.</p>
+                            </div>
                         </header>
-                        <div className="premium-security-actions-grid">
+                        <div className="premium-security-history-action premium-security-history-section">
+                            <span className="premium-security-history-item-icon" aria-hidden="true"><SidebarIcon type="lock" /></span>
                             <div className="premium-account-action">
-                                <strong>Alterar senha</strong>
-                                <button type="button" className="premium-outline-button">Alterar senha</button>
+                                <strong>Senha</strong>
                             </div>
-                            <div className="premium-account-action danger-zone">
-                                <strong>Excluir conta</strong>
-                                <button type="button" className="premium-danger-button">Excluir conta</button>
-                            </div>
+                            <button type="button" className="premium-outline-button">Alterar senha</button>
                         </div>
-                    </section>
-
-                    <section className="reference-account-card premium-account-card premium-account-preferences-card">
-                        <header>
-                            <span aria-hidden="true"><SidebarIcon type="target" /></span>
-                            <h2>Sobre o aplicativo</h2>
-                        </header>
-                        <dl className="premium-app-info-grid">
-                            <div><dt>Produto</dt><dd>ControlBet</dd></div>
-                            <div><dt>Versão</dt><dd>1.0.0 Beta</dd></div>
-                            <div><dt>Status</dt><dd>🟢 Online</dd></div>
-                            <div><dt>Desenvolvido por</dt><dd>Alves Tech</dd></div>
-                            <div className="premium-app-copyright"><dt>Copyright</dt><dd>© 2026 Alves Tech</dd></div>
-                        </dl>
+                        <div className="premium-security-history-divider" aria-hidden="true" />
+                        <div className="premium-security-history-action premium-security-history-section">
+                            <span className="premium-security-history-item-icon" aria-hidden="true"><SidebarIcon type="sync" /></span>
+                            <div className="premium-account-action premium-history-management-inline">
+                                <strong>Histórico</strong>
+                            </div>
+                            <HistoryManagementSection
+                                embedded
+                                hideDescription
+                                onPreviewHistory={onPreviewHistory}
+                                onDeleteHistory={onDeleteHistory}
+                            />
+                        </div>
+                        <div className="premium-security-history-divider" aria-hidden="true" />
+                        <div className="premium-security-history-action premium-security-history-section premium-security-history-danger-section">
+                            <span className="premium-security-history-item-icon" aria-hidden="true"><SidebarIcon type="delete" /></span>
+                            <div className="premium-account-action danger-zone">
+                                <strong>Conta</strong>
+                            </div>
+                            <button type="button" className="premium-danger-button">Excluir conta</button>
+                        </div>
                     </section>
                 </div>
             </div>
+
+            <footer className="premium-account-footer">
+                <p>v1.0.0 Beta <span aria-hidden="true">•</span> © 2026 Alves Tech</p>
+            </footer>
         </section>
     );
 }
@@ -4668,7 +4895,7 @@ function SystemPanel({ onToggleTheme, theme }) {
     );
 }
 
-function ProfileEditPanel({ accountEmail, accountFirstName, accountLastName, accountMetadata, accountPhone, accountUsername, refreshSession }) {
+function ProfileEditPanel({ accountEmail, accountFirstName, accountLastName, accountMetadata, accountPhone, accountUsername, embedded = false, onCancel = () => { }, onSaved = () => { }, refreshSession }) {
     const [profileDraft, setProfileDraft] = useState({
         firstName: accountFirstName,
         lastName: accountLastName,
@@ -4771,12 +4998,11 @@ function ProfileEditPanel({ accountEmail, accountFirstName, accountLastName, acc
             type: "success",
             message: emailChanged ? "Perfil salvo. Confirme o novo e-mail se o Supabase solicitar." : "Perfil salvo.",
         });
+        onSaved();
     }
 
-    return (
-        <section className="reference-functional-panel">
-            <header><h2>Editar perfil</h2></header>
-            <form className="reference-panel-form" onSubmit={handleSaveProfile}>
+    const profileForm = (
+            <form className={`reference-panel-form${embedded ? " premium-inline-profile-form" : ""}`} onSubmit={handleSaveProfile}>
                 <label>Nome<input value={profileDraft.firstName} onChange={(event) => setProfileDraft((prev) => ({ ...prev, firstName: event.target.value }))} disabled={isProfileSaving} /></label>
                 <label>Sobrenome<input value={profileDraft.lastName} onChange={(event) => setProfileDraft((prev) => ({ ...prev, lastName: event.target.value }))} disabled={isProfileSaving} /></label>
                 <label>Nome de usuário<input value={profileDraft.username} onChange={(event) => setProfileDraft((prev) => ({ ...prev, username: event.target.value.toLowerCase() }))} disabled={isProfileSaving} /></label>
@@ -4787,8 +5013,50 @@ function ProfileEditPanel({ accountEmail, accountFirstName, accountLastName, acc
                         {profileFeedback.message}
                     </div>
                 )}
-                <button type="submit" disabled={isProfileSaving}>{isProfileSaving ? "Salvando..." : "Salvar perfil"}</button>
+                <div className="premium-inline-profile-actions">
+                    <button type="button" className="premium-outline-button" onClick={onCancel} disabled={isProfileSaving}>Cancelar</button>
+                    <button type="submit" className="premium-outline-button" disabled={isProfileSaving}>{isProfileSaving ? "Salvando..." : "Salvar perfil"}</button>
+                </div>
             </form>
+    );
+
+    const inlineProfileForm = (
+        <form className="premium-inline-profile-form" onSubmit={handleSaveProfile}>
+            <div className="premium-inline-profile-row">
+                <span>Nome completo</span>
+                <div className="premium-inline-profile-name-fields">
+                    <input aria-label="Nome" placeholder="Nome" value={profileDraft.firstName} onChange={(event) => setProfileDraft((prev) => ({ ...prev, firstName: event.target.value }))} disabled={isProfileSaving} />
+                    <input aria-label="Sobrenome" placeholder="Sobrenome" value={profileDraft.lastName} onChange={(event) => setProfileDraft((prev) => ({ ...prev, lastName: event.target.value }))} disabled={isProfileSaving} />
+                </div>
+            </div>
+            <label className="premium-inline-profile-row">
+                <span>E-mail</span>
+                <input type="email" value={profileDraft.email} onChange={(event) => setProfileDraft((prev) => ({ ...prev, email: event.target.value }))} disabled={isProfileSaving} />
+            </label>
+            <label className="premium-inline-profile-row">
+                <span>Nome de usuário</span>
+                <input value={profileDraft.username} onChange={(event) => setProfileDraft((prev) => ({ ...prev, username: event.target.value.toLowerCase() }))} disabled={isProfileSaving} />
+            </label>
+            <label className="premium-inline-profile-row">
+                <span>Telefone</span>
+                <input type="tel" value={profileDraft.phone} onChange={(event) => setProfileDraft((prev) => ({ ...prev, phone: formatBrazilianPhone(event.target.value) }))} disabled={isProfileSaving} />
+            </label>
+            {profileFeedback.message && (
+                <div className={`reference-operation-feedback ${profileFeedback.type}`} role="status">
+                    {profileFeedback.message}
+                </div>
+            )}
+            <div className="premium-inline-profile-actions">
+                <button type="button" className="premium-outline-button" onClick={onCancel} disabled={isProfileSaving}>Cancelar</button>
+                <button type="submit" className="premium-outline-button" disabled={isProfileSaving}>{isProfileSaving ? "Salvando..." : "Salvar perfil"}</button>
+            </div>
+        </form>
+    );
+
+    return embedded ? inlineProfileForm : (
+        <section className="reference-functional-panel">
+            <header><h2>Editar perfil</h2></header>
+            {profileForm}
         </section>
     );
 }
@@ -6079,6 +6347,64 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
     function handleRetryDashboardLoad() {
         setDashboardReloadKey((current) => current + 1);
+    }
+
+    async function queryHistoryCounts(filters) {
+        if (!userId) throw new Error(authRequiredMessage);
+
+        const results = await Promise.all(filters.types.map(async (type) => {
+            const config = HISTORY_DATASET_CONFIG[type];
+            let query = supabase.from(config.table).select("id").eq("user_id", userId);
+
+            if (filters.periodMode === "custom") {
+                query = query.gte(config.dateColumn, filters.startDate).lte(config.dateColumn, filters.endDate);
+            }
+
+            const result = await query;
+            return { type, result };
+        }));
+
+        const failed = results.find(({ result }) => result.error);
+        if (failed) throw new Error("Não foi possível consultar o histórico agora.");
+
+        const counts = results.reduce((summary, { type, result }) => {
+            summary[type] = (result.data || []).length;
+            return summary;
+        }, {});
+
+        return {
+            counts,
+            total: Object.values(counts).reduce((total, count) => total + count, 0),
+            periodLabel: filters.periodMode === "custom"
+                ? `${formatDateBR(filters.startDate)} até ${formatDateBR(filters.endDate)}`
+                : "Todo o histórico",
+        };
+    }
+
+    async function handlePreviewHistory(filters) {
+        return queryHistoryCounts(filters);
+    }
+
+    async function handleDeleteHistory(filters) {
+        const preview = await queryHistoryCounts(filters);
+        if (!preview.total) return preview;
+
+        const results = await Promise.all(filters.types.map(async (type) => {
+            const config = HISTORY_DATASET_CONFIG[type];
+            let query = supabase.from(config.table).delete().eq("user_id", userId);
+
+            if (filters.periodMode === "custom") {
+                query = query.gte(config.dateColumn, filters.startDate).lte(config.dateColumn, filters.endDate);
+            }
+
+            return query;
+        }));
+        const failed = results.find((result) => result.error);
+        if (failed) throw new Error("Não foi possível excluir o histórico agora.");
+
+        invalidateBankingDataCache(userId);
+        setDashboardReloadKey((current) => current + 1);
+        return preview;
     }
 
     async function handleLogout() {
@@ -8165,12 +8491,15 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 <PremiumSettingsPanel
                     accountAvatarUrl={accountAvatarUrl}
                     accountEmail={accountEmail}
+                    accountFirstName={accountFirstName}
+                    accountLastName={accountLastName}
                     accountId={user?.id}
                     accountMetadata={metadata}
                     accountName={accountName}
                     accountPhone={accountPhone}
                     accountUsername={accountUsername}
-                    onEditProfile={() => setActiveBottomPanel("profileReal")}
+                    onPreviewHistory={handlePreviewHistory}
+                    onDeleteHistory={handleDeleteHistory}
                     onKeepAccountPanel={() => {
                         setActiveNavItem("settings");
                         setActiveBottomPanel("accountReal");
@@ -8341,5 +8670,3 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         </div>
     );
 }
-
-
