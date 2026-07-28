@@ -2066,6 +2066,54 @@ body {
     font-weight: 950 !important;
 }
 
+.reference-account-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.reference-account-header-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 1.08rem !important;
+    font-weight: 950 !important;
+    color: #071332 !important;
+}
+
+.reference-account-header-description {
+    margin: 0;
+    color: #40536f;
+    font-size: 0.88rem;
+    font-weight: 650;
+}
+
+.reference-account-data-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #dfe6f0;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #172746;
+    cursor: pointer;
+    padding: 0;
+}
+
+.reference-account-data-toggle svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 .reference-account-card p {
     margin: 6px 0 0;
     color: #40536f;
@@ -50729,6 +50777,10 @@ textarea:focus,
     justify-content: start !important;
   }
 
+  .app .light-dashboard-shell .submenu-ticket-form-page .reference-form-card.reference-ticket-main-card {
+    padding-bottom: 28px !important;
+  }
+
   .app .light-dashboard-shell .submenu-ticket-form-page .ticket-edit-primary-row,
   .app .light-dashboard-shell .submenu-ticket-form-page .ticket-edit-finance-row,
   .app .light-dashboard-shell .submenu-ticket-form-page .ticket-edit-result-row {
@@ -51599,10 +51651,96 @@ textarea:focus,
   font-weight: 900;
 }
 
+.premium-account-page .premium-account-personal-card > header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
 .premium-account-page .premium-personal-header-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.premium-account-page .premium-personal-header-meta {
+  min-width: 0;
+}
+
+.premium-account-page .premium-personal-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: 42px;
+}
+
+.premium-account-page .premium-account-personal-card > header h2 {
+  margin: 0;
+  color: #17233d;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.premium-account-page .premium-account-personal-card > header > div > p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.premium-account-page .premium-account-personal-card > header {
+  position: relative;
+}
+
+.premium-account-page .premium-personal-data-toggle {
+  position: absolute !important;
+  top: -12px !important;
+  right: 0px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #dfe6f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #172746;
+  padding: 0;
+  cursor: pointer;
+  transition: background 180ms ease, transform 180ms ease, color 180ms ease;
+}
+
+.premium-account-page .premium-personal-data-toggle:hover {
+  background: #f7fafd;
+}
+
+.premium-account-page .premium-personal-data-toggle:active {
+  transform: scale(0.98);
+}
+
+.premium-account-page .premium-personal-data-toggle svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.premium-account-page .premium-personal-data-value {
+  transition: opacity 180ms ease;
+}
+
+.premium-account-page .premium-personal-data-value {
+  opacity: 1;
+}
+
+.premium-account-page .premium-personal-data-value:not(:empty) {
+  word-break: break-word;
 }
 
 .premium-account-page .premium-personal-edit-button {

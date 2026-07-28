@@ -425,6 +425,20 @@ function SidebarIcon({ type }) {
                 <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             </>
         ),
+        eye: (
+            <>
+                <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z" />
+                <circle cx="12" cy="12" r="2.5" />
+            </>
+        ),
+        "eye-off": (
+            <>
+                <path d="M2 2l20 20" />
+                <path d="M17.94 17.94C16.19 19.17 14.17 20 12 20c-5 0-9.27-3.11-11-7 1.03-2.31 2.74-4.24 4.78-5.43" />
+                <path d="M9.53 9.53A3.5 3.5 0 0 1 14.47 14.47" />
+                <path d="M14.12 9.88A3.5 3.5 0 0 1 9.88 14.12" />
+            </>
+        ),
         delete: (
             <>
                 <path d="M5 7h14" />
@@ -4217,6 +4231,13 @@ function RefinedStatementPanel({ deletingMovementId, editingMovementId, feedback
 }
 
 function SettingsPanel({ accountEmail, accountName, accountPhone, accountUsername, onEditProfile }) {
+    const [isPersonalDataVisible, setIsPersonalDataVisible] = useState(false);
+
+    const maskPersonalData = (value) => {
+        if (!value) return "Não informado";
+        return isPersonalDataVisible ? value : "••••••••";
+    };
+
     return (
         <section className="submenu-page submenu-account-page">
             <ReferencePageHeader
@@ -4225,15 +4246,37 @@ function SettingsPanel({ accountEmail, accountName, accountPhone, accountUsernam
                 subtitle="Gerencie suas informações pessoais e preferências da conta."
             />
             <section className="reference-account-card reference-account-personal">
-                <header>
-                    <h2>Dados pessoais</h2>
-                    <p>Visualize suas informações pessoais.</p>
+                <header className="reference-account-card-header">
+                    <h2 className="reference-account-header-title">
+                        <button
+                            type="button"
+                            className="reference-account-data-toggle"
+                            onClick={() => setIsPersonalDataVisible((current) => !current)}
+                            aria-pressed={isPersonalDataVisible}
+                            aria-label={isPersonalDataVisible ? "Ocultar dados pessoais" : "Mostrar dados pessoais"}
+                            title={isPersonalDataVisible ? "Ocultar dados pessoais" : "Mostrar dados pessoais"}
+                        >
+                            {isPersonalDataVisible ? (
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M1 12C2.5 7 6.5 4 12 4s9.5 3 11 8c-1.5 5-5.5 8-11 8S2.5 17 1 12Z" />
+                                    <circle cx="12" cy="12" r="3.5" />
+                                </svg>
+                            ) : (
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M1 12C2.5 7 6.5 4 12 4s9.5 3 11 8c-1.5 5-5.5 8-11 8S2.5 17 1 12Z" />
+                                    <path d="M6 6l12 12" />
+                                </svg>
+                            )}
+                        </button>
+                        Dados pessoais
+                    </h2>
+                    <p className="reference-account-header-description">Visualize suas informações pessoais.</p>
                 </header>
                 <dl>
-                    <div><span aria-hidden="true"><SidebarIcon type="gear" /></span><dt>Nome completo</dt><dd>{accountName}</dd></div>
-                    <div><span aria-hidden="true"><SidebarIcon type="ticket" /></span><dt>E-mail</dt><dd>{accountEmail}</dd></div>
-                    <div><span aria-hidden="true"><SidebarIcon type="grid" /></span><dt>Nome de usuário</dt><dd>{accountUsername || "Não informado"}</dd></div>
-                    <div><span aria-hidden="true"><SidebarIcon type="sync" /></span><dt>Telefone</dt><dd>{accountPhone || "Não informado"}</dd></div>
+                    <div><span aria-hidden="true"><SidebarIcon type="gear" /></span><dt>Nome completo</dt><dd>{maskPersonalData(accountName)}</dd></div>
+                    <div><span aria-hidden="true"><SidebarIcon type="ticket" /></span><dt>E-mail</dt><dd>{maskPersonalData(accountEmail)}</dd></div>
+                    <div><span aria-hidden="true"><SidebarIcon type="grid" /></span><dt>Nome de usuário</dt><dd>{maskPersonalData(accountUsername)}</dd></div>
+                    <div><span aria-hidden="true"><SidebarIcon type="sync" /></span><dt>Telefone</dt><dd>{maskPersonalData(accountPhone)}</dd></div>
                 </dl>
                 <button type="button" className="submenu-secondary-button" onClick={onEditProfile}>Editar perfil</button>
                 <p>Atualize suas informações pessoais e de contato.</p>
@@ -4478,8 +4521,14 @@ function PremiumSettingsPanel({
     const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0, zoom: 1 });
     const [isAvatarUploading, setIsAvatarUploading] = useState(false);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [isPersonalDataVisible, setIsPersonalDataVisible] = useState(false);
     const avatarDragRef = useRef(null);
     const displayedAvatarUrl = avatarPreviewUrl || accountAvatarUrl;
+
+    const maskPersonalData = (value) => {
+        if (!value) return "Não informado";
+        return isPersonalDataVisible ? value : "••••••••";
+    };
 
     useEffect(() => {
         return () => {
@@ -4715,8 +4764,20 @@ function PremiumSettingsPanel({
                                 ? <img src={displayedAvatarUrl} alt="" />
                                 : getAccountInitials(displayName)}
                         </span>
-                        <div>
-                            <h2>Dados pessoais</h2>
+                        <div className="premium-personal-header-meta">
+                            <div className="premium-personal-header-title-row">
+                                <h2>Dados pessoais</h2>
+                                <button
+                                    type="button"
+                                    className="premium-personal-data-toggle"
+                                    onClick={() => setIsPersonalDataVisible((current) => !current)}
+                                    aria-pressed={isPersonalDataVisible}
+                                    aria-label={isPersonalDataVisible ? "Ocultar dados pessoais" : "Mostrar dados pessoais"}
+                                    title={isPersonalDataVisible ? "Ocultar dados pessoais" : "Mostrar dados pessoais"}
+                                >
+                                    <SidebarIcon type={isPersonalDataVisible ? "eye" : "eye-off"} />
+                                </button>
+                            </div>
                             <p>Visualize e atualize suas informações pessoais.</p>
                         </div>
                     </header>
@@ -4735,10 +4796,10 @@ function PremiumSettingsPanel({
                         />
                     ) : (
                         <dl>
-                            <div><dt>Nome completo</dt><dd>{displayName}</dd></div>
-                            <div><dt>E-mail</dt><dd>{displayEmail}</dd></div>
-                            <div><dt>Nome de usuário</dt><dd>{accountUsername || "Não informado"}</dd></div>
-                            <div><dt>Telefone</dt><dd>{accountPhone || "Não informado"}</dd></div>
+                            <div><dt>Nome completo</dt><dd className="premium-personal-data-value">{maskPersonalData(displayName)}</dd></div>
+                            <div><dt>E-mail</dt><dd className="premium-personal-data-value">{maskPersonalData(displayEmail)}</dd></div>
+                            <div><dt>Nome de usuário</dt><dd className="premium-personal-data-value">{maskPersonalData(accountUsername)}</dd></div>
+                            <div><dt>Telefone</dt><dd className="premium-personal-data-value">{maskPersonalData(accountPhone)}</dd></div>
                         </dl>
                     )}
                     {isEditingProfile && (
@@ -4813,7 +4874,12 @@ function PremiumSettingsPanel({
                         <button
                             type="button"
                             className="premium-outline-button premium-personal-edit-button"
-                            onClick={() => setIsEditingProfile(true)}
+                            onClick={() => {
+                                if (!isPersonalDataVisible) {
+                                    setIsPersonalDataVisible(true);
+                                }
+                                setIsEditingProfile(true);
+                            }}
                         >
                             Editar perfil
                         </button>
