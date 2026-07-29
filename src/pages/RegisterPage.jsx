@@ -108,6 +108,16 @@ export default function RegisterPage({ landingTheme }) {
         return () => window.clearTimeout(timeoutId);
     }, [resendCooldown]);
 
+    useEffect(() => {
+        if (!feedback.message) return undefined;
+
+        const timeoutId = window.setTimeout(() => {
+            setFeedback({ type: "", message: "" });
+        }, feedback.type === "success" ? 3000 : 5000);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [feedback]);
+
     function getRegisterErrorMessage(message = "") {
         const normalizedMessage = message.toLowerCase();
 

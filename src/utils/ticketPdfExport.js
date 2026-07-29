@@ -112,7 +112,7 @@ export async function exportTicketsToPdf({ tickets = [], houses = [], filters = 
         metrics: [
             { label: "Total de bilhetes", value: tickets.length },
             { label: "Valor apostado", value: money(totalStake) },
-            { label: "Retorno esperado", value: money(totalReturn), color: totalReturn < 0 ? PDF_COLORS.red : totalReturn > 0 ? PDF_COLORS.green : PDF_COLORS.ink },
+            { label: "Retorno", value: money(totalReturn), color: totalReturn < 0 ? PDF_COLORS.red : totalReturn > 0 ? PDF_COLORS.green : PDF_COLORS.ink },
             { label: "Resultado líquido", value: signedMoney(netResult), color: netResult < 0 ? PDF_COLORS.red : PDF_COLORS.green },
             { label: "ROI", value: `${roi.toFixed(2).replace(".", ",")}%`, color: roi < 0 ? PDF_COLORS.red : PDF_COLORS.green },
         ],
@@ -123,7 +123,7 @@ export async function exportTicketsToPdf({ tickets = [], houses = [], filters = 
         { key: "house", label: "Casa", width: 27 },
         { key: "odd", label: "Odd", width: 15, align: "right" },
         { key: "stake", label: "Valor apostado", width: 28, align: "right" },
-        { key: "return", label: "Retorno esperado", width: 30, align: "right" },
+        { key: "return", label: "Retorno", width: 30, align: "right" },
         { key: "result", label: "Resultado", width: 26, align: "right" },
         { key: "origin", label: "Origem", width: 23 },
         { key: "status", label: "Status", width: 22, align: "center", badges: {

@@ -28,6 +28,22 @@ export default function LoginPage({ landingTheme }) {
         window.history.replaceState({}, document.title);
     }, [location.state]);
 
+    useEffect(() => {
+        if (!feedback.message && !accessFeedback.message) return undefined;
+
+        const timeoutIds = [];
+
+        if (feedback.message) {
+            timeoutIds.push(window.setTimeout(() => setFeedback({ type: "", message: "" }), feedback.type === "success" ? 3000 : 5000));
+        }
+
+        if (accessFeedback.message) {
+            timeoutIds.push(window.setTimeout(() => setAccessFeedback({ type: "", message: "" }), accessFeedback.type === "success" ? 3000 : 5000));
+        }
+
+        return () => timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    }, [accessFeedback, feedback]);
+
     function isEmail(value) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
     }

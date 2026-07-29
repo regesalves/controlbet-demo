@@ -38,6 +38,12 @@ const STAKE_ORIGINS = {
     BALANCE_BONUS: "Saldo + Bônus",
 };
 
+const FEEDBACK_DURATIONS = {
+    success: 3000,
+    warning: 5000,
+    error: 5000,
+};
+
 const KPI_TOOLTIP_TEXTS = {
     initialBank: "Valor da banca no início do período selecionado.",
     currentBank: "Valor atual da banca considerando apostas e movimentações.",
@@ -156,6 +162,10 @@ function formatSignedInteger(value) {
     const roundedValue = Math.round(Math.abs(numericValue));
     if (numericValue === 0) return "0";
     return `${numericValue > 0 ? "+" : "-"}${roundedValue.toLocaleString("pt-BR")}`;
+}
+
+function getFeedbackDuration(type) {
+    return FEEDBACK_DURATIONS[type] || FEEDBACK_DURATIONS.error;
 }
 
 function formatDateBR(dateISO) {
@@ -3129,15 +3139,12 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
     const origemStake = normalizeStakeOrigin(ticketForm.origemStake);
     const showStakeSplitFields = origemStake === STAKE_ORIGINS.BALANCE_BONUS;
     const stakeValue = parseCurrencyTyping(ticketForm.stake);
-    const returnValue = parseSignedCurrencyTyping(ticketForm.retorno);
+    const returnValue = parseCurrencyTyping(ticketForm.retorno);
     const safeStake = Number.isFinite(stakeValue) ? stakeValue : 0;
     const safeReturn = Number.isFinite(returnValue) ? returnValue : 0;
     const expectedResult = safeReturn - safeStake;
     const expectedResultTone = expectedResult > 0 ? "positive" : expectedResult < 0 ? "negative" : "neutral";
-    const bankImpact =
-        ticketForm.resultado === "Red"
-            ? -Math.abs(safeStake)
-            : expectedResult;
+    const bankImpact = expectedResult;
     const bankImpactTone = bankImpact > 0 ? "positive" : bankImpact < 0 ? "negative" : "neutral";
 
     return (
@@ -3162,11 +3169,11 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
                         </div>
                         <div className="ticket-edit-form-row ticket-edit-finance-row">
                             <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stake: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
-                            <label className="ticket-edit-return-field">Retorno esperado<input value={ticketForm.retorno} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, retorno: formatSignedCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
+                            <label className="ticket-edit-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" disabled={ticketForm.resultado === "Pendente" || ticketForm.resultado === "Red"} onChange={(e) => setTicketForm((prev) => ({ ...prev, retorno: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
                             <label className="ticket-edit-origin-field">Origem<select value={origemStake} onChange={(e) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(e.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                         </div>
                         <div className="ticket-edit-form-row ticket-edit-result-row">
-                            <label className="ticket-edit-result-field">Resultado<select value={ticketForm.resultado} onChange={(e) => setTicketForm((prev) => ({ ...prev, resultado: e.target.value }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
+                            <label className="ticket-edit-result-field">Resultado<select value={ticketForm.resultado} onChange={(e) => setTicketForm((prev) => ({ ...prev, resultado: e.target.value, retorno: e.target.value === "Pendente" ? "" : e.target.value === "Red" ? "R$ 0,00" : prev.retorno }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
                             {showStakeSplitFields && (
                                 <>
                                 <label className="ticket-edit-split-field">Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stakeSaldo: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
@@ -3195,7 +3202,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
     const safeStake = Number.isFinite(stakeValue) ? stakeValue : 0;
     const oddValue = Number(String(ticketForm.odd || "0").replace(",", "."));
     const safeOdd = Number.isFinite(oddValue) ? oddValue : 0;
-    const returnValue = parseSignedCurrencyTyping(ticketForm.retorno);
+    const returnValue = parseCurrencyTyping(ticketForm.retorno);
     const safeReturn = Number.isFinite(returnValue) ? returnValue : 0;
     const expectedResult = safeReturn - safeStake;
     const expectedResultTone = expectedResult > 0 ? "positive" : expectedResult < 0 ? "negative" : "neutral";
@@ -3226,7 +3233,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                                 </div>
                                 <div className="ticket-financial-row">
                                     <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stake: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
-                                    <label className="ticket-return-field">Retorno esperado<input value={ticketForm.retorno} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, retorno: formatSignedCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
+                                    <label className="ticket-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" disabled={ticketForm.resultado === "Pendente" || ticketForm.resultado === "Red"} onChange={(event) => setTicketForm((prev) => ({ ...prev, retorno: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
                                     <label className="ticket-origin-field">Origem<select value={origemStake} onChange={(event) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(event.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                                 </div>
                                 <div className={`ticket-result-description-layout ${showStakeSplitFields ? "has-stake-split" : "result-description-inline"}`}>
@@ -3237,7 +3244,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                                                 <label className="ticket-bonus-value-field">Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stakeBonus: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
                                             </>
                                         )}
-                                        <label className="ticket-result-field">Resultado<select value={ticketForm.resultado} onChange={(event) => setTicketForm((prev) => ({ ...prev, resultado: event.target.value }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
+                                        <label className="ticket-result-field">Resultado<select value={ticketForm.resultado} onChange={(event) => setTicketForm((prev) => ({ ...prev, resultado: event.target.value, retorno: event.target.value === "Pendente" ? "" : event.target.value === "Red" ? "R$ 0,00" : prev.retorno }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
                                     </div>
                                     <label className="reference-textarea-field ticket-description-field"><span className="ticket-description-label">Descrição do bilhete <small>(opcional)</small></span><textarea maxLength="200" rows="5" value={ticketForm.categoria} onChange={(event) => setTicketForm((prev) => ({ ...prev, categoria: event.target.value }))} placeholder={"Ex.: Flamengo x Palmeiras\nInter x Milan\nMúltipla de gols."} /><em>{ticketForm.categoria.length}/200</em></label>
                                 </div>
@@ -3253,7 +3260,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                         <dl className="ticket-reference-summary-list">
                             <div><dt>Valor apostado</dt><dd>{formatMoney(safeStake)}</dd><span aria-hidden="true">$</span></div>
                             <div><dt>Odd</dt><dd>{safeOdd.toFixed(2)}</dd><span aria-hidden="true"><SidebarIcon type="chart" /></span></div>
-                            <div><dt>Retorno esperado</dt><dd>{formatMoney(safeReturn)}</dd><span aria-hidden="true">$</span></div>
+                            <div><dt>Retorno</dt><dd>{formatMoney(safeReturn)}</dd><span aria-hidden="true">$</span></div>
                             <div><dt>Origem</dt><dd>{origemStake}</dd><span aria-hidden="true">▣</span></div>
                             <div className="profit"><dt>Possível lucro</dt><dd>{formatMoney(expectedResult)}</dd><span aria-hidden="true">↗</span></div>
                             <div><dt>Resultado</dt><dd>{ticketForm.resultado}</dd><span aria-hidden="true">⌛</span></div>
@@ -3601,9 +3608,11 @@ function TicketsTablePanel({ deletingTicketId, editingTicketId, feedback, isSavi
 }
 
 function MovementPanel({ feedback, houses, isSaving, movementForm, setMovementForm, onSubmit, editingMovementId }) {
-    const movementValue = parseCurrencyTyping(movementForm.valor);
+    const movementValue = movementForm.tipo === "Ajuste"
+        ? parseSignedCurrencyTyping(movementForm.valor)
+        : parseCurrencyTyping(movementForm.valor);
     const safeMovementValue = Number.isFinite(movementValue) ? movementValue : 0;
-    const impact = movementForm.tipo === "Saque" ? -safeMovementValue : safeMovementValue;
+    const impact = movementForm.tipo === "Saque" ? -Math.abs(safeMovementValue) : safeMovementValue;
     const movementTypes = [
         { type: "Depósito", icon: "bank", title: "Depósito", text: "Entradas que aumentam sua banca.", tone: "positive" },
         { type: "Saque", icon: "sync", title: "Saque", text: "Saídas que diminuem sua banca.", tone: "negative" },
@@ -3653,7 +3662,7 @@ function MovementPanel({ feedback, houses, isSaving, movementForm, setMovementFo
                         <ReferenceDatePicker value={movementForm.data} onChange={(date) => setMovementForm((prev) => ({ ...prev, data: date }))} />
                         <label>Casa de aposta<select value={movementForm.casaId} onChange={(e) => setMovementForm((prev) => ({ ...prev, casaId: e.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
                         <label>Tipo<select value={movementForm.tipo} onChange={(e) => setMovementForm((prev) => ({ ...prev, tipo: e.target.value }))}><option>Depósito</option><option>Saque</option><option>Ajuste</option></select></label>
-                        <label>Valor<input value={movementForm.valor} inputMode="numeric" onChange={(e) => setMovementForm((prev) => ({ ...prev, valor: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
+                            <label>Valor<input value={movementForm.valor} inputMode={movementForm.tipo === "Ajuste" ? "decimal" : "numeric"} onChange={(e) => setMovementForm((prev) => ({ ...prev, valor: prev.tipo === "Ajuste" ? formatSignedCurrencyTyping(e.target.value) : formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
                         <label className="wide reference-textarea-field">Descrição (opcional)<textarea rows="3" value={movementForm.observacoes} onChange={(e) => setMovementForm((prev) => ({ ...prev, observacoes: e.target.value }))} placeholder="Ex.: Depósito via PIX" /></label>
                         <label>Método de pagamento (opcional)<select defaultValue="PIX"><option>PIX</option><option>Cartão</option><option>Transferência</option></select></label>
                         <aside className="reference-movement-summary-box">
@@ -3842,10 +3851,12 @@ function StatementPanel({ deletingMovementId, feedback, movements, houses, onEdi
 }
 
 function RefinedMovementPanel({ feedback, houses, isSaving, movementForm, setMovementForm, onSubmit, editingMovementId }) {
-    const movementValue = parseCurrencyTyping(movementForm.valor);
+    const movementValue = movementForm.tipo === "Ajuste"
+        ? parseSignedCurrencyTyping(movementForm.valor)
+        : parseCurrencyTyping(movementForm.valor);
     const safeMovementValue = Number.isFinite(movementValue) ? movementValue : 0;
     const selectedType = movementForm.tipo || "Depósito";
-    const impact = selectedType === "Saque" ? -safeMovementValue : safeMovementValue;
+    const impact = selectedType === "Saque" ? -Math.abs(safeMovementValue) : safeMovementValue;
     const impactTone = selectedType === "Saque" ? "negative" : selectedType === "Ajuste" ? "adjustment" : "positive";
     const selectedHouse = houses.find((house) => Number(house.id) === Number(movementForm.casaId));
     const currentHouseBalance = Number(selectedHouse?.bancaAtual ?? selectedHouse?.bancaInicial ?? 0);
@@ -3904,7 +3915,7 @@ function RefinedMovementPanel({ feedback, houses, isSaving, movementForm, setMov
                         <div className="reference-form-grid refined-movement-fields-grid">
                             <ReferenceDatePicker value={movementForm.data} onChange={(date) => setMovementForm((prev) => ({ ...prev, data: date }))} />
                             <label>Casa<select value={movementForm.casaId} onChange={(event) => setMovementForm((prev) => ({ ...prev, casaId: event.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
-                            <label>Valor<input value={movementForm.valor} inputMode="numeric" onChange={(event) => setMovementForm((prev) => ({ ...prev, valor: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
+                        <label>Valor<input value={movementForm.valor} inputMode={movementForm.tipo === "Ajuste" ? "decimal" : "numeric"} onChange={(event) => setMovementForm((prev) => ({ ...prev, valor: prev.tipo === "Ajuste" ? formatSignedCurrencyTyping(event.target.value) : formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
                             <div className="wide movement-description-actions">
                                 <label className="reference-textarea-field">Descrição<textarea rows="4" value={movementForm.observacoes} onChange={(event) => setMovementForm((prev) => ({ ...prev, observacoes: event.target.value }))} placeholder={descriptionPlaceholder} /></label>
                                 <div className="reference-form-actions refined-movement-actions movement-inline-actions">
@@ -5214,11 +5225,7 @@ function VisualDashboardHome({
         const ticketsList = periodTicketsSafe;
         const pending = ticketsList.filter((ticket) => ticket.resultado === "Pendente").length;
         const resolved = ticketsList.filter((ticket) => ticket.resultado !== "Pendente");
-        const won = resolved.filter((ticket) => {
-            if (ticket.resultado === "Green") return true;
-            if (ticket.resultado === "Cash Out" && Number(ticket.retorno || 0) > Number(ticket.stake || 0)) return true;
-            return false;
-        }).length;
+        const won = resolved.filter((ticket) => Number(ticket.retorno || 0) - Number(ticket.stake || 0) > 0).length;
         const lost = resolved.length - won;
 
         return {
@@ -6313,6 +6320,12 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         exits: 0,
         balance: 0,
     });
+    const formSnapshotRef = useRef({
+        house: "",
+        ticket: "",
+        movement: "",
+        profile: "",
+    });
     const handleStatementSidebarSummaryChange = useCallback((summary) => {
         setStatementSidebarSummary((current) => (
             current.entries === summary.entries &&
@@ -6323,13 +6336,6 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         ));
     }, []);
 
-    useEffect(() => {
-        if (!ticketFeedback.message) return undefined;
-        const timeoutId = window.setTimeout(() => {
-            setTicketFeedback({ type: "", message: "" });
-        }, 7000);
-        return () => window.clearTimeout(timeoutId);
-    }, [ticketFeedback.message]);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
     const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
@@ -6369,6 +6375,54 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         setTicketFeedback({ type: "", message: "" });
         setMovementFeedback({ type: "", message: "" });
     }
+
+    useEffect(() => {
+        const snapshot = {
+            house: JSON.stringify(houseForm),
+            ticket: JSON.stringify(ticketForm),
+            movement: JSON.stringify(movementForm),
+        };
+
+        const previous = formSnapshotRef.current;
+        formSnapshotRef.current = snapshot;
+
+        if (
+            previous.house !== snapshot.house ||
+            previous.ticket !== snapshot.ticket ||
+            previous.movement !== snapshot.movement
+        ) {
+            if (houseFeedback.message) setHouseFeedback({ type: "", message: "" });
+            if (ticketFeedback.message) setTicketFeedback({ type: "", message: "" });
+            if (movementFeedback.message) setMovementFeedback({ type: "", message: "" });
+        }
+    }, [houseForm, houseFeedback.message, movementForm, movementFeedback.message, ticketForm, ticketFeedback.message]);
+
+    useEffect(() => {
+        const feedbacks = [
+            { value: houseFeedback, clear: () => setHouseFeedback({ type: "", message: "" }) },
+            { value: ticketFeedback, clear: () => setTicketFeedback({ type: "", message: "" }) },
+            { value: movementFeedback, clear: () => setMovementFeedback({ type: "", message: "" }) },
+        ];
+
+        const timers = feedbacks
+            .filter(({ value }) => value?.message)
+            .map(({ value, clear }) => window.setTimeout(clear, getFeedbackDuration(value.type)));
+
+        return () => {
+            timers.forEach((timerId) => window.clearTimeout(timerId));
+        };
+    }, [houseFeedback, movementFeedback, ticketFeedback]);
+
+    useEffect(() => {
+        function handleDocumentClick(event) {
+            if (!document.querySelector(".reference-operation-feedback")) return;
+            if (event.target instanceof Element && event.target.closest(".reference-operation-feedback")) return;
+            clearOperationFeedback();
+        }
+
+        document.addEventListener("click", handleDocumentClick);
+        return () => document.removeEventListener("click", handleDocumentClick);
+    }, []);
 
     function handleSidebarNavigate(itemId, panelId = null) {
         clearOperationFeedback();
@@ -7285,11 +7339,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
     }, [baseTicketsForPeriod]);
 
     const allGreenPeriodCount = useMemo(() => {
-        return allResolvedPeriodTickets.filter((ticket) => {
-            if (ticket.resultado === "Green") return true;
-            if (ticket.resultado === "Cash Out" && Number(ticket.retorno || 0) > Number(ticket.stake || 0)) return true;
-            return false;
-        }).length;
+        return allResolvedPeriodTickets.filter((ticket) => Number(ticket.retorno || 0) - Number(ticket.stake || 0) > 0).length;
     }, [allResolvedPeriodTickets]);
 
     const allHitRate = useMemo(() => {
@@ -7639,19 +7689,15 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
-        let returned = parseSignedCurrencyTyping(ticketForm.retorno);
+        let returned = parseCurrencyTyping(ticketForm.retorno);
 
-        if (
-            ticketForm.resultado !== "Red" &&
-            ticketForm.resultado !== "Pendente" &&
-            Number.isNaN(returned)
-        ) {
+        if (ticketForm.resultado === "Pendente") {
+            returned = Number.isFinite(returned) ? returned : 0;
+        } else if (ticketForm.resultado === "Red") {
+            returned = 0;
+        } else if (Number.isNaN(returned)) {
             setTicketFeedback({ type: "error", message: "Informe um retorno válido." });
             return;
-        }
-
-        if (ticketForm.resultado === "Pendente" || (ticketForm.resultado === "Red" && Number.isNaN(returned))) {
-            returned = 0;
         }
 
         const breakdown = normalizeStakeBreakdown(ticketForm, stake);
@@ -7697,14 +7743,10 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             }
         }
 
-        if (
-            ticketForm.resultado !== "Pendente" &&
-            ticketForm.resultado !== "Cash Out" &&
-            returned === stake
-        ) {
+        if (ticketForm.resultado === "Green" && returned <= stake) {
             setTicketFeedback({
                 type: "error",
-                message: "Quando o retorno e igual ao valor apostado, o resultado deve ser Aposta encerrada ou Pendente.",
+                message: "No resultado Ganho, o retorno precisa ser maior que o valor apostado.",
             });
             return;
         }
@@ -7868,10 +7910,17 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
-        const parsedValue = parseCurrencyTyping(movementForm.valor);
+        const parsedValue = movementForm.tipo === "Ajuste"
+            ? parseSignedCurrencyTyping(movementForm.valor)
+            : parseCurrencyTyping(movementForm.valor);
 
         if (!movementForm.casaId || !movementForm.tipo || Number.isNaN(parsedValue)) {
             setMovementFeedback({ type: "error", message: "Preencha casa, tipo e valor da movimentação." });
+            return;
+        }
+
+        if ((movementForm.tipo === "Depósito" || movementForm.tipo === "Saque") && parsedValue <= 0) {
+            setMovementFeedback({ type: "error", message: "O valor deve ser maior que zero." });
             return;
         }
 
@@ -7913,6 +7962,11 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 });
                 return;
             }
+        } else if (payload.tipo === "Ajuste") {
+            // Ajustes podem corrigir saldo para cima ou para baixo.
+        } else if (payload.tipo === "Depósito" && payload.valor <= 0) {
+            setMovementFeedback({ type: "error", message: "O valor deve ser maior que zero." });
+            return;
         }
 
         setIsSavingMovement(true);

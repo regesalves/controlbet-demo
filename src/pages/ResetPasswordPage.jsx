@@ -107,6 +107,16 @@ export default function ResetPasswordPage({ landingTheme }) {
         };
     }, [authLoading, session]);
 
+    useEffect(() => {
+        if (!feedback.message) return undefined;
+
+        const timeoutId = window.setTimeout(() => {
+            setFeedback({ type: "", message: "" });
+        }, feedback.type === "success" ? 3000 : 5000);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [feedback]);
+
     async function handleSubmit(event) {
         event.preventDefault();
 

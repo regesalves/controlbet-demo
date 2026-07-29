@@ -136,7 +136,7 @@ export async function buildTicketsWorkbook({ tickets = [], houses = [], filters 
     worksheet.getCell("A7").font = { name: "Aptos", size: 10.5, bold: true, color: { argb: COLORS.dark } };
     mergeMetric(worksheet, 1, 2, "Total de bilhetes", tickets.length);
     mergeMetric(worksheet, 3, 4, "Valor apostado", totalStake);
-    mergeMetric(worksheet, 5, 6, "Retorno esperado", totalReturn, totalReturn < 0 ? COLORS.red : totalReturn > 0 ? COLORS.green : COLORS.dark);
+    mergeMetric(worksheet, 5, 6, "Retorno", totalReturn, totalReturn < 0 ? COLORS.red : totalReturn > 0 ? COLORS.green : COLORS.dark);
     mergeMetric(worksheet, 7, 8, "Resultado líquido", netResult, netResult < 0 ? COLORS.red : netResult > 0 ? COLORS.green : COLORS.dark);
     mergeMetric(worksheet, 9, 9, "ROI", roi, roi < 0 ? COLORS.red : roi > 0 ? COLORS.green : COLORS.dark);
     [worksheet.getCell("C9"), worksheet.getCell("E9"), worksheet.getCell("G9")].forEach((cell) => { cell.numFmt = moneyFormat; });

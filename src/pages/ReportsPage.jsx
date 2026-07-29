@@ -424,9 +424,7 @@ export default function ReportsPage({ landingTheme = "dark" }) {
     const analysisTickets = houseScope === null ? periodTickets : filteredTickets;
     const resolvedOverviewTickets = filteredTickets.filter((ticket) => ticket.resultado !== "Pendente");
     const winningOverviewTickets = resolvedOverviewTickets.filter(
-      (ticket) =>
-        ticket.resultado === "Green" ||
-        (ticket.resultado === "Cash Out" && getRealTicketImpact(ticket) > 0)
+      (ticket) => getRealTicketImpact(ticket) > 0
     );
     const overviewDistribution = filteredTickets.reduce(
       (acc, ticket) => {
@@ -672,11 +670,7 @@ export default function ReportsPage({ landingTheme = "dark" }) {
           const profit = houseTickets.reduce((sum, ticket) => sum + getRealTicketImpact(ticket), 0);
           const returnValue = wagered + profit;
           const resolved = houseTickets.filter((ticket) => ticket.resultado !== "Pendente");
-          const won = resolved.filter(
-            (ticket) =>
-              ticket.resultado === "Green" ||
-              (ticket.resultado === "Cash Out" && getRealTicketImpact(ticket) > 0)
-          );
+          const won = resolved.filter((ticket) => getRealTicketImpact(ticket) > 0);
 
           return {
             hitRate: resolved.length > 0 ? (won.length / resolved.length) * 100 : 0,
@@ -961,7 +955,10 @@ export default function ReportsPage({ landingTheme = "dark" }) {
       dailyResults.set(key, (dailyResults.get(key) || 0) + getRealTicketImpact(ticket));
     });
     const dailyEntries = [...dailyResults.entries()].map(([date, result]) => ({ date, result }));
-    const sortedDaily = [...dailyEntries].sort((a, b) => b.result - a.result);
+    const positiveDaily = dailyEntries.filter((item) => item.result > 0);
+    const negativeDaily = dailyEntries.filter((item) => item.result < 0);
+    const sortedPositiveDaily = [...positiveDaily].sort((a, b) => b.result - a.result);
+    const sortedNegativeDaily = [...negativeDaily].sort((a, b) => a.result - b.result);
     const ticketsWithOdd = resolvedTickets.filter((ticket) => Number(ticket.odd || 0) > 0);
     const ticketsWithStake = resolvedTickets
       .map((ticket) => ({ ticket, value: Number(ticket.stakeReal ?? ticket.stake ?? 0) }))
@@ -991,11 +988,7 @@ export default function ReportsPage({ landingTheme = "dark" }) {
           (sum, ticket) => sum + Number(ticket.stakeReal ?? ticket.stake ?? 0),
           0
         );
-        const wins = rangeTickets.filter(
-          (ticket) =>
-            getTicketStatus(ticket) === "Ganhas" ||
-            (getTicketStatus(ticket) === "Encerradas" && getRealTicketImpact(ticket) > 0)
-        ).length;
+        const wins = rangeTickets.filter((ticket) => getRealTicketImpact(ticket) > 0).length;
 
         return {
           hitRate: rangeTickets.length > 0 ? (wins / rangeTickets.length) * 100 : 0,
@@ -1017,7 +1010,7 @@ export default function ReportsPage({ landingTheme = "dark" }) {
         ticketsWithStake.length > 0
           ? ticketsWithStake.reduce((sum, item) => sum + item.value, 0) / ticketsWithStake.length
           : null,
-      bestDay: sortedDaily[0],
+      bestDay: sortedPositiveDaily[0] || null,
       bestLossStreak,
       bestWinStreak,
       biggestLoss: sortedLosingTickets[0],
@@ -1035,7 +1028,7 @@ export default function ReportsPage({ landingTheme = "dark" }) {
       positiveDays: dailyEntries.filter((item) => item.result > 0).length,
       redTickets: losingTickets.length,
       oddRangeStats,
-      worstDay: sortedDaily[sortedDaily.length - 1],
+      worstDay: sortedNegativeDaily[0] || null,
     };
   }, [filteredTickets]);
 
