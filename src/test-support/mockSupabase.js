@@ -1,27 +1,24 @@
-import { createCompleteDevDataset } from "../dev/dataGenerator";
+import { DEMO_BANKING_DATA, DEMO_SESSION, DEMO_USER } from "../demo/demoData";
 
 const TEST_MODE_FLAG = "true";
 const STATE_STORAGE_KEY = "controlbet_test_supabase_state";
-const TEST_USER_ID = "11111111-1111-4111-8111-111111111111";
-const TEST_USER_EMAIL = "qa@controlbet.local";
 const TEST_USER_PASSWORD = "ControlBet123!";
 
 const TEST_USER = {
-    id: TEST_USER_ID,
-    email: TEST_USER_EMAIL,
+    ...DEMO_USER,
     password: TEST_USER_PASSWORD,
     created_at: "2026-01-01T12:00:00.000Z",
     last_sign_in_at: null,
     user_metadata: {
         accepted_privacy_at: "2026-01-01T12:00:00.000Z",
         accepted_terms_at: "2026-01-01T12:00:00.000Z",
-        first_name: "QA",
-        full_name: "QA ControlBet",
-        last_name: "ControlBet",
-        name: "QA ControlBet",
+        first_name: "ControlBet",
+        full_name: "ControlBet Demo",
+        last_name: "Portfolio Edition",
+        name: "ControlBet Demo",
         phone: "11999999999",
-        plan: "free",
-        username: "qa.controlbet",
+        plan: "demo",
+        username: "controlbet.demo",
     },
 };
 
@@ -61,15 +58,13 @@ function createPlaceholderImageDataUrl(seedText = "CB") {
 }
 
 function createInitialState() {
-    const dataset = createCompleteDevDataset({ userId: TEST_USER.id, seed: "controlbet-test-suite" });
-
     return {
-        currentSession: null,
+        currentSession: clone(DEMO_SESSION),
         storage: {},
         tables: {
-            houses: dataset.houses,
-            movements: dataset.movements,
-            tickets: dataset.tickets,
+            houses: DEMO_BANKING_DATA.houses,
+            movements: DEMO_BANKING_DATA.movements,
+            tickets: DEMO_BANKING_DATA.tickets,
         },
         users: [TEST_USER],
         version: 1,
@@ -608,7 +603,7 @@ export function createTestSupabaseClient() {
             },
 
             async signOut() {
-                saveCurrentSession(null);
+                saveCurrentSession(clone(DEMO_SESSION));
                 emitAuthStateChange("SIGNED_OUT");
                 return { data: null, error: null };
             },

@@ -4,24 +4,15 @@ import "./App.css";
 import "./dashboard-home.css";
 import "./design-system/design-system.css";
 import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
 import PrivacyPage from "./pages/PrivacyPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
 import TermsPage from "./pages/TermsPage";
 import DashboardPage from "./pages/DashboardPage";
 import ScrollToTop from "./ScrollToTop";
 import RouteErrorBoundary from "./RouteErrorBoundary";
 import { AuthProvider } from "./auth/AuthProvider";
-import ProtectedRoute from "./auth/ProtectedRoute";
 
 const loadReportsPage = () => import("./pages/ReportsPage");
 const ReportsPage = lazy(loadReportsPage);
-const canUseDevelopmentTools = import.meta.env.DEV;
-const DevelopmentTools = canUseDevelopmentTools
-    ? lazy(() => import("./dev/DevelopmentTools"))
-    : null;
-
 function RouteLoadingFallback() {
     return (
         <div className="auth-route-loading" role="status">
@@ -73,22 +64,6 @@ function AppRoutes() {
                     element={<LandingPage landingTheme={landingTheme} onToggleTheme={toggleLandingTheme} />}
                 />
                 <Route
-                    path="/login"
-                    element={<LoginPage landingTheme={landingTheme} onToggleTheme={toggleLandingTheme} />}
-                />
-                <Route
-                    path="/cadastro"
-                    element={<RegisterPage landingTheme={landingTheme} onToggleTheme={toggleLandingTheme} />}
-                />
-                <Route
-                    path="/register"
-                    element={<RegisterPage landingTheme={landingTheme} onToggleTheme={toggleLandingTheme} />}
-                />
-                <Route
-                    path="/redefinir-senha"
-                    element={<ResetPasswordPage landingTheme={landingTheme} />}
-                />
-                <Route
                     path="/termos"
                     element={<TermsPage landingTheme={landingTheme} />}
                 />
@@ -99,34 +74,25 @@ function AppRoutes() {
                 <Route
                     path="/dashboard"
                     element={(
-                        <ProtectedRoute>
-                            <RouteErrorBoundary resetKey={location.pathname} fallback={<RouteErrorFallback />}>
-                                <Suspense fallback={<RouteLoadingFallback />}>
-                                    <DashboardPage landingTheme={landingTheme} onToggleTheme={toggleLandingTheme} />
-                                </Suspense>
-                            </RouteErrorBoundary>
-                        </ProtectedRoute>
+                        <RouteErrorBoundary resetKey={location.pathname} fallback={<RouteErrorFallback />}>
+                            <Suspense fallback={<RouteLoadingFallback />}>
+                                <DashboardPage landingTheme={landingTheme} onToggleTheme={toggleLandingTheme} />
+                            </Suspense>
+                        </RouteErrorBoundary>
                     )}
                 />
                 <Route
                     path="/relatorios"
                     element={(
-                        <ProtectedRoute>
-                            <RouteErrorBoundary resetKey={location.pathname} fallback={<RouteErrorFallback />}>
-                                <Suspense fallback={<RouteLoadingFallback />}>
-                                    <ReportsPage landingTheme={landingTheme} />
-                                </Suspense>
-                            </RouteErrorBoundary>
-                        </ProtectedRoute>
+                        <RouteErrorBoundary resetKey={location.pathname} fallback={<RouteErrorFallback />}>
+                            <Suspense fallback={<RouteLoadingFallback />}>
+                                <ReportsPage landingTheme={landingTheme} />
+                            </Suspense>
+                        </RouteErrorBoundary>
                     )}
                 />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-            {canUseDevelopmentTools && DevelopmentTools ? (
-                <Suspense fallback={null}>
-                    <DevelopmentTools />
-                </Suspense>
-            ) : null}
         </>
     );
 }

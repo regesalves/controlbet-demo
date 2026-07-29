@@ -57,6 +57,7 @@ const ACCOUNT_PLAN_LABELS = {
     free: "Plano Free",
     premium: "Plano Premium",
     pro: "Plano Pro",
+    demo: "Portfolio Edition",
 };
 
 const HISTORY_DATASET_CONFIG = {

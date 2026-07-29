@@ -4,15 +4,15 @@ export const isDevAuthBypassEnabled =
 
 export const devUser = {
     id: "dev-user",
-    name: "RÃ©ges Alves",
-    email: "dev@controlbet.local",
-    plan: "free",
+    name: "ControlBet Demo",
+    email: "demo@controlbet.local",
+    plan: "demo",
     user_metadata: {
-        full_name: "Réges Alves",
-        first_name: "Réges",
-        last_name: "Alves",
-        name: "Réges Alves",
-        plan: "free",
+        full_name: "ControlBet Demo",
+        first_name: "ControlBet",
+        last_name: "Portfolio Edition",
+        name: "ControlBet Demo",
+        plan: "demo",
     },
 };
 

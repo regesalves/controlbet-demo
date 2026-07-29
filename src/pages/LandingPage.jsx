@@ -37,12 +37,8 @@ export default function LandingPage({ landingTheme, onToggleTheme }) {
                             )}
                         </button>
 
-                        <Link className="landing-top-button landing-create-button" to="/cadastro">
-                            Criar conta grátis
-                        </Link>
-
-                        <Link className="landing-top-button landing-login-button" to="/login">
-                            Já tenho conta
+                        <Link className="landing-top-button landing-create-button" to="/dashboard">
+                            🚀 Experimentar Demo
                         </Link>
                     </div>
                 </header>
@@ -161,6 +157,8 @@ export default function LandingPage({ landingTheme, onToggleTheme }) {
                             </aside>
                         </div>
                     </section>
+
+                    <p className="landing-demo-note">Versão demonstrativa desenvolvida para fins de portfólio.</p>
                 </main>
             </div>
         </div>
