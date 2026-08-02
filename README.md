@@ -60,7 +60,7 @@ Os dados ficam armazenados apenas no navegador utilizado para acessar a aplicaç
 Tela de apresentação da versão pública do ControlBet.
 
 <p align="center">
-  <img src=".github/images/landing-page.png" alt="Landing Page" width="100%">
+  <img src=".github/imagens/landing-page.png" alt="Landing Page" width="100%">
 </p>
 
 ### Dashboard
@@ -68,7 +68,7 @@ Tela de apresentação da versão pública do ControlBet.
 Visão geral da banca com indicadores, casas cadastradas, evolução do saldo e resultados.
 
 <p align="center">
-  <img src=".github/images/dashboard.png" alt="Dashboard" width="100%">
+  <img src=".github/imagens/dashboard.png" alt="Dashboard" width="100%">
 </p>
 
 ### Bilhetes
@@ -76,7 +76,7 @@ Visão geral da banca com indicadores, casas cadastradas, evolução do saldo e 
 Registro e acompanhamento das apostas realizadas.
 
 <p align="center">
-  <img src=".github/images/tickets.png" alt="Bilhetes" width="100%">
+  <img src=".github/imagens/tickets.png" alt="Bilhetes" width="100%">
 </p>
 
 ### Movimentações
@@ -84,7 +84,7 @@ Registro e acompanhamento das apostas realizadas.
 Controle de depósitos, saques e histórico financeiro.
 
 <p align="center">
-  <img src=".github/images/movements.png" alt="Movimentações" width="100%">
+  <img src=".github/imagens/movements.png" alt="Movimentações" width="100%">
 </p>
 
 ### Relatórios
@@ -92,7 +92,7 @@ Controle de depósitos, saques e histórico financeiro.
 Visualização de resultados, indicadores e estatísticas do período selecionado.
 
 <p align="center">
-  <img src=".github/images/reports.png" alt="Relatórios" width="100%">
+  <img src=".github/imagens/reports.png" alt="Relatórios" width="100%">
 </p>
 
 ---
