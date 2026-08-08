@@ -11,32 +11,6 @@ export default function LandingPage({ landingTheme, onToggleTheme }) {
                     </div>
 
                     <div className="landing-header-actions">
-                        <button
-                            type="button"
-                            className="landing-theme-button"
-                            aria-label={landingTheme === "light" ? "Ativar tema escuro" : "Ativar tema claro"}
-                            title={landingTheme === "light" ? "Ativar tema escuro" : "Ativar tema claro"}
-                            onClick={onToggleTheme}
-                        >
-                            {landingTheme === "light" ? (
-                                <svg className="landing-theme-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <circle cx="12" cy="12" r="4" />
-                                    <path d="M12 2.75V5" />
-                                    <path d="M12 19v2.25" />
-                                    <path d="M4.46 4.46l1.59 1.59" />
-                                    <path d="M17.95 17.95l1.59 1.59" />
-                                    <path d="M2.75 12H5" />
-                                    <path d="M19 12h2.25" />
-                                    <path d="M4.46 19.54l1.59-1.59" />
-                                    <path d="M17.95 6.05l1.59-1.59" />
-                                </svg>
-                            ) : (
-                                <svg className="landing-theme-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M20.25 14.18A7.72 7.72 0 0 1 9.82 3.75a8.25 8.25 0 1 0 10.43 10.43Z" />
-                                </svg>
-                            )}
-                        </button>
-
                         <Link className="landing-top-button landing-create-button" to="/dashboard">
                             🚀 Experimentar Demo
                         </Link>
