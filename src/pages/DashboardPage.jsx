@@ -2743,7 +2743,7 @@ function DailyResultsCard({ resultChartData, isResultScrollable, onOpenReports =
             <header className="cb-panel-header">
                 <div>
                     <h2>Resultado por dia</h2>
-                    <p>Variação por referência da banca</p>
+                    <p>Resultado das apostas por dia</p>
                 </div>
             </header>
             <div className={`cb-daily-list ${shouldScrollResults ? "scrollable" : ""}`}>
@@ -7310,13 +7310,6 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return Number(ticket.casaId) === Number(selectedHouseScope);
         });
 
-        const chartMovements = movements.filter((movement) => {
-            if (!resultDailyMonthInterval.start || !resultDailyMonthInterval.end) return false;
-            if (movement.data < resultDailyMonthInterval.start || movement.data > resultDailyMonthInterval.end) return false;
-            if (selectedHouseScope === "all") return true;
-            return Number(movement.casaId) === Number(selectedHouseScope);
-        });
-
         chartTickets
             .filter((ticket) => ticket.resultado !== "Pendente")
             .forEach((ticket) => {
@@ -7324,14 +7317,6 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 activityKeys.add(key);
                 totals[key] = (totals[key] || 0) + getRealTicketImpact(ticket);
             });
-
-        if (chartMode === "Banca") {
-            chartMovements.forEach((movement) => {
-                const key = movement.data;
-                activityKeys.add(key);
-                totals[key] = (totals[key] || 0) + Number(movement.valor || 0) * movementSignal(movement.tipo);
-            });
-        }
 
         const keys = slotKeys.length
             ? Array.from(new Set([...slotKeys, ...Object.keys(totals)]))
@@ -7350,10 +7335,8 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             });
     }, [
         tickets,
-        movements,
         selectedHouseScope,
         resultDailyMonthInterval,
-        chartMode,
     ]);
 
     const totalInitialBank = useMemo(() => {
