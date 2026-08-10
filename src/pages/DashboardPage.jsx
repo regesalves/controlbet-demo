@@ -3167,7 +3167,7 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
                         <div className="ticket-edit-form-row ticket-edit-primary-row">
                             <ReferenceDatePicker value={ticketForm.data} onChange={(date) => setTicketForm((prev) => ({ ...prev, data: date }))} />
                             <label className="ticket-edit-house-field">Casa de aposta<select value={ticketForm.casaId} onChange={(e) => setTicketForm((prev) => ({ ...prev, casaId: e.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
-                            <label className="ticket-edit-odd-field">Odd <small>(opcional)</small><input value={ticketForm.odd} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, odd: e.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
+                            <label className="ticket-edit-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, odd: e.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                         </div>
                         <div className="ticket-edit-form-row ticket-edit-finance-row">
                             <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => { const stake = formatCurrencyTyping(e.target.value); return { ...prev, stake, resultado: getTicketResultForReturn(prev.retorno, stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
@@ -3232,7 +3232,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                                 <div className="ticket-primary-row">
                                     <ReferenceDatePicker value={ticketForm.data} onChange={(date) => setTicketForm((prev) => ({ ...prev, data: date }))} />
                                     <label className="ticket-house-field">Casa<select value={ticketForm.casaId} onChange={(event) => setTicketForm((prev) => ({ ...prev, casaId: event.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
-                                    <label className="ticket-odd-field">Odd <small>(opcional)</small><input value={ticketForm.odd} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, odd: event.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
+                                    <label className="ticket-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, odd: event.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                                 </div>
                                 <div className="ticket-financial-row">
                                     <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => { const stake = formatCurrencyTyping(event.target.value); return { ...prev, stake, resultado: getTicketResultForReturn(prev.retorno, stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
