@@ -3147,6 +3147,7 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
     const expectedResultTone = expectedResult > 0 ? "positive" : expectedResult < 0 ? "negative" : "neutral";
     const bankImpact = expectedResult;
     const bankImpactTone = bankImpact > 0 ? "positive" : bankImpact < 0 ? "negative" : "neutral";
+    const resultOptions = getTicketResultOptions(ticketForm.retorno, ticketForm.stake);
 
     return (
         <section className="submenu-page submenu-ticket-form-page">
@@ -3166,15 +3167,15 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
                         <div className="ticket-edit-form-row ticket-edit-primary-row">
                             <ReferenceDatePicker value={ticketForm.data} onChange={(date) => setTicketForm((prev) => ({ ...prev, data: date }))} />
                             <label className="ticket-edit-house-field">Casa de aposta<select value={ticketForm.casaId} onChange={(e) => setTicketForm((prev) => ({ ...prev, casaId: e.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
-                            <label className="ticket-edit-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, odd: e.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
+                            <label className="ticket-edit-odd-field">Odd <small>(opcional)</small><input value={ticketForm.odd} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, odd: e.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                         </div>
                         <div className="ticket-edit-form-row ticket-edit-finance-row">
-                            <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stake: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
-                            <label className="ticket-edit-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" disabled={ticketForm.resultado === "Pendente" || ticketForm.resultado === "Red"} onChange={(e) => setTicketForm((prev) => ({ ...prev, retorno: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
+                            <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => { const stake = formatCurrencyTyping(e.target.value); return { ...prev, stake, resultado: getTicketResultForReturn(prev.retorno, stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
+                            <label className="ticket-edit-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" onChange={(e) => setTicketForm((prev) => { const retorno = formatCurrencyTyping(e.target.value); return { ...prev, retorno, resultado: getTicketResultForReturn(retorno, prev.stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
                             <label className="ticket-edit-origin-field">Origem<select value={origemStake} onChange={(e) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(e.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                         </div>
                         <div className="ticket-edit-form-row ticket-edit-result-row">
-                            <label className="ticket-edit-result-field">Resultado<select value={ticketForm.resultado} onChange={(e) => setTicketForm((prev) => ({ ...prev, resultado: e.target.value, retorno: e.target.value === "Pendente" ? "" : e.target.value === "Red" ? "R$ 0,00" : prev.retorno }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
+                            <label className="ticket-edit-result-field">Resultado<select value={ticketForm.resultado} onChange={(e) => setTicketForm((prev) => ({ ...prev, resultado: e.target.value }))}>{resultOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                             {showStakeSplitFields && (
                                 <>
                                 <label className="ticket-edit-split-field">Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stakeSaldo: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
@@ -3209,6 +3210,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
     const expectedResultTone = expectedResult > 0 ? "positive" : expectedResult < 0 ? "negative" : "neutral";
     const bankImpact = ticketForm.resultado === "Red" ? -Math.abs(safeStake) : expectedResult;
     const bankImpactTone = bankImpact > 0 ? "positive" : bankImpact < 0 ? "negative" : "neutral";
+    const resultOptions = getTicketResultOptions(ticketForm.retorno, ticketForm.stake);
 
     return (
         <section className="submenu-page submenu-ticket-form-page">
@@ -3230,11 +3232,11 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                                 <div className="ticket-primary-row">
                                     <ReferenceDatePicker value={ticketForm.data} onChange={(date) => setTicketForm((prev) => ({ ...prev, data: date }))} />
                                     <label className="ticket-house-field">Casa<select value={ticketForm.casaId} onChange={(event) => setTicketForm((prev) => ({ ...prev, casaId: event.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
-                                    <label className="ticket-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, odd: event.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
+                                    <label className="ticket-odd-field">Odd <small>(opcional)</small><input value={ticketForm.odd} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, odd: event.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                                 </div>
                                 <div className="ticket-financial-row">
-                                    <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stake: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
-                                    <label className="ticket-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" disabled={ticketForm.resultado === "Pendente" || ticketForm.resultado === "Red"} onChange={(event) => setTicketForm((prev) => ({ ...prev, retorno: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
+                                    <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => { const stake = formatCurrencyTyping(event.target.value); return { ...prev, stake, resultado: getTicketResultForReturn(prev.retorno, stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
+                                    <label className="ticket-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" onChange={(event) => setTicketForm((prev) => { const retorno = formatCurrencyTyping(event.target.value); return { ...prev, retorno, resultado: getTicketResultForReturn(retorno, prev.stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
                                     <label className="ticket-origin-field">Origem<select value={origemStake} onChange={(event) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(event.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                                 </div>
                                 <div className={`ticket-result-description-layout ${showStakeSplitFields ? "has-stake-split" : "result-description-inline"}`}>
@@ -3245,7 +3247,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                                                 <label className="ticket-bonus-value-field">Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stakeBonus: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
                                             </>
                                         )}
-                                        <label className="ticket-result-field">Resultado<select value={ticketForm.resultado} onChange={(event) => setTicketForm((prev) => ({ ...prev, resultado: event.target.value, retorno: event.target.value === "Pendente" ? "" : event.target.value === "Red" ? "R$ 0,00" : prev.retorno }))}><option value="Pendente">Pendente</option><option value="Green">Ganho</option><option value="Red">Perda</option><option value="Cash Out">Aposta encerrada</option></select></label>
+                                        <label className="ticket-result-field">Resultado<select value={ticketForm.resultado} onChange={(event) => setTicketForm((prev) => ({ ...prev, resultado: event.target.value }))}>{resultOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                                     </div>
                                     <label className="reference-textarea-field ticket-description-field"><span className="ticket-description-label">Descrição do bilhete <small>(opcional)</small></span><textarea maxLength="200" rows="5" value={ticketForm.categoria} onChange={(event) => setTicketForm((prev) => ({ ...prev, categoria: event.target.value }))} placeholder={"Ex.: Flamengo x Palmeiras\nInter x Milan\nMúltipla de gols."} /><em>{ticketForm.categoria.length}/200</em></label>
                                 </div>
@@ -6129,6 +6131,32 @@ const initialTicketForm = {
     observacoes: "",
 };
 
+function getTicketResultForReturn(returnText, stakeText, currentResult = "Pendente") {
+    if (String(returnText || "").trim() === "") return "Pendente";
+
+    const returned = parseCurrencyTyping(returnText);
+    const stake = parseCurrencyTyping(stakeText);
+    if (!Number.isFinite(returned)) return currentResult;
+    if (returned === 0) return "Red";
+    if (returned > 0 && Number.isFinite(stake) && returned <= stake) return "Cash Out";
+    if (returned > 0 && Number.isFinite(stake) && returned > stake) {
+        return currentResult === "Green" ? "Green" : "Cash Out";
+    }
+    return "Pendente";
+}
+
+function getTicketResultOptions(returnText, stakeText) {
+    const returned = parseCurrencyTyping(returnText);
+    const stake = parseCurrencyTyping(stakeText);
+    if (String(returnText || "").trim() === "") return [{ value: "Pendente", label: "Pendente" }];
+    if (returned === 0) return [{ value: "Red", label: "Perda" }];
+    if (returned > 0 && Number.isFinite(stake) && returned > stake) {
+        return [{ value: "Cash Out", label: "Aposta encerrada" }, { value: "Green", label: "Ganho" }];
+    }
+    if (returned > 0 && Number.isFinite(stake)) return [{ value: "Cash Out", label: "Aposta encerrada" }];
+    return [{ value: "Pendente", label: "Pendente" }];
+}
+
 const initialHouseForm = {
     nome: "",
     bancaInicial: "",
@@ -7673,13 +7701,14 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
-        if (!ticketForm.casaId || !ticketForm.odd || !ticketForm.stake) {
-            setTicketFeedback({ type: "error", message: "Preencha casa, odd e valor apostado." });
+        if (!ticketForm.casaId || !ticketForm.stake) {
+            setTicketFeedback({ type: "error", message: "Preencha casa e valor apostado." });
             return;
         }
 
-        const odd = Number(String(ticketForm.odd || "").replace(",", "."));
-        if (Number.isNaN(odd) || odd <= 0) {
+        const oddText = String(ticketForm.odd || "").trim();
+        const odd = oddText === "" ? null : Number(oddText.replace(",", "."));
+        if (odd !== null && (!Number.isFinite(odd) || odd <= 0)) {
             setTicketFeedback({ type: "error", message: "Informe uma odd válida." });
             return;
         }
@@ -7690,14 +7719,15 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return;
         }
 
-        let returned = parseCurrencyTyping(ticketForm.retorno);
-
-        if (ticketForm.resultado === "Pendente") {
-            returned = Number.isFinite(returned) ? returned : 0;
-        } else if (ticketForm.resultado === "Red") {
-            returned = 0;
-        } else if (Number.isNaN(returned)) {
+        const hasReturn = String(ticketForm.retorno || "").trim() !== "";
+        let returned = hasReturn ? parseCurrencyTyping(ticketForm.retorno) : 0;
+        if (hasReturn && (!Number.isFinite(returned) || returned < 0)) {
             setTicketFeedback({ type: "error", message: "Informe um retorno válido." });
+            return;
+        }
+        const allowedResults = getTicketResultOptions(ticketForm.retorno, ticketForm.stake).map((option) => option.value);
+        if (!allowedResults.includes(ticketForm.resultado)) {
+            setTicketFeedback({ type: "error", message: "O resultado não é compatível com o retorno informado." });
             return;
         }
 
@@ -7894,9 +7924,8 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
         invalidateBankingDataCache(userId);
         setTickets((prev) => reorderTickets([newTicket, ...prev]));
-        resetTicketForm();
-        setActiveNavItem("tickets");
-        setActiveBottomPanel("ticketsDay");
+        setTicketForm({ ...initialTicketForm, data: ticketForm.data });
+        setTicketFeedback({ type: "success", message: "Bilhete salvo com sucesso." });
         setIsSavingTicket(false);
     }
 
@@ -8039,9 +8068,8 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
         invalidateBankingDataCache(userId);
         setMovements((prev) => [newMovement, ...prev]);
-        resetMovementForm();
-        setActiveNavItem("movements");
-        setActiveBottomPanel("extract");
+        setMovementForm({ ...initialMovementForm, data: movementForm.data });
+        setMovementFeedback({ type: "success", message: "Movimentação salva com sucesso." });
         setIsSavingMovement(false);
     }
 
@@ -8054,7 +8082,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             data: ticket.data,
             casaId: String(ticket.casaId),
             categoria: ticket.categoria,
-            odd: String(ticket.odd),
+            odd: ticket.odd == null ? "" : String(ticket.odd),
             stake: formatMoney(ticket.stake),
             retorno: formatMoney(ticket.retorno),
             origemStake: normalizeStakeOrigin(ticket.origemStake),

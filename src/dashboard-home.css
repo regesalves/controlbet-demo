@@ -5511,13 +5511,13 @@ body:has(.light-dashboard-shell),
 }
 
 .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline {
-    grid-template-columns: 185px minmax(0, 1fr) !important;
+    grid-template-columns: 195px minmax(0, 1fr) !important;
     align-items: start !important;
 }
 
 .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-result-row {
     grid-column: 1 !important;
-    width: 185px !important;
+    width: 195px !important;
 }
 
 .app .light-dashboard-shell .ticket-result-description-layout.result-description-inline > .ticket-description-field {
@@ -5538,9 +5538,9 @@ body:has(.light-dashboard-shell),
 }
 
 .app .light-dashboard-shell .ticket-reference-fields .ticket-result-field {
-    width: 185px !important;
-    min-width: 185px !important;
-    max-width: 185px !important;
+    width: 195px !important;
+    min-width: 195px !important;
+    max-width: 195px !important;
 }
 
 .app .light-dashboard-shell .ticket-reference-fields .ticket-financial-row {

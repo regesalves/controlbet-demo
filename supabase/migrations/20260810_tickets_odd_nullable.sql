@@ -1,0 +1,1 @@
+ALTER TABLE public.tickets ALTER COLUMN odd DROP NOT NULL;

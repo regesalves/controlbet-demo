@@ -1554,17 +1554,35 @@ button[type="submit"]:hover,
 }
 
 .cb-ticket-page-controls button {
-  width: 32px !important;
-  height: 32px !important;
-  border: 1px solid var(--color-border) !important;
+  width: 42px !important;
+  height: 42px !important;
+  border: 1px solid #94a3b8 !important;
   border-radius: 10px !important;
   background: #fff !important;
   color: var(--color-title) !important;
-  box-shadow: none !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1) !important;
+  font-size: 1.45rem !important;
+  font-weight: 850 !important;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease !important;
+}
+
+.cb-ticket-page-controls button:not(:disabled):hover {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: #fff !important;
+  transform: translateY(-1px) !important;
+}
+
+.cb-ticket-page-controls button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35) !important;
+  outline-offset: 2px !important;
 }
 
 .cb-ticket-page-controls button:disabled {
-  opacity: 0.45 !important;
+  opacity: 1 !important;
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #94a3b8 !important;
   cursor: not-allowed !important;
 }
 
@@ -1572,6 +1590,13 @@ button[type="submit"]:hover,
   color: var(--color-title) !important;
   font-size: 0.82rem !important;
   font-weight: 850 !important;
+  min-width: 70px !important;
+  padding: 9px 12px !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 10px !important;
+  background: #f8fafc !important;
+  text-align: center !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7) !important;
 }
 
 .cb-ticket-page-size {
