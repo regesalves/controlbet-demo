@@ -3377,13 +3377,24 @@ function TicketsTablePanel({ deletingTicketId, editingTicketId, feedback, isSavi
     }, [openTicketMenuId]);
 
     function getTicketResultView(ticket) {
-        if (ticket.resultado === "Red") return { label: "Perdido", value: -Math.abs(Number(ticket.stake || 0)), tone: "negative" };
-        if (ticket.resultado === "Green") return { label: "Ganho", value: Number(ticket.lucro || 0), tone: "positive" };
-        if (ticket.resultado === "Cash Out") {
-            const cashOutDelta = Number(ticket.retorno || 0) - Number(ticket.stake || 0);
-            return { label: "Cash out", value: cashOutDelta, tone: cashOutDelta > 0 ? "positive" : cashOutDelta < 0 ? "negative" : "neutral" };
+        if (ticket.resultado === "Pendente") {
+            return { label: "Pendente", value: 0, tone: "neutral" };
         }
-        return { label: ticket.resultado || "Pendente", value: Number(ticket.retorno || 0), tone: "neutral" };
+
+        const realImpact = getRealTicketImpact(ticket);
+        const label = ticket.resultado === "Red"
+            ? "Perdido"
+            : ticket.resultado === "Green"
+                ? "Ganho"
+                : ticket.resultado === "Cash Out"
+                    ? "Cash out"
+                    : ticket.resultado || "Pendente";
+
+        return {
+            label,
+            value: realImpact,
+            tone: realImpact > 0 ? "positive" : realImpact < 0 ? "negative" : "neutral",
+        };
     }
 
     const ticketStats = filteredTickets.reduce((acc, ticket) => {
@@ -3490,7 +3501,7 @@ function TicketsTablePanel({ deletingTicketId, editingTicketId, feedback, isSavi
                         <div className="cb-ticket-table-row" key={ticket.id}>
                             <span>{ticket.data ? ticket.data.split("-").slice(1).reverse().join("/") : "--/--"}</span>
                             <span className="cb-ticket-house-cell"><HouseLogoMark house={house} />{house?.nome || "Casa"}</span>
-                            <span>{formatMoney(ticket.stakeReal ?? ticket.stake ?? 0)}</span>
+                            <span>{formatMoney(ticket.stake ?? 0)}</span>
                             <span className="positive">{formatMoney(ticket.retorno)}</span>
                             <span className={resultView.tone}>{ticket.resultado === "Pendente" ? "-" : formatSignedMoney(resultView.value)}</span>
                             <ReferenceStatusBadge result={ticket.resultado === "Red" ? "Perda" : ticket.resultado === "Green" ? "Ganho" : ticket.resultado} />
