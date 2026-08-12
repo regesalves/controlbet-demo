@@ -6151,7 +6151,7 @@ function getTicketResultForReturn(returnText, stakeText, currentResult = "Penden
     if (returned === 0) return "Red";
     if (returned > 0 && Number.isFinite(stake) && returned <= stake) return "Cash Out";
     if (returned > 0 && Number.isFinite(stake) && returned > stake) {
-        return currentResult === "Green" ? "Green" : "Cash Out";
+        return "Green";
     }
     return "Pendente";
 }
@@ -6162,7 +6162,7 @@ function getTicketResultOptions(returnText, stakeText) {
     if (String(returnText || "").trim() === "") return [{ value: "Pendente", label: "Pendente" }];
     if (returned === 0) return [{ value: "Red", label: "Perda" }];
     if (returned > 0 && Number.isFinite(stake) && returned > stake) {
-        return [{ value: "Cash Out", label: "Aposta encerrada" }, { value: "Green", label: "Ganho" }];
+        return [{ value: "Green", label: "Ganho" }, { value: "Cash Out", label: "Aposta encerrada" }];
     }
     if (returned > 0 && Number.isFinite(stake)) return [{ value: "Cash Out", label: "Aposta encerrada" }];
     return [{ value: "Pendente", label: "Pendente" }];
