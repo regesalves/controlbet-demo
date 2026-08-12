@@ -7742,7 +7742,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
             const realStakeToUse = Number(breakdown.stakeSaldo || 0);
 
-            let previousRealStake = 0;
+            let previousTicketImpact = 0;
 
             if (editingTicketId) {
                 const previousTicket = tickets.find(
@@ -7753,11 +7753,11 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                     previousTicket &&
                     Number(previousTicket.casaId) === Number(ticketForm.casaId)
                 ) {
-                    previousRealStake = Number(previousTicket.stakeReal || 0);
+                    previousTicketImpact = getRealTicketImpact(previousTicket);
                 }
             }
 
-            const availableBank = currentBank + previousRealStake;
+            const availableBank = currentBank - previousTicketImpact;
 
             if (realStakeToUse > availableBank) {
                 setTicketFeedback({
