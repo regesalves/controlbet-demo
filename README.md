@@ -27,7 +27,7 @@ O ControlBet permite centralizar informações relacionadas à operação da ban
 - relatórios;
 - filtros e consultas.
 
-O projeto evoluiu de forma incremental, passando por ciclos de observação, definição, implementação, testes, correções e refinamento funcional. :contentReference[oaicite:1]{index=1}
+O projeto evoluiu de forma incremental, passando por ciclos de observação, definição, implementação, testes, correções e refinamento funcional.
 
 ---
 
@@ -48,17 +48,17 @@ Minha atuação envolveu:
 - identificação de inconsistências;
 - simplificação e refinamento de funcionalidades.
 
-Essas atividades permaneceram sob minha responsabilidade durante a evolução funcional da solução. :contentReference[oaicite:2]{index=2}
+Essas atividades permaneceram sob minha responsabilidade durante a evolução funcional da solução.
 
 ### Implementação apoiada por Inteligência Artificial
 
 A implementação técnica contou com o apoio de ferramentas de Inteligência Artificial.
 
-As ferramentas foram utilizadas para auxiliar na implementação, revisão, identificação de problemas e evolução das funcionalidades. As propostas apresentadas eram analisadas, ajustadas ou descartadas antes do aceite. :contentReference[oaicite:3]{index=3}
+As ferramentas foram utilizadas para auxiliar na implementação, revisão, identificação de problemas e evolução das funcionalidades. As propostas apresentadas eram analisadas, ajustadas ou descartadas antes do aceite.
 
 O **OpenAI Codex** foi utilizado como uma das principais ferramentas de apoio técnico nas etapas mais recentes do projeto.
 
-Um exemplo foi a proposta de criação de um plano Premium. A funcionalidade foi descartada por não fazer sentido para um sistema pessoal e sem objetivo comercial. :contentReference[oaicite:4]{index=4}
+Um exemplo foi a proposta de criação de um plano Premium. A funcionalidade foi descartada por não fazer sentido para um sistema pessoal e sem objetivo comercial.
 
 ---
 
@@ -70,21 +70,21 @@ A evolução do ControlBet envolveu decisões relacionadas ao comportamento espe
 
 **Regra:** impedir apostas e saques superiores ao saldo disponível.
 
-**Critério de aceite:** a operação deve ser bloqueada quando o valor ultrapassar o saldo disponível. :contentReference[oaicite:5]{index=5}
+**Critério de aceite:** a operação deve ser bloqueada quando o valor ultrapassar o saldo disponível.
 
 ### Normalizar o retorno de bilhetes perdidos
 
 **Regra:** ao marcar um bilhete como "Perdido", o retorno deve ser automaticamente redefinido para `R$ 0,00`.
 
-**Critério de aceite:** a atualização deve ocorrer sem uma nova ação do usuário. :contentReference[oaicite:6]{index=6}
+**Critério de aceite:** a atualização deve ocorrer sem uma nova ação do usuário.
 
 ### Simplificar a seleção das casas
 
 O filtro adicional utilizado anteriormente foi substituído pela seleção direta da casa nos próprios cards.
 
-**Critério de aceite:** selecionar a casa diretamente no card, sem uma etapa intermediária. :contentReference[oaicite:7]{index=7}
+**Critério de aceite:** selecionar a casa diretamente no card, sem uma etapa intermediária.
 
-Essas decisões mostram como o uso da aplicação e os testes contribuíram para identificar inconsistências e oportunidades de simplificação. :contentReference[oaicite:8]{index=8}
+Essas decisões mostram como o uso da aplicação e os testes contribuíram para identificar inconsistências e oportunidades de simplificação.
 
 ---
 
@@ -119,7 +119,7 @@ A Demo:
 
 Os dados ficam armazenados apenas no navegador utilizado para acessar a aplicação.
 
-A demonstração está atualmente direcionada para utilização em computadores desktop. :contentReference[oaicite:9]{index=9}
+A demonstração está atualmente direcionada para utilização em computadores desktop.
 
 ---
 
@@ -182,11 +182,11 @@ Visualização de resultados, indicadores e estatísticas do período selecionad
 
 ## 🛠️ Tecnologias utilizadas
 
-<p>
+<p align="center">
   <img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React">
   <img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite">
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" alt="JavaScript">
-  <img src="https://img.shields.io/badge/CSS-663399?style=flat&logo=css&logoColor=white" alt="CSS">
+  <img src="https://img.shields.io/badge/HTML%2FCSS-E34F26?style=flat&logo=html5&logoColor=white" alt="HTML e CSS">
   <img src="https://img.shields.io/badge/Supabase-181818?style=flat&logo=supabase&logoColor=3ECF8E" alt="Supabase">
   <img src="https://img.shields.io/badge/Git-F05032?style=flat&logo=git&logoColor=white" alt="Git">
   <img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white" alt="GitHub">
@@ -228,7 +228,7 @@ Durante esse processo, foram trabalhados:
 - simplificação de funcionalidades;
 - evolução da experiência de uso.
 
-O ciclo principal do desenvolvimento foi concluído com uma solução funcional para o objetivo atual do projeto. :contentReference[oaicite:10]{index=10}
+O ciclo principal do desenvolvimento foi concluído com uma solução funcional para o objetivo atual do projeto.
 
 ---
 
@@ -242,7 +242,7 @@ A evolução do projeto permitiu:
 - identificar inconsistências por meio de testes manuais;
 - perceber a importância da consistência dos dados de origem para os indicadores;
 - compreender que remover funcionalidades também pode melhorar uma solução;
-- utilizar critérios de aceite para validar comportamentos esperados. :contentReference[oaicite:11]{index=11}
+- utilizar critérios de aceite para validar comportamentos esperados.
 
 ---
 
@@ -258,7 +258,7 @@ Por isso, o projeto não representa:
 - operação de um sistema comercial;
 - experiência profissional formal como Analista de Sistemas.
 
-A implementação técnica também contou com assistência de Inteligência Artificial, conforme descrito neste README. :contentReference[oaicite:12]{index=12}
+A implementação técnica também contou com assistência de Inteligência Artificial, conforme descrito neste README.
 
 ---
 
