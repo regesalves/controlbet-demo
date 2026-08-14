@@ -1,6 +1,10 @@
 # 🎯 ControlBet
 
-Aplicação web para gerenciamento de banca esportiva, desenvolvida em React como projeto pessoal de desenvolvimento e evolução prática.
+Sistema web próprio para gerenciamento e acompanhamento de uma banca esportiva.
+
+O ControlBet foi criado a partir de uma necessidade real de centralizar registros, movimentações e resultados em uma única solução, permitindo acompanhar a evolução da banca e consultar informações para controle e análise.
+
+Este repositório contém a versão pública demonstrativa do projeto.
 
 <p align="center">
   <a href="https://controlbet-demo.vercel.app/">
@@ -8,33 +12,79 @@ Aplicação web para gerenciamento de banca esportiva, desenvolvida em React com
   </a>
 </p>
 
-## 📖 Sobre o projeto
+---
 
-O **ControlBet** surgiu como um projeto pessoal para desenvolver uma solução de gerenciamento de banca esportiva e, ao mesmo tempo, colocar em prática conhecimentos relacionados ao desenvolvimento de aplicações web.
+## 📌 Visão geral
 
-A aplicação permite cadastrar casas de apostas, registrar bilhetes e movimentações financeiras, acompanhar a evolução da banca e consultar indicadores e relatórios de desempenho.
+O ControlBet permite centralizar informações relacionadas à operação da banca, incluindo:
 
-Ao longo do desenvolvimento, o projeto passou por diferentes etapas e melhorias envolvendo interface, responsividade, persistência de dados, autenticação, regras de negócio, testes e publicação da aplicação.
+- cadastro de casas de apostas;
+- registro de bilhetes;
+- movimentações financeiras;
+- acompanhamento de resultados;
+- evolução da banca;
+- indicadores de desempenho;
+- relatórios;
+- filtros e consultas.
 
-O desenvolvimento também utilizou ferramentas de Inteligência Artificial como apoio durante o processo, principalmente na implementação, revisão de código, identificação de problemas e evolução das funcionalidades. O **OpenAI Codex** foi utilizado como uma das principais ferramentas de apoio técnico nas etapas mais recentes do projeto.
+O projeto evoluiu de forma incremental, passando por ciclos de observação, definição, implementação, testes, correções e refinamento funcional. :contentReference[oaicite:1]{index=1}
 
 ---
 
-## 🌐 Demo
+## 🧠 Minha atuação no projeto
 
-Uma versão pública está disponível para permitir que as principais funcionalidades sejam testadas diretamente pelo navegador.
+O principal objetivo do projeto não foi apenas construir uma aplicação, mas aplicar na prática conhecimentos relacionados à análise e evolução de sistemas.
 
-### [Acessar ControlBet Demo](https://controlbet-demo.vercel.app/)
+Minha atuação envolveu:
 
-A Demo:
+- identificação e organização de necessidades;
+- definição de requisitos funcionais;
+- definição e revisão de regras de negócio;
+- organização de fluxos e informações;
+- definição de prioridades e escopo;
+- realização de testes manuais;
+- definição de critérios de aceite;
+- validação dos comportamentos esperados;
+- identificação de inconsistências;
+- simplificação e refinamento de funcionalidades.
 
-- não exige criação de conta;
-- utiliza dados fictícios;
-- permite cadastrar, editar e excluir informações;
-- utiliza `localStorage` para persistência dos dados;
-- funciona independentemente da infraestrutura da versão principal.
+Essas atividades permaneceram sob minha responsabilidade durante a evolução funcional da solução. :contentReference[oaicite:2]{index=2}
 
-Os dados ficam armazenados apenas no navegador utilizado para acessar a aplicação.
+### Implementação apoiada por Inteligência Artificial
+
+A implementação técnica contou com o apoio de ferramentas de Inteligência Artificial.
+
+As ferramentas foram utilizadas para auxiliar na implementação, revisão, identificação de problemas e evolução das funcionalidades. As propostas apresentadas eram analisadas, ajustadas ou descartadas antes do aceite. :contentReference[oaicite:3]{index=3}
+
+O **OpenAI Codex** foi utilizado como uma das principais ferramentas de apoio técnico nas etapas mais recentes do projeto.
+
+Um exemplo foi a proposta de criação de um plano Premium. A funcionalidade foi descartada por não fazer sentido para um sistema pessoal e sem objetivo comercial. :contentReference[oaicite:4]{index=4}
+
+---
+
+## 🔎 Decisões funcionais
+
+A evolução do ControlBet envolveu decisões relacionadas ao comportamento esperado da solução.
+
+### Proteger a banca
+
+**Regra:** impedir apostas e saques superiores ao saldo disponível.
+
+**Critério de aceite:** a operação deve ser bloqueada quando o valor ultrapassar o saldo disponível. :contentReference[oaicite:5]{index=5}
+
+### Normalizar o retorno de bilhetes perdidos
+
+**Regra:** ao marcar um bilhete como "Perdido", o retorno deve ser automaticamente redefinido para `R$ 0,00`.
+
+**Critério de aceite:** a atualização deve ocorrer sem uma nova ação do usuário. :contentReference[oaicite:6]{index=6}
+
+### Simplificar a seleção das casas
+
+O filtro adicional utilizado anteriormente foi substituído pela seleção direta da casa nos próprios cards.
+
+**Critério de aceite:** selecionar a casa diretamente no card, sem uma etapa intermediária. :contentReference[oaicite:7]{index=7}
+
+Essas decisões mostram como o uso da aplicação e os testes contribuíram para identificar inconsistências e oportunidades de simplificação. :contentReference[oaicite:8]{index=8}
 
 ---
 
@@ -50,6 +100,39 @@ Os dados ficam armazenados apenas no navegador utilizado para acessar a aplicaç
 - 🔎 Filtros por casa e período
 - 📱 Interface adaptada para desktop e dispositivos móveis
 - 💾 Persistência dos dados
+
+---
+
+## 🌐 Demo
+
+Uma versão pública está disponível para permitir a exploração das principais funcionalidades diretamente pelo navegador.
+
+### [Acessar ControlBet Demo](https://controlbet-demo.vercel.app/)
+
+A Demo:
+
+- não exige criação de conta;
+- utiliza dados fictícios;
+- permite cadastrar, editar e excluir informações;
+- utiliza `localStorage` para persistência dos dados;
+- funciona independentemente da infraestrutura da versão principal.
+
+Os dados ficam armazenados apenas no navegador utilizado para acessar a aplicação.
+
+A demonstração está atualmente direcionada para utilização em computadores desktop. :contentReference[oaicite:9]{index=9}
+
+---
+
+## 🧩 Versões do projeto
+
+O ControlBet possui duas versões com objetivos diferentes.
+
+| Versão | Características |
+| --- | --- |
+| **ControlBet** | Versão principal e privada, com autenticação, persistência online e integração com Supabase. |
+| **ControlBet Demo** | Versão pública deste repositório, sem autenticação e com persistência local. |
+
+A separação permite manter a aplicação principal em um ambiente privado enquanto uma versão funcional permanece disponível para demonstração.
 
 ---
 
@@ -104,36 +187,78 @@ Visualização de resultados, indicadores e estatísticas do período selecionad
   <img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite">
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" alt="JavaScript">
   <img src="https://img.shields.io/badge/CSS-663399?style=flat&logo=css&logoColor=white" alt="CSS">
+  <img src="https://img.shields.io/badge/Supabase-181818?style=flat&logo=supabase&logoColor=3ECF8E" alt="Supabase">
   <img src="https://img.shields.io/badge/Git-F05032?style=flat&logo=git&logoColor=white" alt="Git">
   <img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white" alt="GitHub">
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white" alt="Vercel">
 </p>
 
-Principais tecnologias e ferramentas utilizadas no projeto:
+**Principais tecnologias e ferramentas:**
 
 - **React** para construção da interface
 - **Vite** como ferramenta de desenvolvimento e build
 - **JavaScript**
 - **HTML e CSS**
 - **React Router** para navegação
-- **Git e GitHub** para controle de versão
-- **Vercel** para publicação da aplicação
 - **Supabase** na versão principal para autenticação e persistência dos dados
 - **localStorage** na versão Demo para armazenamento local
-- **OpenAI Codex** como ferramenta de apoio durante parte do desenvolvimento
+- **Git e GitHub** para controle de versão
+- **Vercel** para publicação
+- **OpenAI Codex** como ferramenta de apoio à implementação técnica
 
 ---
 
-## 🧩 Versões do projeto
+## 📚 Evolução do projeto
 
-O projeto atualmente possui duas versões com objetivos diferentes.
+O ControlBet foi desenvolvido de forma incremental.
 
-| Versão | Características |
-| --- | --- |
-| **ControlBet** | Versão principal e privada, com autenticação, persistência online dos dados e integração com Supabase. |
-| **ControlBet Demo** | Versão pública deste repositório, sem autenticação e com persistência local para facilitar testes e apresentação do projeto. |
+O sistema começou com uma estrutura básica de gerenciamento da banca e evoluiu conforme os fluxos eram utilizados, testados e analisados.
 
-A separação permite manter o desenvolvimento da aplicação principal em um repositório privado enquanto uma versão funcional permanece disponível publicamente para demonstração.
+Durante esse processo, foram trabalhados:
+
+- organização da interface;
+- definição e revisão de regras de negócio;
+- estruturação de fluxos;
+- cálculos financeiros e indicadores;
+- persistência e sincronização de dados;
+- autenticação na versão principal;
+- relatórios e visualização de informações;
+- testes manuais;
+- correção de inconsistências;
+- simplificação de funcionalidades;
+- evolução da experiência de uso.
+
+O ciclo principal do desenvolvimento foi concluído com uma solução funcional para o objetivo atual do projeto. :contentReference[oaicite:10]{index=10}
+
+---
+
+## 📊 Resultados e aprendizados
+
+A evolução do projeto permitiu:
+
+- centralizar o registro das operações;
+- utilizar o sistema em situações reais desde as primeiras versões;
+- refinar regras e fluxos a partir do uso;
+- identificar inconsistências por meio de testes manuais;
+- perceber a importância da consistência dos dados de origem para os indicadores;
+- compreender que remover funcionalidades também pode melhorar uma solução;
+- utilizar critérios de aceite para validar comportamentos esperados. :contentReference[oaicite:11]{index=11}
+
+---
+
+## ⚠️ Limites do projeto
+
+O ControlBet é um projeto individual, de uso pessoal e sem operação comercial.
+
+Por isso, o projeto não representa:
+
+- pesquisa formal com usuários externos;
+- testes automatizados;
+- validação técnica de segurança;
+- operação de um sistema comercial;
+- experiência profissional formal como Analista de Sistemas.
+
+A implementação técnica também contou com assistência de Inteligência Artificial, conforme descrito neste README. :contentReference[oaicite:12]{index=12}
 
 ---
 
@@ -147,66 +272,3 @@ Clone o repositório:
 
 ```bash
 git clone https://github.com/regesalves/controlbet-demo.git
-```
-
-Acesse a pasta:
-
-```bash
-cd controlbet-demo
-```
-
-Instale as dependências:
-
-```bash
-npm install
-```
-
-Inicie o ambiente de desenvolvimento:
-
-```bash
-npm run dev
-```
-
-Depois, acesse o endereço exibido pelo Vite no terminal.
-
-A versão Demo não exige configuração de Supabase ou criação de variáveis de ambiente para utilização das funcionalidades principais.
-
----
-
-## 📚 Desenvolvimento do projeto
-
-O ControlBet foi desenvolvido de forma incremental.
-
-O projeto começou com a estrutura básica de gerenciamento da banca e foi recebendo novas funcionalidades e ajustes conforme os fluxos eram utilizados e testados.
-
-Durante esse processo foram trabalhados pontos como:
-
-- organização e evolução da interface;
-- criação e validação de regras de negócio;
-- responsividade;
-- persistência e sincronização de dados;
-- autenticação na versão principal;
-- cálculos financeiros e indicadores;
-- relatórios e visualização de dados;
-- testes dos fluxos da aplicação;
-- deploy e manutenção das versões publicadas.
-
-A criação da versão Demo também fez parte dessa evolução. A camada de dados foi adaptada para permitir que a aplicação pudesse ser disponibilizada publicamente sem expor o ambiente ou os dados da versão principal.
-
----
-
-## 🎯 Objetivo do projeto
-
-O ControlBet é um projeto pessoal utilizado para desenvolver e aplicar conhecimentos relacionados à construção de aplicações web.
-
-Além da parte técnica, o projeto também envolve decisões sobre organização da interface, experiência de uso, definição de funcionalidades, regras de negócio, testes e manutenção da aplicação ao longo de sua evolução.
-
----
-
-## 👨‍💻 Autor
-
-**Réges Alves**
-
-Projeto desenvolvido como parte da minha evolução prática em desenvolvimento de sistemas e construção de projetos próprios.
-
-GitHub: [regesalves](https://github.com/regesalves)
