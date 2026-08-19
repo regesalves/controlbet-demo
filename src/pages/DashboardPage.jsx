@@ -3170,7 +3170,7 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
                             <label className="ticket-edit-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, odd: e.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                         </div>
                         <div className="ticket-edit-form-row ticket-edit-finance-row">
-                            <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => { const stake = formatCurrencyTyping(e.target.value); return { ...prev, stake, resultado: getTicketResultForReturn(prev.retorno, stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
+                            <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => updateTicketStake(prev, e.target.value))} placeholder="R$ 0,00" /></label>
                             <label className="ticket-edit-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" onChange={(e) => setTicketForm((prev) => { const retorno = formatCurrencyTyping(e.target.value); return { ...prev, retorno, resultado: getTicketResultForReturn(retorno, prev.stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
                             <label className="ticket-edit-origin-field">Origem<select value={origemStake} onChange={(e) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(e.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                         </div>
@@ -3178,8 +3178,8 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
                             <label className="ticket-edit-result-field">Resultado<select value={ticketForm.resultado} onChange={(e) => setTicketForm((prev) => ({ ...prev, resultado: e.target.value }))}>{resultOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                             {showStakeSplitFields && (
                                 <>
-                                <label className="ticket-edit-split-field">Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stakeSaldo: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
-                                <label className="ticket-edit-split-field">Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" onChange={(e) => setTicketForm((prev) => ({ ...prev, stakeBonus: formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
+                                <label className="ticket-edit-split-field">Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" disabled={safeStake <= 0} onChange={(e) => setTicketForm((prev) => updateTicketStakeSplit(prev, "stakeSaldo", e.target.value))} placeholder="R$ 0,00" /></label>
+                                <label className="ticket-edit-split-field">Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" disabled={safeStake <= 0} onChange={(e) => setTicketForm((prev) => updateTicketStakeSplit(prev, "stakeBonus", e.target.value))} placeholder="R$ 0,00" /></label>
                                 </>
                             )}
                             {!showStakeSplitFields && <label className="reference-textarea-field ticket-edit-notes-field">Observações (opcional)<textarea rows="4" value={ticketForm.observacoes} onChange={(e) => setTicketForm((prev) => ({ ...prev, observacoes: e.target.value }))} placeholder="Ex.: jogo válido pelo Brasileirão." /></label>}
@@ -3235,7 +3235,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                                     <label className="ticket-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, odd: event.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                                 </div>
                                 <div className="ticket-financial-row">
-                                    <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => { const stake = formatCurrencyTyping(event.target.value); return { ...prev, stake, resultado: getTicketResultForReturn(prev.retorno, stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
+                                    <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => updateTicketStake(prev, event.target.value))} placeholder="R$ 0,00" /></label>
                                     <label className="ticket-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" onChange={(event) => setTicketForm((prev) => { const retorno = formatCurrencyTyping(event.target.value); return { ...prev, retorno, resultado: getTicketResultForReturn(retorno, prev.stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
                                     <label className="ticket-origin-field">Origem<select value={origemStake} onChange={(event) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(event.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                                 </div>
@@ -3243,8 +3243,8 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                                     <div className="ticket-result-row">
                                         {showStakeSplitFields && (
                                             <>
-                                                <label className="ticket-balance-value-field">Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stakeSaldo: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
-                                                <label className="ticket-bonus-value-field">Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" onChange={(event) => setTicketForm((prev) => ({ ...prev, stakeBonus: formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
+                                                <label className="ticket-balance-value-field">Valor do saldo<input value={ticketForm.stakeSaldo} inputMode="numeric" disabled={safeStake <= 0} onChange={(event) => setTicketForm((prev) => updateTicketStakeSplit(prev, "stakeSaldo", event.target.value))} placeholder="R$ 0,00" /></label>
+                                                <label className="ticket-bonus-value-field">Valor do bônus<input value={ticketForm.stakeBonus} inputMode="numeric" disabled={safeStake <= 0} onChange={(event) => setTicketForm((prev) => updateTicketStakeSplit(prev, "stakeBonus", event.target.value))} placeholder="R$ 0,00" /></label>
                                             </>
                                         )}
                                         <label className="ticket-result-field">Resultado<select value={ticketForm.resultado} onChange={(event) => setTicketForm((prev) => ({ ...prev, resultado: event.target.value }))}>{resultOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
@@ -5991,6 +5991,38 @@ function parseCurrencyTyping(maskedValue) {
     const digits = String(maskedValue || "").replace(/\D/g, "");
     if (!digits) return NaN;
     return Number(digits) / 100;
+}
+
+function updateTicketStake(prev, rawValue) {
+    const stake = formatCurrencyTyping(rawValue);
+
+    return {
+        ...prev,
+        stake,
+        stakeSaldo: "",
+        stakeDeposito: "",
+        stakeBonus: "",
+        resultado: getTicketResultForReturn(prev.retorno, stake, prev.resultado),
+    };
+}
+
+function updateTicketStakeSplit(prev, field, rawValue) {
+    const stake = parseCurrencyTyping(prev.stake);
+    const counterpart = field === "stakeSaldo" ? "stakeBonus" : "stakeSaldo";
+    const typedValue = parseCurrencyTyping(rawValue);
+
+    if (!Number.isFinite(stake) || stake <= 0 || !Number.isFinite(typedValue)) {
+        return { ...prev, [field]: "", [counterpart]: "" };
+    }
+
+    const value = Math.min(typedValue, stake);
+    const remaining = Math.max(0, Math.round((stake - value) * 100) / 100);
+
+    return {
+        ...prev,
+        [field]: formatMoney(value),
+        [counterpart]: formatMoney(remaining),
+    };
 }
 
 function parseSignedCurrencyTyping(maskedValue) {
