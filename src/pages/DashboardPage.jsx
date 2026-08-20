@@ -3121,7 +3121,7 @@ function ReferenceStatusBadge({ result }) {
             ? "green"
             : normalized === "Red" || normalized === "Perda"
                 ? "red"
-                : normalized === "Cash Out"
+                : normalized === "Cash Out" || normalized === "Aposta encerrada"
                     ? "cashout"
                     : "pending";
     const label =
@@ -3147,7 +3147,7 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
     const expectedResultTone = expectedResult > 0 ? "positive" : expectedResult < 0 ? "negative" : "neutral";
     const bankImpact = expectedResult;
     const bankImpactTone = bankImpact > 0 ? "positive" : bankImpact < 0 ? "negative" : "neutral";
-    const resultOptions = getTicketResultOptions(ticketForm.retorno, ticketForm.stake);
+    const resultOptions = getTicketResultOptions(ticketForm.retorno, ticketForm.stake, Boolean(editingTicketId));
 
     return (
         <section className="submenu-page submenu-ticket-form-page">
@@ -3170,8 +3170,8 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
                             <label className="ticket-edit-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(e) => setTicketForm((prev) => ({ ...prev, odd: e.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                         </div>
                         <div className="ticket-edit-form-row ticket-edit-finance-row">
-                            <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => updateTicketStake(prev, e.target.value))} placeholder="R$ 0,00" /></label>
-                            <label className="ticket-edit-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" onChange={(e) => setTicketForm((prev) => { const retorno = formatCurrencyTyping(e.target.value); return { ...prev, retorno, resultado: getTicketResultForReturn(retorno, prev.stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
+                            <label className="ticket-edit-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(e) => setTicketForm((prev) => updateTicketStake(prev, e.target.value, Boolean(editingTicketId)))} placeholder="R$ 0,00" /></label>
+                            <label className="ticket-edit-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" onChange={(e) => setTicketForm((prev) => { const retorno = formatCurrencyTyping(e.target.value); return { ...prev, retorno, resultado: editingTicketId ? prev.resultado : getTicketResultForReturn(retorno, prev.stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
                             <label className="ticket-edit-origin-field">Origem<select value={origemStake} onChange={(e) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(e.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                         </div>
                         <div className="ticket-edit-form-row ticket-edit-result-row">
@@ -3210,7 +3210,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
     const expectedResultTone = expectedResult > 0 ? "positive" : expectedResult < 0 ? "negative" : "neutral";
     const bankImpact = ticketForm.resultado === "Red" ? -Math.abs(safeStake) : expectedResult;
     const bankImpactTone = bankImpact > 0 ? "positive" : bankImpact < 0 ? "negative" : "neutral";
-    const resultOptions = getTicketResultOptions(ticketForm.retorno, ticketForm.stake);
+    const resultOptions = getTicketResultOptions(ticketForm.retorno, ticketForm.stake, Boolean(editingTicketId));
 
     return (
         <section className="submenu-page submenu-ticket-form-page">
@@ -3235,8 +3235,8 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                                     <label className="ticket-odd-field">Odd<input value={ticketForm.odd} inputMode="decimal" onChange={(event) => setTicketForm((prev) => ({ ...prev, odd: event.target.value.replace(",", ".") }))} placeholder="1.80" /></label>
                                 </div>
                                 <div className="ticket-financial-row">
-                                    <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => updateTicketStake(prev, event.target.value))} placeholder="R$ 0,00" /></label>
-                                    <label className="ticket-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" onChange={(event) => setTicketForm((prev) => { const retorno = formatCurrencyTyping(event.target.value); return { ...prev, retorno, resultado: getTicketResultForReturn(retorno, prev.stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
+                                    <label className="ticket-stake-field">Valor apostado<input value={ticketForm.stake} inputMode="numeric" onChange={(event) => setTicketForm((prev) => updateTicketStake(prev, event.target.value, Boolean(editingTicketId)))} placeholder="R$ 0,00" /></label>
+                                    <label className="ticket-return-field">Retorno<input value={ticketForm.retorno} inputMode="decimal" onChange={(event) => setTicketForm((prev) => { const retorno = formatCurrencyTyping(event.target.value); return { ...prev, retorno, resultado: editingTicketId ? prev.resultado : getTicketResultForReturn(retorno, prev.stake, prev.resultado) }; })} placeholder="R$ 0,00" /></label>
                                     <label className="ticket-origin-field">Origem<select value={origemStake} onChange={(event) => setTicketForm((prev) => ({ ...prev, origemStake: normalizeStakeOrigin(event.target.value), stakeSaldo: "", stakeDeposito: "", stakeBonus: "" }))}><option value={STAKE_ORIGINS.BALANCE}>{STAKE_ORIGINS.BALANCE}</option><option value={STAKE_ORIGINS.BONUS}>{STAKE_ORIGINS.BONUS}</option><option value={STAKE_ORIGINS.BALANCE_BONUS}>{STAKE_ORIGINS.BALANCE_BONUS}</option></select></label>
                                 </div>
                                 <div className={`ticket-result-description-layout ${showStakeSplitFields ? "has-stake-split" : "result-description-inline"}`}>
@@ -3471,7 +3471,7 @@ function TicketsTablePanel({ deletingTicketId, editingTicketId, feedback, isSavi
                         <option value="Green">Ganho</option>
                         <option value="Red">Perdido</option>
                         <option value="Pendente">Pendente</option>
-                        <option value="Cash Out">Cash out</option>
+                        <option value="Cash Out">Aposta encerrada</option>
                     </select>
                 </label>
                 <PeriodFields
@@ -3504,7 +3504,7 @@ function TicketsTablePanel({ deletingTicketId, editingTicketId, feedback, isSavi
                             <span>{formatMoney(ticket.stake ?? 0)}</span>
                             <span className="positive">{formatMoney(ticket.retorno)}</span>
                             <span className={resultView.tone}>{ticket.resultado === "Pendente" ? "-" : formatSignedMoney(resultView.value)}</span>
-                            <ReferenceStatusBadge result={ticket.resultado === "Red" ? "Perda" : ticket.resultado === "Green" ? "Ganho" : ticket.resultado} />
+                            <ReferenceStatusBadge result={ticket.resultado === "Red" ? "Perda" : ticket.resultado === "Green" ? "Ganho" : ticket.resultado === "Cash Out" ? "Aposta encerrada" : ticket.resultado} />
                             <span className="reference-ticket-menu-wrap">
                                 <button
                                     type="button"
@@ -5993,7 +5993,7 @@ function parseCurrencyTyping(maskedValue) {
     return Number(digits) / 100;
 }
 
-function updateTicketStake(prev, rawValue) {
+function updateTicketStake(prev, rawValue, preserveResult = false) {
     const stake = formatCurrencyTyping(rawValue);
 
     return {
@@ -6002,7 +6002,7 @@ function updateTicketStake(prev, rawValue) {
         stakeSaldo: "",
         stakeDeposito: "",
         stakeBonus: "",
-        resultado: getTicketResultForReturn(prev.retorno, stake, prev.resultado),
+        resultado: preserveResult ? prev.resultado : getTicketResultForReturn(prev.retorno, stake, prev.resultado),
     };
 }
 
@@ -6188,7 +6188,16 @@ function getTicketResultForReturn(returnText, stakeText, currentResult = "Penden
     return "Pendente";
 }
 
-function getTicketResultOptions(returnText, stakeText) {
+function getTicketResultOptions(returnText, stakeText, includeAllResults = false) {
+    if (includeAllResults) {
+        return [
+            { value: "Pendente", label: "Pendente" },
+            { value: "Green", label: "Ganho" },
+            { value: "Red", label: "Perda" },
+            { value: "Cash Out", label: "Aposta encerrada" },
+        ];
+    }
+
     const returned = parseCurrencyTyping(returnText);
     const stake = parseCurrencyTyping(stakeText);
     if (String(returnText || "").trim() === "") return [{ value: "Pendente", label: "Pendente" }];
@@ -6972,16 +6981,12 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 return acc + Number(movement.valor || 0) * movementSignal(movement.tipo);
             }, 0);
 
-            const greenCount = resolvedPeriodTickets.filter((ticket) => {
-                if (ticket.resultado === "Green") return true;
-                if (
-                    ticket.resultado === "Cash Out" &&
-                    Number(ticket.retorno || 0) > Number(ticket.stake || 0)
-                ) {
-                    return true;
-                }
-                return false;
-            }).length;
+            const greenCount = resolvedPeriodTickets.filter(
+                (ticket) => ticket.resultado === "Green"
+            ).length;
+            const redCount = resolvedPeriodTickets.filter(
+                (ticket) => ticket.resultado === "Red"
+            ).length;
 
             const hitRate =
                 resolvedPeriodTickets.length > 0
@@ -6994,7 +6999,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 bancaAtual: bancaInicialPeriodo + totalProfit + movementBalance,
                 quantidadeApostas: periodHouseTickets.length,
                 apostasGanhas: greenCount,
-                apostasPerdidas: resolvedPeriodTickets.length - greenCount,
+                apostasPerdidas: redCount,
                 taxaAcerto: hitRate,
             };
         });
@@ -7394,7 +7399,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
     }, [baseTicketsForPeriod]);
 
     const allGreenPeriodCount = useMemo(() => {
-        return allResolvedPeriodTickets.filter((ticket) => Number(ticket.retorno || 0) - Number(ticket.stake || 0) > 0).length;
+        return allResolvedPeriodTickets.filter((ticket) => ticket.resultado === "Green").length;
     }, [allResolvedPeriodTickets]);
 
     const allHitRate = useMemo(() => {
@@ -7751,7 +7756,11 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             setTicketFeedback({ type: "error", message: "Informe um retorno válido." });
             return;
         }
-        const allowedResults = getTicketResultOptions(ticketForm.retorno, ticketForm.stake).map((option) => option.value);
+        const allowedResults = getTicketResultOptions(
+            ticketForm.retorno,
+            ticketForm.stake,
+            Boolean(editingTicketId)
+        ).map((option) => option.value);
         if (!allowedResults.includes(ticketForm.resultado)) {
             setTicketFeedback({ type: "error", message: "O resultado não é compatível com o retorno informado." });
             return;

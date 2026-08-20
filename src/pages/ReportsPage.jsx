@@ -1090,8 +1090,8 @@ export default function ReportsPage({ landingTheme = "dark" }) {
       label: "Menor valor",
       value: advancedStats.lowestStake ? formatMoney(advancedStats.lowestStake.value) : "-",
     },
-    { label: "Total de greens", tone: "positive", value: formatCount(advancedStats.greenTickets) },
-    { label: "Total de reds", tone: "negative", value: formatCount(advancedStats.redTickets) },
+    { label: "Apostas ganhas", tone: "positive", value: formatCount(advancedStats.greenTickets) },
+    { label: "Apostas perdidas", tone: "negative", value: formatCount(advancedStats.redTickets) },
     { label: "Apostas encerradas", value: formatCount(advancedStats.closedTickets) },
   ];
   const advancedHouseRows = [...houseReportRows].sort((a, b) => b.roi - a.roi);
@@ -1155,8 +1155,8 @@ export default function ReportsPage({ landingTheme = "dark" }) {
         type: "money",
         value: advancedStats.lowestStake?.value ?? null,
       },
-      { label: "Total de greens", type: "count", value: advancedStats.greenTickets },
-      { label: "Total de reds", type: "count", value: advancedStats.redTickets },
+      { label: "Apostas ganhas", type: "count", value: advancedStats.greenTickets },
+      { label: "Apostas perdidas", type: "count", value: advancedStats.redTickets },
       { label: "Apostas encerradas", type: "count", value: advancedStats.closedTickets },
     ],
     oddRanges: advancedStats.oddRangeStats,
