@@ -14,6 +14,12 @@ import {
     readCachedBankingData,
 } from "../utils/bankingDataCache";
 import {
+    calculateHouseFinancialPosition,
+    getRealStake,
+    getRealTicketImpact,
+    validateHouseLedger as validateFinancialLedger,
+} from "../utils/financialLedger";
+import {
     AppShell as DesignAppShell,
     MetricCard as DesignMetricCard,
     PageHeader as DesignPageHeader,
@@ -3981,7 +3987,7 @@ function RefinedMovementPanel({ feedback, houses, isSaving, movementForm, setMov
     );
 }
 
-function RefinedStatementPanel({ deletingMovementId, editingMovementId, feedback, isSaving, movements, houses, onCancelEdit, onEdit, onDelete, onSubmitEdit, onSummaryChange, movementForm, setMovementForm }) {
+function RefinedStatementPanel({ deletingMovementId, editingMovementId, feedback, isSaving, movements, tickets = [], houses, onCancelEdit, onEdit, onDelete, onSubmitEdit, onSummaryChange, movementForm, setMovementForm }) {
     const [movementTypeFilter, setMovementTypeFilter] = useState("all");
     const [movementPeriodType, setMovementPeriodType] = useState("Diário");
     const [movementPeriodReference, setMovementPeriodReference] = useState(hojeISO());
@@ -4046,22 +4052,22 @@ function RefinedStatementPanel({ deletingMovementId, editingMovementId, feedback
         });
     }, [onSummaryChange, statementTotals.balance, statementTotals.entries, statementTotals.exits]);
 
-    const currentBalance = scopeHouses.reduce((sum, house) => {
-        const movementBalance = movements
-            .filter((movement) => Number(movement.casaId) === Number(house.id))
-            .reduce((acc, movement) => acc + Number(movement.valor || 0) * movementSignal(movement.tipo), 0);
-        return sum + Number(house.bancaInicial || 0) + movementBalance;
-    }, 0);
+    const currentBalance = scopeHouses.reduce(
+        (sum, house) => sum + calculateHouseFinancialPosition({ house, movements, tickets }).availableBalance,
+        0
+    );
     const getBalanceAfterMovement = (movement) => {
         const house = houses.find((item) => Number(item.id) === Number(movement.casaId));
-        return Number(house?.bancaInicial || 0) + movements
-            .filter((item) => {
+        const movementsThroughEntry = movements.filter((item) => {
                 if (Number(item.casaId) !== Number(movement.casaId)) return false;
                 if (String(item.data || "") < String(movement.data || "")) return true;
                 if (String(item.data || "") > String(movement.data || "")) return false;
                 return Number(item.id || 0) <= Number(movement.id || 0);
-            })
-            .reduce((sum, item) => sum + Number(item.valor || 0) * movementSignal(item.tipo), 0);
+            });
+        const ticketsBeforeEntry = tickets.filter(
+            (ticket) => Number(ticket.casaId) === Number(movement.casaId) && String(ticket.data || "") < String(movement.data || "")
+        );
+        return calculateHouseFinancialPosition({ house, movements: movementsThroughEntry, tickets: ticketsBeforeEntry }).availableBalance;
     };
     const selectedMovementHouseLabel = movementHouseFilter === "all"
         ? "Todas as casas"
@@ -6094,69 +6100,13 @@ function calculateStakeDetails({ returned, stakeSaldo, stakeDeposito, stakeBonus
     };
 }
 
-function getRealTicketImpact(ticket) {
-    const lucroReal = Number(ticket.lucroReal || 0);
-    const perdaReal = Number(ticket.perdaReal || 0);
-    return lucroReal - perdaReal;
-}
-
 function validateHouseLedger({ houses = [], movements = [], tickets = [] }, houseId, removedItemLabel = "esse registro") {
-    const house = houses.find((item) => Number(item.id) === Number(houseId));
-    if (!house) return { valid: true };
-
-    let balance = Number(house.bancaInicial || 0);
-    const houseTickets = tickets.filter((ticket) => Number(ticket.casaId) === Number(houseId));
-    const houseMovements = movements.filter((movement) => Number(movement.casaId) === Number(houseId));
-    const events = [
-        ...houseMovements.map((movement) => ({
-            id: movement.id,
-            date: movement.data,
-            order: 1,
-            type: "movement",
-            movement,
-        })),
-        ...houseTickets.map((ticket) => ({
-            id: ticket.id,
-            date: ticket.data,
-            order: 2,
-            type: "ticket",
-            ticket,
-        })),
-    ].sort((a, b) => {
-        const dateCompare = String(a.date || "").localeCompare(String(b.date || ""));
-        if (dateCompare !== 0) return dateCompare;
-        if (a.order !== b.order) return a.order - b.order;
-        return Number(a.id || 0) - Number(b.id || 0);
-    });
-
-    for (const event of events) {
-        if (event.type === "movement") {
-            balance += Number(event.movement.valor || 0) * movementSignal(event.movement.tipo);
-        } else {
-            const ticket = event.ticket;
-            const stakeReal = Number(ticket.stakeReal || 0);
-
-            if (stakeReal > balance + 0.009) {
-                return {
-                    valid: false,
-                    message: `Não é possível excluir. Sem ${removedItemLabel}, a banca de ${house.nome} ficaria insuficiente para o ${ticket.nomeBilhete || "bilhete"} de ${formatDateBR(ticket.data)}.`,
-                };
-            }
-
-            if (ticket.resultado !== "Pendente") {
-                balance += getRealTicketImpact(ticket);
-            }
-        }
-
-        if (balance < -0.009) {
-            return {
-                valid: false,
-                message: `Não é possível excluir. Sem ${removedItemLabel}, a banca de ${house.nome} ficaria negativa em ${formatDateBR(event.date)}.`,
-            };
-        }
-    }
-
-    return { valid: true };
+    return validateFinancialLedger(
+        { houses, movements, tickets },
+        houseId,
+        removedItemLabel,
+        { formatDate: formatDateBR }
+    );
 }
 
 const initialTicketForm = {
@@ -6981,6 +6931,15 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 return acc + Number(movement.valor || 0) * movementSignal(movement.tipo);
             }, 0);
 
+            const pendingCommitment = tickets
+                .filter((ticket) => {
+                    if (Number(ticket.casaId) !== house.id || ticket.resultado !== "Pendente") return false;
+                    return periodType === "Geral" || ticket.data <= periodInterval.end;
+                })
+                .reduce((acc, ticket) => acc + getRealStake(ticket), 0);
+
+            const totalBalance = bancaInicialPeriodo + totalProfit + movementBalance;
+
             const greenCount = resolvedPeriodTickets.filter(
                 (ticket) => ticket.resultado === "Green"
             ).length;
@@ -6996,7 +6955,10 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             return {
                 ...house,
                 bancaInicialPeriodo,
-                bancaAtual: bancaInicialPeriodo + totalProfit + movementBalance,
+                bancaTotal: totalBalance,
+                valorComprometido: pendingCommitment,
+                bancaDisponivel: totalBalance - pendingCommitment,
+                bancaAtual: totalBalance - pendingCommitment,
                 quantidadeApostas: periodHouseTickets.length,
                 apostasGanhas: greenCount,
                 apostasPerdidas: redCount,
@@ -7775,30 +7737,18 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         if (
             normalizeStakeOrigin(ticketForm.origemStake) !== STAKE_ORIGINS.BONUS
         ) {
-            const selectedHouse = housesWithCurrentBank.find(
+            const selectedHouse = houses.find(
                 (house) => Number(house.id) === Number(ticketForm.casaId)
             );
-
-            const currentBank = Number(selectedHouse?.bancaAtual || 0);
-
-            const realStakeToUse = Number(breakdown.stakeSaldo || 0);
-
-            let previousTicketImpact = 0;
-
-            if (editingTicketId) {
-                const previousTicket = tickets.find(
-                    (ticket) => Number(ticket.id) === Number(editingTicketId)
-                );
-
-                if (
-                    previousTicket &&
-                    Number(previousTicket.casaId) === Number(ticketForm.casaId)
-                ) {
-                    previousTicketImpact = getRealTicketImpact(previousTicket);
-                }
-            }
-
-            const availableBank = currentBank - previousTicketImpact;
+            const realStakeToUse = Number(breakdown.stakeSaldo || 0) + Number(breakdown.stakeDeposito || 0);
+            const ticketsWithoutEdited = editingTicketId
+                ? tickets.filter((ticket) => Number(ticket.id) !== Number(editingTicketId))
+                : tickets;
+            const availableBank = calculateHouseFinancialPosition({
+                house: selectedHouse,
+                movements,
+                tickets: ticketsWithoutEdited,
+            }).availableBalance;
 
             if (realStakeToUse > availableBank) {
                 setTicketFeedback({
@@ -7996,29 +7946,17 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         };
 
         if (payload.tipo === "Saque") {
-            const selectedHouse = housesWithCurrentBank.find(
+            const selectedHouse = houses.find(
                 (house) => Number(house.id) === Number(payload.casaId)
             );
-
-            const currentBank = Number(selectedHouse?.bancaAtual || 0);
-
-            let previousMovementValue = 0;
-
-            if (editingMovementId) {
-                const previousMovement = movements.find(
-                    (movement) => Number(movement.id) === Number(editingMovementId)
-                );
-
-                if (
-                    previousMovement &&
-                    previousMovement.tipo === "Saque" &&
-                    Number(previousMovement.casaId) === Number(payload.casaId)
-                ) {
-                    previousMovementValue = Number(previousMovement.valor || 0);
-                }
-            }
-
-            const availableBank = currentBank + previousMovementValue;
+            const movementsWithoutEdited = editingMovementId
+                ? movements.filter((movement) => Number(movement.id) !== Number(editingMovementId))
+                : movements;
+            const availableBank = calculateHouseFinancialPosition({
+                house: selectedHouse,
+                movements: movementsWithoutEdited,
+                tickets,
+            }).availableBalance;
 
             if (payload.valor > availableBank) {
                 setMovementFeedback({
@@ -8628,6 +8566,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                     feedback={movementFeedback}
                     isSaving={isSavingMovement}
                     movements={movements}
+                    tickets={tickets}
                     houses={housesWithCurrentBank}
                     onCancelEdit={handleCancelMovementEdit}
                     onEdit={handleStartEditMovement}

@@ -7,6 +7,7 @@ import logo from "../assets/logo.png";
 import { supabase } from "../supabase";
 import { exportReportToExcel, exportReportToPdf } from "../utils/reportExport";
 import { loadBankingData, readCachedBankingData } from "../utils/bankingDataCache";
+import { calculateFinancialPosition, getRealTicketImpact } from "../utils/financialLedger";
 import {
   Area,
   AreaChart,
@@ -131,10 +132,6 @@ function getBankChartDateLabel(dateISO, periodType) {
 
   const date = new Date(`${dateISO}T12:00:00`);
   return REPORT_WEEKDAY_LABELS[date.getDay()];
-}
-
-function getRealTicketImpact(ticket) {
-  return Number(ticket?.lucroReal || 0) - Number(ticket?.perdaReal || 0);
 }
 
 function movementSignal(type) {
@@ -467,7 +464,12 @@ export default function ReportsPage({ landingTheme = "dark" }) {
       0
     );
     const result = resolvedOverviewTickets.reduce((sum, ticket) => sum + getRealTicketImpact(ticket), 0);
-    const finalBank = initialBank + movementBalance + result;
+    const financialPosition = calculateFinancialPosition({
+      initialBalance: initialBank,
+      movements: filteredMovements,
+      tickets: filteredTickets,
+    });
+    const finalBank = financialPosition.availableBalance;
     const wagered = filteredTickets.reduce((sum, ticket) => sum + Number(ticket.stake || 0), 0);
     const returnTotal = filteredTickets.reduce((sum, ticket) => sum + Number(ticket.retorno || 0), 0);
     const realWagered = filteredTickets.reduce((sum, ticket) => sum + Number(ticket.stakeReal || 0), 0);
@@ -497,6 +499,8 @@ export default function ReportsPage({ landingTheme = "dark" }) {
       initialBank,
       mostUsedHouse: sortedByVolume[0],
       movementBalance,
+      committedBalance: financialPosition.committedBalance,
+      totalBank: financialPosition.totalBalance,
       overviewDistribution,
       performanceEvolution,
       realWagered,
