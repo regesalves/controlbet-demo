@@ -5184,6 +5184,7 @@ function VisualDashboardHome({
     allHitRate,
     analyticsPeriodType,
     bankHistoryData,
+    performanceHistoryData,
     chartMode,
     houses,
     housesWithCurrentBank,
@@ -5228,7 +5229,9 @@ function VisualDashboardHome({
     const housesWithCurrentBankSafe = Array.isArray(housesWithCurrentBank) ? housesWithCurrentBank : [];
     const periodTicketsSafe = Array.isArray(periodTickets) ? periodTickets : [];
     const bankHistoryDataSafe = Array.isArray(bankHistoryData) ? bankHistoryData : [];
+    const performanceHistoryDataSafe = Array.isArray(performanceHistoryData) ? performanceHistoryData : [];
     const resultChartDataSafe = Array.isArray(resultChartData) ? resultChartData : [];
+    const chartHistoryData = chartMode === "Banca" ? bankHistoryDataSafe : performanceHistoryDataSafe;
     const summaryStatsSafe = summaryStats || {};
     const topMetricPagesSafe = Array.isArray(topMetricPages) ? topMetricPages : [];
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -5581,7 +5584,7 @@ function VisualDashboardHome({
             <section className="cb-dashboard-insights-grid">
                 <BankrollEvolutionChart
                     analyticsPeriodType={analyticsPeriodType}
-                    bankHistoryData={hasHouseSelection ? bankHistoryDataSafe : []}
+                    bankHistoryData={hasHouseSelection ? chartHistoryData : []}
                     chartMode={chartMode}
                     sectionRef={sectionRef}
                     setChartMode={setChartMode}
@@ -7052,7 +7055,6 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                         : tickets.filter(
                             (ticket) =>
                                 Number(ticket.casaId) === Number(house.id) &&
-                                ticket.resultado !== "Pendente" &&
                                 ticket.data < analyticsPeriodInterval.start
                         );
 
@@ -7066,7 +7068,12 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                         );
 
                 const previousTicketBalance = previousTickets.reduce(
-                    (sum, ticket) => sum + getRealTicketImpact(ticket),
+                    (sum, ticket) =>
+                        sum + (
+                            ticket.resultado === "Pendente"
+                                ? chartMode === "Banca" ? -getRealStake(ticket) : 0
+                                : getRealTicketImpact(ticket)
+                        ),
                     0
                 );
                 const previousMovementBalance = previousMovements.reduce((sum, movement) => {
@@ -7086,6 +7093,16 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                 if (!dailyTotals[ticket.data]) dailyTotals[ticket.data] = 0;
                 dailyTotals[ticket.data] += getRealTicketImpact(ticket);
             });
+
+        if (chartMode === "Banca") {
+            chartTickets
+                .filter((ticket) => ticket.resultado === "Pendente")
+                .forEach((ticket) => {
+                    const commitmentDate = ticket.data > hojeISO() ? hojeISO() : ticket.data;
+                    if (!dailyTotals[commitmentDate]) dailyTotals[commitmentDate] = 0;
+                    dailyTotals[commitmentDate] -= getRealStake(ticket);
+                });
+        }
 
         if (chartMode === "Banca") {
             chartMovements.forEach((movement) => {
@@ -7298,6 +7315,107 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         chartMode,
     ]);
 
+    const performanceHistoryData = useMemo(() => {
+        if (selectedHouseScope === null) return [];
+
+        const resolvedTickets = tickets
+            .filter((ticket) => {
+                if (selectedHouseScope === "all") return true;
+                return Number(ticket.casaId) === Number(selectedHouseScope);
+            })
+            .filter((ticket) => ticket.resultado !== "Pendente")
+            .sort((a, b) => String(a.data || "").localeCompare(String(b.data || "")) || Number(a.id || 0) - Number(b.id || 0));
+
+        const hasPeriod = analyticsPeriodType !== "Geral";
+        const periodStart = hasPeriod ? analyticsPeriodInterval.start : "";
+        const periodEnd = hasPeriod ? analyticsPeriodInterval.end : "";
+        const previousResult = resolvedTickets
+            .filter((ticket) => hasPeriod && ticket.data < periodStart)
+            .reduce((sum, ticket) => sum + getRealTicketImpact(ticket), 0);
+        const periodTickets = hasPeriod
+            ? resolvedTickets.filter((ticket) => ticket.data >= periodStart && ticket.data <= periodEnd)
+            : resolvedTickets;
+        const dailyTotals = new Map();
+
+        periodTickets.forEach((ticket) => {
+            dailyTotals.set(ticket.data, (dailyTotals.get(ticket.data) || 0) + getRealTicketImpact(ticket));
+        });
+
+        let timelineDates;
+        let baselineDate;
+
+        if (!hasPeriod) {
+            timelineDates = [...dailyTotals.keys()].sort((a, b) => String(a).localeCompare(String(b)));
+            if (timelineDates.length === 0) return [];
+            baselineDate = addDays(timelineDates[0], -1);
+        } else if (analyticsPeriodType === "Anual") {
+            const year = analyticsPeriodReference;
+            const monthlyTotals = new Map();
+
+            dailyTotals.forEach((value, date) => {
+                const monthKey = String(date).slice(0, 7);
+                monthlyTotals.set(monthKey, (monthlyTotals.get(monthKey) || 0) + value);
+            });
+
+            timelineDates = Array.from({ length: 12 }, (_, index) => {
+                const month = String(index + 1).padStart(2, "0");
+                const monthKey = `${year}-${month}`;
+                const date = `${monthKey}-01`;
+                dailyTotals.set(date, monthlyTotals.get(monthKey) || 0);
+                return date;
+            });
+            baselineDate = addDays(timelineDates[0], -1);
+        } else {
+            const today = hojeISO();
+            const endDate = periodEnd > today ? today : periodEnd;
+            timelineDates = [];
+
+            for (let date = periodStart; date <= endDate; date = addDays(date, 1)) {
+                timelineDates.push(date);
+            }
+
+            if (timelineDates.length === 0) return [];
+            baselineDate = addDays(timelineDates[0], -1);
+        }
+
+        let performance = previousResult;
+        const result = [{
+            data: baselineDate,
+            banca: Number(performance.toFixed(2)),
+            bancaLinha: Number(performance.toFixed(2)),
+            resultado: 0,
+            label: getCompactResultLabel(baselineDate, analyticsPeriodType),
+            tooltipLabel: formatDateBR(baselineDate),
+        }];
+
+        timelineDates.forEach((date) => {
+            const dailyResult = dailyTotals.get(date) || 0;
+            performance += dailyResult;
+            const isFuture = hasPeriod && analyticsPeriodType !== "Geral" && date > hojeISO();
+            result.push({
+                data: date,
+                banca: Number(performance.toFixed(2)),
+                bancaLinha: isFuture ? undefined : Number(performance.toFixed(2)),
+                resultado: Number(dailyResult.toFixed(2)),
+                label: analyticsPeriodType === "Anual"
+                    ? getAnalyticsDateLabel(date, analyticsPeriodType)
+                    : analyticsPeriodType === "Semanal"
+                        ? getAnalyticsDateLabel(date, "Semanal")
+                        : getCompactResultLabel(date, analyticsPeriodType),
+                tooltipLabel: formatDateBR(date),
+                future: isFuture,
+            });
+        });
+
+        return result;
+    }, [
+        tickets,
+        selectedHouseScope,
+        analyticsPeriodType,
+        analyticsPeriodReference,
+        analyticsPeriodInterval,
+    ]);
+
     const resultChartData = useMemo(() => {
         if (selectedHouseScope === null) return [];
 
@@ -7380,7 +7498,16 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
     const topCurrentBank =
         selectedHouseScope === null || topInitialBank === null
             ? null
-            : topInitialBank + summaryStats.realProfit + summaryStats.movementBalance;
+            : selectedHouseScope === "all"
+                ? housesWithCurrentBank.reduce(
+                    (sum, house) => sum + Number(house.bancaTotal ?? 0) - tickets
+                        .filter((ticket) => Number(ticket.casaId) === Number(house.id) && ticket.resultado === "Pendente")
+                        .reduce((pendingSum, ticket) => pendingSum + getRealStake(ticket), 0),
+                    0
+                )
+                : Number(selectedHouseData?.bancaTotal ?? 0) - tickets
+                    .filter((ticket) => Number(ticket.casaId) === Number(selectedHouseScope) && ticket.resultado === "Pendente")
+                    .reduce((pendingSum, ticket) => pendingSum + getRealStake(ticket), 0);
 
     const finalResult =
         selectedHouseScope === null ? null : summaryStats.realProfit;
@@ -8726,6 +8853,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
                             allHitRate={allHitRate}
                             analyticsPeriodType={analyticsPeriodType}
                             bankHistoryData={bankHistoryData}
+                            performanceHistoryData={performanceHistoryData}
                             chartMode={chartMode}
                             dayMarkers={dashboardDayMarkers}
                             houses={houses}
