@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateFinancialPosition,
+  calculateHistoricalPosition,
   calculateHouseFinancialPosition,
   getRealTicketImpact,
+  reconstructDailyEvolution,
+  simulateHistoricalMovement,
   validateHouseLedger,
 } from "./financialLedger";
 
@@ -108,5 +111,95 @@ describe("financial ledger", () => {
       initialBalance: 1000,
       tickets: [pending({ stakeReal: 120, stakeBonus: 80 })],
     })).toMatchObject({ committedBalance: 120, totalBalance: 1000, availableBalance: 880 });
+  });
+
+  it("calcula a posição financeira até a data informada", () => {
+    const position = calculateHistoricalPosition({
+      house,
+      movements: [
+        { id: 1, casaId: 1, data: "2026-09-02", tipo: "Depósito", valor: 200 },
+        { id: 2, casaId: 1, data: "2026-09-10", tipo: "Depósito", valor: 500 },
+      ],
+      date: "2026-09-03",
+    });
+
+    expect(position).toMatchObject({ totalBalance: 1200, availableBalance: 1200 });
+  });
+
+  it("não deixa movimentações posteriores afetarem uma data anterior", () => {
+    const position = calculateHistoricalPosition({
+      house,
+      movements: [{ casaId: 1, data: "2026-09-05", tipo: "Depósito", valor: 500 }],
+      date: "2026-09-04",
+    });
+
+    expect(position.availableBalance).toBe(1000);
+  });
+
+  it("considera o bilhete pela data do evento, mesmo que tenha sido cadastrado depois", () => {
+    const position = calculateHistoricalPosition({
+      house,
+      tickets: [pending({ data: "2026-09-03", stakeReal: 400, created_at: "2026-09-10" })],
+      date: "2026-09-03",
+    });
+
+    expect(position).toMatchObject({ committedBalance: 400, availableBalance: 600 });
+  });
+
+  it("não compromete saldo histórico com bilhete pendente posterior", () => {
+    const position = calculateHistoricalPosition({
+      house,
+      tickets: [pending({ data: "2026-09-05", stakeReal: 400 })],
+      date: "2026-09-04",
+    });
+
+    expect(position).toMatchObject({ committedBalance: 0, availableBalance: 1000 });
+  });
+
+  it("permite saque quando havia saldo disponível suficiente na data", () => {
+    const simulation = simulateHistoricalMovement({
+      house,
+      movements: [{ casaId: 1, data: "2026-09-02", tipo: "Depósito", valor: 200 }],
+      tickets: [pending({ data: "2026-09-03", stakeReal: 400 })],
+      movement: { casaId: 1, data: "2026-09-04", tipo: "Saque", valor: 800 },
+    });
+
+    expect(simulation).toMatchObject({ valid: true, availableBalance: 800 });
+  });
+
+  it("recusa saque por saldo insuficiente na data, mesmo com evento posterior", () => {
+    const simulation = simulateHistoricalMovement({
+      house,
+      movements: [{ casaId: 1, data: "2026-09-10", tipo: "Depósito", valor: 500 }],
+      tickets: [pending({ data: "2026-09-03", stakeReal: 400 })],
+      movement: { casaId: 1, data: "2026-09-04", tipo: "Saque", valor: 700 },
+    });
+
+    expect(simulation).toMatchObject({ valid: false, availableBalance: 600 });
+  });
+
+  it("remove o saque original ao simular uma edição", () => {
+    const originalWithdrawal = { id: 9, casaId: 1, data: "2026-09-03", tipo: "Saque", valor: 500 };
+    const simulation = simulateHistoricalMovement({
+      house,
+      movements: [originalWithdrawal],
+      movement: { id: 9, casaId: 1, data: "2026-09-03", tipo: "Saque", valor: 700 },
+      excludeMovementId: 9,
+    });
+
+    expect(simulation).toMatchObject({ valid: true, availableBalance: 1000 });
+  });
+
+  it("reconstrói a evolução diária usando a posição de cada data", () => {
+    const evolution = reconstructDailyEvolution({
+      house,
+      movements: [{ casaId: 1, data: "2026-09-02", tipo: "Depósito", valor: 200 }],
+      tickets: [pending({ data: "2026-09-03", stakeReal: 300 })],
+      startDate: "2026-09-01",
+      endDate: "2026-09-03",
+    });
+
+    expect(evolution).toHaveLength(3);
+    expect(evolution.map((item) => item.availableBalance)).toEqual([1000, 1200, 900]);
   });
 });

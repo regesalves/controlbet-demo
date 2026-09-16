@@ -15,6 +15,7 @@ import {
 } from "../utils/bankingDataCache";
 import {
     calculateHouseFinancialPosition,
+    simulateHistoricalMovement,
     getRealStake,
     getRealTicketImpact,
     validateHouseLedger as validateFinancialLedger,
@@ -707,7 +708,7 @@ function getInitialCalendarView(periodType) {
     return "day";
 }
 
-function ReferenceDatePicker({ label = "Data", value, onChange, dayMarkers = {} }) {
+function ReferenceDatePicker({ label = "Data", value, onChange, dayMarkers = {}, disableFutureDates = false }) {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [calendarPosition, setCalendarPosition] = useState(null);
     const pickerRef = useRef(null);
@@ -820,6 +821,7 @@ function ReferenceDatePicker({ label = "Data", value, onChange, dayMarkers = {} 
                             mode="single"
                             selected={selectedDate}
                             onSelect={handleDaySelect}
+                            disabled={disableFutureDates ? (date) => dateToISO(date) > hojeISO() : undefined}
                             modifiers={{
                                 hasTicket: (date) => dayMarkers[dateToISO(date)] === "ticket",
                                 hasMovement: (date) => dayMarkers[dateToISO(date)] === "movement",
@@ -3195,7 +3197,7 @@ function TicketFormPanel({ feedback, houses, isSaving, ticketForm, setTicketForm
                 </section>
 
                 <div className="reference-form-actions">
-                    <button type="button" className="submenu-secondary-button" onClick={() => setTicketForm({ ...initialTicketForm, data: hojeISO() })}>Limpar campos</button>
+                    <button type="button" className="submenu-secondary-button" onClick={() => setTicketForm(createInitialTicketForm())}>Limpar campos</button>
                     <button type="submit" className="submenu-primary-button" disabled={isSaving}>{isSaving ? "Salvando..." : editingTicketId ? "Salvar bilhete" : "Adicionar bilhete"}</button>
                 </div>
             </form>
@@ -3260,7 +3262,7 @@ function GuidedTicketFormPanel({ feedback, houses, isSaving, ticketForm, setTick
                         </div>
                         <div className="ticket-reference-actions">
                             <button type="submit" className="submenu-primary-button" disabled={isSaving}>{isSaving ? "Salvando..." : editingTicketId ? "Salvar bilhete" : "Salvar bilhete"}</button>
-                            <button type="button" className="submenu-secondary-button" onClick={() => setTicketForm({ ...initialTicketForm, data: hojeISO() })}>Limpar campos</button>
+                            <button type="button" className="submenu-secondary-button" onClick={() => setTicketForm(createInitialTicketForm())}>Limpar campos</button>
                         </div>
                     </section>
 
@@ -3679,7 +3681,7 @@ function MovementPanel({ feedback, houses, isSaving, movementForm, setMovementFo
                         <p>Preencha os dados da movimentação.</p>
                     </header>
                     <div className="reference-form-grid">
-                        <ReferenceDatePicker value={movementForm.data} onChange={(date) => setMovementForm((prev) => ({ ...prev, data: date }))} />
+                        <ReferenceDatePicker disableFutureDates value={movementForm.data} onChange={(date) => setMovementForm((prev) => ({ ...prev, data: date }))} />
                         <label>Casa de aposta<select value={movementForm.casaId} onChange={(e) => setMovementForm((prev) => ({ ...prev, casaId: e.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
                         <label>Tipo<select value={movementForm.tipo} onChange={(e) => setMovementForm((prev) => ({ ...prev, tipo: e.target.value }))}><option>Depósito</option><option>Saque</option><option>Ajuste</option></select></label>
                             <label>Valor<input value={movementForm.valor} inputMode={movementForm.tipo === "Ajuste" ? "decimal" : "numeric"} onChange={(e) => setMovementForm((prev) => ({ ...prev, valor: prev.tipo === "Ajuste" ? formatSignedCurrencyTyping(e.target.value) : formatCurrencyTyping(e.target.value) }))} placeholder="R$ 0,00" /></label>
@@ -3933,14 +3935,14 @@ function RefinedMovementPanel({ feedback, houses, isSaving, movementForm, setMov
                             <h2>Dados da movimentação</h2>
                         </header>
                         <div className="reference-form-grid refined-movement-fields-grid">
-                            <ReferenceDatePicker value={movementForm.data} onChange={(date) => setMovementForm((prev) => ({ ...prev, data: date }))} />
+                            <ReferenceDatePicker disableFutureDates value={movementForm.data} onChange={(date) => setMovementForm((prev) => ({ ...prev, data: date }))} />
                             <label>Casa<select value={movementForm.casaId} onChange={(event) => setMovementForm((prev) => ({ ...prev, casaId: event.target.value }))}><option value="">Selecione</option>{houses.map((house) => <option key={house.id} value={house.id}>{house.nome}</option>)}</select></label>
                         <label>Valor<input value={movementForm.valor} inputMode={movementForm.tipo === "Ajuste" ? "decimal" : "numeric"} onChange={(event) => setMovementForm((prev) => ({ ...prev, valor: prev.tipo === "Ajuste" ? formatSignedCurrencyTyping(event.target.value) : formatCurrencyTyping(event.target.value) }))} placeholder="R$ 0,00" /></label>
                             <div className="wide movement-description-actions">
                                 <label className="reference-textarea-field">Descrição<textarea rows="4" value={movementForm.observacoes} onChange={(event) => setMovementForm((prev) => ({ ...prev, observacoes: event.target.value }))} placeholder={descriptionPlaceholder} /></label>
                                 <div className="reference-form-actions refined-movement-actions movement-inline-actions">
                                     <button type="submit" className="submenu-primary-button" disabled={isSaving || !isMovementFormComplete}>{isSaving ? "Salvando..." : editingMovementId ? "Salvar movimentação" : "Adicionar movimentação"}</button>
-                                    <button type="button" className="submenu-secondary-button" onClick={() => setMovementForm(initialMovementForm)}>Limpar campos</button>
+                                    <button type="button" className="submenu-secondary-button" onClick={() => setMovementForm(createInitialMovementForm())}>Limpar campos</button>
                                 </div>
                             </div>
                         </div>
@@ -6112,20 +6114,22 @@ function validateHouseLedger({ houses = [], movements = [], tickets = [] }, hous
     );
 }
 
-const initialTicketForm = {
-    data: hojeISO(),
-    casaId: "",
-    categoria: "",
-    odd: "",
-    stake: "",
-    retorno: "",
-    origemStake: STAKE_ORIGINS.BALANCE,
-    stakeSaldo: "",
-    stakeDeposito: "",
-    stakeBonus: "",
-    resultado: "Pendente",
-    observacoes: "",
-};
+function createInitialTicketForm() {
+    return {
+        data: hojeISO(),
+        casaId: "",
+        categoria: "",
+        odd: "",
+        stake: "",
+        retorno: "",
+        origemStake: STAKE_ORIGINS.BALANCE,
+        stakeSaldo: "",
+        stakeDeposito: "",
+        stakeBonus: "",
+        resultado: "Pendente",
+        observacoes: "",
+    };
+}
 
 function getTicketResultForReturn(returnText, stakeText, currentResult = "Pendente") {
     if (String(returnText || "").trim() === "") return "Pendente";
@@ -6279,14 +6283,16 @@ function formatDashboardBankingData(data, userId) {
     };
 }
 
-const initialMovementForm = {
-    data: hojeISO(),
-    casaId: "",
-    tipo: "Depósito",
-    valor: "",
-    metodo: "PIX",
-    observacoes: "",
-};
+function createInitialMovementForm() {
+    return {
+        data: hojeISO(),
+        casaId: "",
+        tipo: "Depósito",
+        valor: "",
+        metodo: "PIX",
+        observacoes: "",
+    };
+}
 
 function getDefaultBottomPanel(navItem, requestedPanel = null) {
     if (requestedPanel) return requestedPanel;
@@ -6315,9 +6321,9 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
     const [movements, setMovements] = useState(() => initialDashboardData?.movements || []);
 
-    const [ticketForm, setTicketForm] = useState(initialTicketForm);
+    const [ticketForm, setTicketForm] = useState(createInitialTicketForm);
     const [houseForm, setHouseForm] = useState(initialHouseForm);
-    const [movementForm, setMovementForm] = useState(initialMovementForm);
+    const [movementForm, setMovementForm] = useState(createInitialMovementForm);
     const [isDashboardLoading, setIsDashboardLoading] = useState(() => !initialDashboardData);
     const [dashboardLoadError, setDashboardLoadError] = useState(null);
 
@@ -6392,8 +6398,11 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         if (!location.state?.activeNavItem) return;
 
         const nextNavItem = location.state.activeNavItem;
+        const nextPanel = getDefaultBottomPanel(nextNavItem, location.state.activeBottomPanel);
+        if (nextPanel === "ticket") resetTicketForm();
+        if (nextPanel === "movementForm") resetMovementForm();
         setActiveNavItem(nextNavItem);
-        setActiveBottomPanel(getDefaultBottomPanel(nextNavItem, location.state.activeBottomPanel));
+        setActiveBottomPanel(nextPanel);
         navigate(location.pathname, { replace: true, state: null });
     }, [location.pathname, location.state?.activeBottomPanel, location.state?.activeNavItem, location.state?.navigationIntent, navigate]);
 
@@ -6469,6 +6478,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         }
 
         if (itemId === "tickets") {
+            if (panelId === "ticket") resetTicketForm();
             setActiveBottomPanel(panelId || "ticketsDay");
             return;
         }
@@ -6485,6 +6495,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         }
 
         if (itemId === "movements") {
+            if (panelId === "movementForm") resetMovementForm();
             setActiveBottomPanel(panelId || "extract");
             return;
         }
@@ -7753,19 +7764,13 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
     }
 
     function resetTicketForm() {
-        setTicketForm({
-            ...initialTicketForm,
-            data: hojeISO(),
-        });
+        setTicketForm(createInitialTicketForm());
         setEditingTicketId(null);
         setTicketFeedback({ type: "", message: "" });
     }
 
     function resetMovementForm() {
-        setMovementForm({
-            ...initialMovementForm,
-            data: hojeISO(),
-        });
+        setMovementForm(createInitialMovementForm());
         setEditingMovementId(null);
         setMovementFeedback({ type: "", message: "" });
     }
@@ -8036,7 +8041,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
         invalidateBankingDataCache(userId);
         setTickets((prev) => reorderTickets([newTicket, ...prev]));
-        setTicketForm({ ...initialTicketForm, data: ticketForm.data });
+        setTicketForm(createInitialTicketForm());
         setTicketFeedback({ type: "success", message: "Bilhete salvo com sucesso." });
         setIsSavingTicket(false);
     }
@@ -8049,6 +8054,11 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
         if (!userId) {
             setMovementFeedback({ type: "error", message: authRequiredMessage });
             handleAuthFailure();
+            return;
+        }
+
+        if (!movementForm.data || movementForm.data > hojeISO()) {
+            setMovementFeedback({ type: "error", message: "A data da movimentação não pode ser futura." });
             return;
         }
 
@@ -8076,19 +8086,18 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
             const selectedHouse = houses.find(
                 (house) => Number(house.id) === Number(payload.casaId)
             );
-            const movementsWithoutEdited = editingMovementId
-                ? movements.filter((movement) => Number(movement.id) !== Number(editingMovementId))
-                : movements;
-            const availableBank = calculateHouseFinancialPosition({
+            const historicalSimulation = simulateHistoricalMovement({
                 house: selectedHouse,
-                movements: movementsWithoutEdited,
+                movements,
                 tickets,
-            }).availableBalance;
+                movement: payload,
+                excludeMovementId: editingMovementId,
+            });
 
-            if (payload.valor > availableBank) {
+            if (!historicalSimulation.valid) {
                 setMovementFeedback({
                     type: "error",
-                    message: `Saque não permitido. A banca disponível para esta casa é ${formatMoney(availableBank)}.`,
+                    message: `Saque não permitido. A banca disponível para esta casa na data informada era ${formatMoney(historicalSimulation.availableBalance)}.`,
                 });
                 return;
             }
@@ -8168,7 +8177,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
         invalidateBankingDataCache(userId);
         setMovements((prev) => [newMovement, ...prev]);
-        setMovementForm({ ...initialMovementForm, data: movementForm.data });
+        setMovementForm(createInitialMovementForm());
         setMovementFeedback({ type: "success", message: "Movimentação salva com sucesso." });
         setIsSavingMovement(false);
     }
@@ -8263,7 +8272,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
         if (editingTicketId === ticketId) {
             setEditingTicketId(null);
-            setTicketForm(initialTicketForm);
+            setTicketForm(createInitialTicketForm());
         }
 
     }
@@ -8353,7 +8362,7 @@ export default function DashboardPage({ landingTheme = "dark", onToggleTheme = (
 
         if (editingMovementId === movementId) {
             setEditingMovementId(null);
-            setMovementForm(initialMovementForm);
+            setMovementForm(createInitialMovementForm());
         }
     }
 
